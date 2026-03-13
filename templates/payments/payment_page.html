@@ -1,0 +1,449 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Checkout - Canteen{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/payment.css' %}">
+<style>
+    /* --- Stripe Loading Overlay --- */
+    .stripe-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        background: var(--background, #121212);
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 28px;
+        animation: overlayIn 0.3s ease;
+    }
+
+    .stripe-overlay.active {
+        display: flex;
+    }
+
+    @keyframes overlayIn {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    .stripe-overlay-card {
+        background: var(--white);
+        border-radius: 20px;
+        padding: 48px 56px;
+        text-align: center;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        max-width: 400px;
+        width: 90%;
+    }
+
+    .stripe-overlay-icon {
+        width: 64px;
+        height: 64px;
+        margin: 0 auto 20px;
+        border-radius: 50%;
+        background: var(--primary-light, rgba(252, 128, 25, 0.1));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--primary, #ff5200);
+    }
+
+    .stripe-overlay h3 {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--dark, #1c1c1c);
+        margin: 0 0 8px;
+    }
+
+    .stripe-overlay p {
+        font-size: 14px;
+        color: var(--grey, #686b78);
+        margin: 0 0 24px;
+    }
+
+    .stripe-progress-bar {
+        width: 100%;
+        height: 4px;
+        background: var(--border, #e9e9eb);
+        border-radius: 4px;
+        overflow: hidden;
+        margin-bottom: 20px;
+    }
+
+    .stripe-progress-fill {
+        width: 0%;
+        height: 100%;
+        background: linear-gradient(90deg, var(--primary, #ff5200), #ff9a3c);
+        border-radius: 4px;
+        animation: progressAnim 2.5s ease-in-out forwards;
+    }
+
+    @keyframes progressAnim {
+        0% {
+            width: 0%;
+        }
+
+        40% {
+            width: 60%;
+        }
+
+        70% {
+            width: 80%;
+        }
+
+        100% {
+            width: 95%;
+        }
+    }
+
+    .stripe-steps {
+        display: flex;
+        gap: 20px;
+        justify-content: center;
+    }
+
+    .stripe-step {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 12px;
+        color: var(--light-grey, #93959f);
+        transition: color 0.4s ease;
+    }
+
+    .stripe-step.active {
+        color: var(--primary, #ff5200);
+        font-weight: 600;
+    }
+
+    .stripe-step.done {
+        color: var(--success, #60b246);
+    }
+
+    .stripe-step-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--border, #e9e9eb);
+        transition: background 0.4s ease;
+    }
+
+    .stripe-step.active .stripe-step-dot {
+        background: var(--primary, #ff5200);
+    }
+
+    .stripe-step.done .stripe-step-dot {
+        background: var(--success, #60b246);
+    }
+
+    .stripe-secure-text {
+        font-size: 11px;
+        color: var(--light-grey, #93959f);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+    }
+
+    .stripe-secure-text svg {
+        width: 12px;
+        height: 12px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Stripe Loading Overlay -->
+<div class="stripe-overlay" id="stripeOverlay">
+    <div class="stripe-overlay-card">
+        <div class="stripe-overlay-icon">
+            <svg viewBox="0 0 24 24" width="28" height="28" stroke="currentColor" stroke-width="2" fill="none"
+                stroke-linecap="round" stroke-linejoin="round">
+                <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                <line x1="1" y1="10" x2="23" y2="10"></line>
+            </svg>
+        </div>
+        <h3>Preparing checkout</h3>
+        <p>Setting up your secure payment session...</p>
+        <div class="stripe-progress-bar">
+            <div class="stripe-progress-fill"></div>
+        </div>
+        <div class="stripe-steps">
+            <div class="stripe-step active" id="step1"><span class="stripe-step-dot"></span> Verifying</div>
+            <div class="stripe-step" id="step2"><span class="stripe-step-dot"></span> Connecting</div>
+            <div class="stripe-step" id="step3"><span class="stripe-step-dot"></span> Redirecting</div>
+        </div>
+    </div>
+    <div class="stripe-secure-text">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+        </svg>
+        256-bit SSL encrypted · Powered by Stripe
+    </div>
+</div>
+
+<section class="payment-section">
+    <div class="container">
+
+        <div class="trust-bar">
+            <span class="trust-bar-icon">
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                    <path
+                        d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4zm-2 16l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z" />
+                </svg>
+            </span>
+            <span>256-bit SSL Encrypted Checkout &nbsp;·&nbsp; Your payment information is secure</span>
+            <span class="trust-logos">
+                <span class="trust-badge">UPI</span>
+                <span class="trust-badge">Visa</span>
+                <span class="trust-badge">MC</span>
+                <span class="trust-badge">RuPay</span>
+            </span>
+        </div>
+
+        <div class="payment-container">
+            <!-- Order Summary Left Column -->
+            <div class="payment-summary">
+                <div class="summary-header">
+                    <div class="summary-token">Order {{ order.token_number }}</div>
+                    <h2 class="summary-title">Order Summary</h2>
+                    <div class="summary-item-count">{{ order.items.count }} item{{ order.items.count|pluralize }}</div>
+                </div>
+
+                <div class="summary-items">
+                    {% for item in order.items.all %}
+                    <div class="summary-item">
+                        <div class="summary-item-name">
+                            <span class="summary-item-qty">{{ item.quantity }}×</span>
+                            {{ item.item_name }}
+                        </div>
+                        <div class="summary-item-price">₹{{ item.get_subtotal }}</div>
+                    </div>
+                    {% endfor %}
+
+                    {% if order.delivery_fee > 0 %}
+                    <div class="summary-item">
+                        <div class="summary-item-name">
+                            <span class="summary-item-qty">
+                                <svg viewBox="0 0 24 24" width="12" height="12" stroke="currentColor" stroke-width="2"
+                                    fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M5 12h14M12 5l7 7-7 7" />
+                                </svg>
+                            </span>
+                            Delivery Fee ({{ order.get_delivery_type_display }})
+                        </div>
+                        <div class="summary-item-price">₹{{ order.delivery_fee }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="summary-total">
+                    <div class="summary-total-label">Total Amount</div>
+                    <div class="summary-total-value">₹{{ order.total_amount }}</div>
+                </div>
+
+                <div class="summary-secure-note">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                    </svg>
+                    Protected Checkout · Powered by CampusBites
+                </div>
+            </div>
+
+            <!-- Payment Methods Right Column -->
+            <div class="payment-methods">
+                <h3 class="payment-methods-title">Complete your payment</h3>
+
+                <!-- Stripe Payment Card -->
+                <div class="payment-method-wrapper">
+                    <a href="{% url 'process_online_payment' order.id %}" class="payment-method-card featured"
+                        id="stripePayBtn" onclick="startStripeCheckout(event, this)">
+                        <div class="payment-method-icon"
+                            style="color: var(--primary); background: var(--primary-light);">
+                            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2"
+                                fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                                <line x1="1" y1="10" x2="23" y2="10"></line>
+                            </svg>
+                        </div>
+                        <div class="payment-method-details">
+                            <h4>Pay with Stripe</h4>
+                            <p>Cards, UPI, Wallets — powered by Stripe</p>
+                            <span class="method-time">⚡ Instant confirmation</span>
+                        </div>
+                        <div class="payment-method-arrow">➔</div>
+                    </a>
+                    <span class="badge-recommended">Recommended</span>
+                </div>
+
+                <!-- Wallet Payment Card -->
+                {% if wallet_sufficient %}
+                <div class="payment-method-wrapper">
+                    <div class="wallet-savings-banner">
+                        <span>🎉</span>
+                        <span>You have enough wallet balance! Save time with instant payment.</span>
+                    </div>
+                    <form method="POST" action="{% url 'process_wallet_payment' order.id %}" id="walletForm"
+                        style="margin: 0;">
+                        {% csrf_token %}
+                        <button type="submit" class="payment-method-card"
+                            style="width: 100%; border: none; text-align: left; background: var(--white);">
+                            <div class="payment-method-icon"
+                                style="color: #f59e0b; background: rgba(245, 158, 11, 0.1);">
+                                <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2"
+                                    fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"></path>
+                                    <path d="M4 6v12c0 1.1.9 2 2 2h14v-4"></path>
+                                    <path d="M18 12a2 2 0 0 0-2 2c0 1.1.9 2 2 2h4v-4h-4z"></path>
+                                </svg>
+                            </div>
+                            <div class="payment-method-details">
+                                <h4>Pay with Canteen Wallet</h4>
+                                <p>Available Balance: <strong style="color: #10b981;">₹{{ wallet_balance }}</strong></p>
+                                <span class="method-time">⚡ Instant · No OTP needed</span>
+                            </div>
+                            <div class="payment-method-arrow" id="walletArrow">➔</div>
+                        </button>
+                    </form>
+                </div>
+                {% else %}
+                <div class="payment-method-card disabled">
+                    <div class="payment-method-icon" style="color: #9ca3af; background: #f3f4f6;">
+                        <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2"
+                            fill="none" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12v4"></path>
+                            <path d="M4 6v12c0 1.1.9 2 2 2h14v-4"></path>
+                            <path d="M18 12a2 2 0 0 0-2 2c0 1.1.9 2 2 2h4v-4h-4z"></path>
+                        </svg>
+                    </div>
+                    <div class="payment-method-details">
+                        <h4 style="color: #6b7280;">Pay with Canteen Wallet</h4>
+                        <p>Balance: ₹{{ wallet_balance }}
+                            {% if wallet_shortfall > 0 %}
+                            &nbsp;·&nbsp; <span style="color:#ef4444;">₹{{ wallet_shortfall }} short</span>
+                            {% endif %}
+                        </p>
+                        <span class="method-time">
+                            <a href="{% url 'wallet' %}"
+                                style="color: var(--primary); text-decoration: none; font-weight: 600;">+ Add ₹{{
+                                wallet_shortfall }} to wallet</a>
+                        </span>
+                    </div>
+                    <div class="payment-method-arrow" style="opacity:0.3;">➔</div>
+                </div>
+                {% endif %}
+
+                <!-- Cash Payment Card -->
+                <form method="POST" action="{% url 'process_cash_payment' order.id %}" id="cashForm" style="margin:0;">
+                    {% csrf_token %}
+                    <button type="submit" class="payment-method-card"
+                        style="width:100%; border:none; text-align:left; background:var(--white);"
+                        onclick="return confirm('Confirm cash payment? You will pay at the counter when you pick up.');">
+                        <div class="payment-method-icon" style="color: #10b981; background: rgba(16, 185, 129, 0.1);">
+                            <svg viewBox="0 0 24 24" width="24" height="24" stroke="currentColor" stroke-width="2"
+                                fill="none" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="2" y="6" width="20" height="12" rx="2"></rect>
+                                <circle cx="12" cy="12" r="2"></circle>
+                                <path d="M6 12h.01M18 12h.01"></path>
+                            </svg>
+                        </div>
+                        <div class="payment-method-details">
+                            <h4>Pay Cash at Counter</h4>
+                            <p>Pay with cash when you pick up</p>
+                            <span class="method-time">🕐 At pickup</span>
+                        </div>
+                        <div class="payment-method-arrow">➔</div>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    // === Swiggy-style: Replace payment page in history before any payment action ===
+    // This ensures back button from order detail goes to menu, not payment page
+
+    // Online payment (Dodo/Stripe) — AJAX checkout
+    window.startStripeCheckout = function (e, element) {
+        e.preventDefault();
+        const url = element.href;
+        const overlay = document.getElementById('stripeOverlay');
+
+        if (!overlay) {
+            history.replaceState(null, '', '/menu/');
+            window.location.replace(url);
+            return;
+        }
+
+        overlay.classList.add('active');
+
+        setTimeout(() => {
+            const step1 = document.getElementById('step1');
+            const step2 = document.getElementById('step2');
+            if (step1) step1.classList.replace('active', 'done');
+            if (step2) step2.classList.add('active');
+        }, 600);
+
+        fetch(url, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            credentials: 'same-origin'
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.url) {
+                    const step2 = document.getElementById('step2');
+                    const step3 = document.getElementById('step3');
+                    if (step2) step2.classList.replace('active', 'done');
+                    if (step3) step3.classList.add('active');
+
+                    // Replace payment page in history, then navigate
+                    history.replaceState(null, '', '/menu/');
+                    setTimeout(() => { window.location.replace(data.url); }, 300);
+                } else {
+                    overlay.classList.remove('active');
+                    alert(data.error || 'Something went wrong. Please try again.');
+                }
+            })
+            .catch(err => {
+                console.error('Payment AJAX error:', err);
+                overlay.classList.remove('active');
+            });
+    };
+
+    // Cash form — replace history before submit
+    try {
+        const cashForm = document.getElementById('cashForm');
+        if (cashForm) {
+            cashForm.addEventListener('submit', function () {
+                history.replaceState(null, '', '/menu/');
+            });
+        }
+    } catch (e) { }
+
+    // Wallet form — replace history + prevent double submit
+    try {
+        const walletForm = document.getElementById('walletForm');
+        if (walletForm) {
+            walletForm.addEventListener('submit', function () {
+                history.replaceState(null, '', '/menu/');
+                const btn = this.querySelector('button');
+                if (btn) {
+                    btn.style.opacity = '0.7';
+                    btn.style.pointerEvents = 'none';
+                }
+                const arrow = document.getElementById('walletArrow');
+                if (arrow) arrow.innerHTML = '⏳';
+            });
+        }
+    } catch (e) { }
+</script>
+{% endblock %}

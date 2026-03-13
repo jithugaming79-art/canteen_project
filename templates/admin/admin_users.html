@@ -1,0 +1,129 @@
+{% extends "admin/admin_base.html" %}
+{% load static %}
+{% block title %}Users{% endblock %}
+
+{% block topbar_left %}
+<div class="page-search">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8" />
+        <path d="m21 21-4.3-4.3" />
+    </svg>
+    <form method="get" style="display:contents;">
+        <input type="text" name="search" placeholder="Search users" value="{{ search }}">
+    </form>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-header-left">
+        <h1>User Management</h1>
+        <p>Manage all registered users</p>
+    </div>
+</div>
+
+<div class="data-card">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>User</th>
+                <th>Role</th>
+                <th>Orders</th>
+                <th>Total Spent</th>
+                <th>Joined</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for u in users %}
+            <tr>
+                <td>
+                    <div class="user-cell">
+                        <div class="user-cell-avatar" style="background:hsl({{ u.id|add:60 }}, 55%, 55%);">
+                            {{ u.username|first|upper }}
+                        </div>
+                        <div class="user-cell-info">
+                            <span class="user-cell-name">{{ u.profile.full_name|default:u.username }}</span>
+                            <span class="user-cell-email">{{ u.email|default:"" }}</span>
+                        </div>
+                    </div>
+                </td>
+                <td><span class="role-badge {{ u.profile.role }}">{{ u.profile.role }}</span></td>
+                <td style="font-weight:600;">{{ u.order_count }}</td>
+                <td style="font-weight:600;">?{{ u.total_spent|floatformat:0|default:"0" }}</td>
+                <td style="font-size:12px;color:var(--admin-text-muted);">{{ u.date_joined|date:"M d, Y" }}</td>
+                <td>
+                    <label class="switch" title="Toggle Active Status">
+                        <input type="checkbox" onchange="toggleUserStatus('{{ u.id }}', this)" {{ u.checked_str }} {{
+                            u.disabled_str }}>
+                        <span class="slider round"></span>
+                    </label>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6">
+                    <div class="admin-empty">
+                        <div class="admin-empty-icon">
+                            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="1" stroke-linecap="round" stroke-linejoin="round" style="opacity: 0.2;">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                            </svg>
+                        </div>
+                        <h3>No users found</h3>
+                        <p>Try adjusting your search</p>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    {% if users.has_other_pages %}
+    <div class="admin-pagination">
+        {% if users.has_previous %}
+        <a class="pg-btn"
+            href="?page={{ users.previous_page_number }}{% if search %}&search={{ search }}{% endif %}"></a>
+        {% else %}
+        <span class="pg-btn disabled"></span>
+        {% endif %}
+        {% for p in users.paginator.page_range %}
+        {% if p == users.number %}
+        <span class="pg-btn active">{{ p }}</span>
+        {% elif p == 1 %}
+        <a class="pg-btn" href="?page=1{% if search %}&search={{ search }}{% endif %}">1</a>
+        {% elif p == users.paginator.num_pages %}
+        <a class="pg-btn" href="?page={{ p }}{% if search %}&search={{ search }}{% endif %}">{{ p }}</a>
+        {% elif p > users.number|add:"-2" %}
+        {% if p < users.number|add:"2" %} <a class="pg-btn"
+            href="?page={{ p }}{% if search %}&search={{ search }}{% endif %}">{{ p }}</a>
+            {% elif p == users.number|add:"2" %}
+            <span class="pg-dots"></span>
+            {% endif %}
+            {% elif p == users.number|add:"-2" %}
+            <span class="pg-dots"></span>
+            {% endif %}
+            {% endfor %}
+            {% if users.has_next %}
+            <a class="pg-btn"
+                href="?page={{ users.next_page_number }}{% if search %}&search={{ search }}{% endif %}"></a>
+            {% else %}
+            <span class="pg-btn disabled"></span>
+            {% endif %}
+    </div>
+    {% endif %}
+</div>
+
+{% block extra_js %}
+<script>
+    window.usersConfig = {
+        apiUrl: "{% url 'custom_admin_users_api' %}",
+        csrf: "{{ csrf_token }}"
+    };
+</script>
+<script src="{% static 'js/admin_users.js' %}"></script>
+{% endblock %}
+{% endblock %}

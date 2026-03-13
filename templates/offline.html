@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container text-center mt-5">
+    <div class="card p-5 shadow-sm">
+        <h1 class="display-1 text-muted">📡</h1>
+        <h2 class="mb-3">You are currently offline</h2>
+        <p class="lead">Please check your internet connection.</p>
+        <p>Some features may not be available until you reconnect.</p>
+        <a href="{% url 'home' %}" class="btn btn-primary mt-3">Try Again</a>
+    </div>
+</div>
+{% endblock %}

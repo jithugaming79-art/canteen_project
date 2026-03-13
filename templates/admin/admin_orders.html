@@ -1,0 +1,261 @@
+{% extends "admin/admin_base.html" %}
+
+{% load static %}
+{% block title %}Orders{% endblock %}
+
+{% block topbar_left %}
+<div class="page-search">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8" />
+        <path d="m21 21-4.3-4.3" />
+    </svg>
+    <form method="get" style="display:contents;">
+        <input type="text" name="search" placeholder="Search orders…" value="{{ search }}"
+            onchange="this.form.submit()">
+        {% if status_filter != 'all' %}
+        <input type="hidden" name="status" value="{{ status_filter }}">
+        {% endif %}
+    </form>
+</div>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-header-left">
+        <h1>Order Management</h1>
+        <p><span id="orderCountAll">{{ counts.all }}</span> total orders</p>
+    </div>
+    <div class="page-header-right" style="display:flex;align-items:center;gap:12px;">
+        <span id="liveIndicator"
+            style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--admin-text-muted);">
+            <span
+                style="width:8px;height:8px;border-radius:50%;background:#00b894;display:inline-block;animation:livePulse 2s infinite;"></span>
+            Live
+        </span>
+        <a href="{% url 'custom_admin_orders_export' %}" class="export-btn">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                <polyline points="7 10 12 15 17 10" />
+                <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            Export CSV
+        </a>
+    </div>
+</div>
+
+<!-- Status Filter Tabs -->
+<div class="filter-tabs-row">
+    <a href="?status=all{% if search %}&search={{ search }}{% endif %}"
+        class="filter-tab-btn {% if status_filter == 'all' %}active{% endif %}">
+        <span class="status-dot" style="background: var(--admin-text-muted);"></span>
+        All <span style="opacity:.6" id="tabCountAll">({{ counts.all }})</span>
+    </a>
+    <a href="?status=pending{% if search %}&search={{ search }}{% endif %}"
+        class="filter-tab-btn {% if status_filter == 'pending' %}active{% endif %}">
+        <span class="status-dot" style="background: var(--admin-warning);"></span>
+        Pending <span style="opacity:.6" id="tabCountPending">({{ counts.pending }})</span>
+    </a>
+    <a href="?status=preparing{% if search %}&search={{ search }}{% endif %}"
+        class="filter-tab-btn {% if status_filter == 'preparing' %}active{% endif %}">
+        <span class="status-dot" style="background: var(--admin-info);"></span>
+        Preparing <span style="opacity:.6" id="tabCountPreparing">({{ counts.preparing }})</span>
+    </a>
+    <a href="?status=ready{% if search %}&search={{ search }}{% endif %}"
+        class="filter-tab-btn {% if status_filter == 'ready' %}active{% endif %}">
+        <span class="status-dot" style="background: var(--admin-purple);"></span>
+        Ready <span style="opacity:.6" id="tabCountReady">({{ counts.ready }})</span>
+    </a>
+    <a href="?status=completed{% if search %}&search={{ search }}{% endif %}"
+        class="filter-tab-btn {% if status_filter == 'completed' %}active{% endif %}">
+        <span class="status-dot" style="background: var(--admin-success);"></span>
+        Completed <span style="opacity:.6" id="tabCountCompleted">({{ counts.completed }})</span>
+    </a>
+</div>
+
+<!-- Orders Table -->
+<form method="post" id="bulkForm">
+    {% csrf_token %}
+    <div class="data-card">
+        <div class="order-toolbar">
+            <div class="order-toolbar-left">
+                <div class="bulk-select">
+                    <input type="checkbox" id="selectAll" onclick="toggleAll(this)">
+                    <label for="selectAll">Select All</label>
+                </div>
+                <select name="bulk_action" class="bulk-action-select">
+                    <option value="">Bulk Actions</option>
+                    <option value="confirmed">Mark Confirmed</option>
+                    <option value="preparing">Mark Preparing</option>
+                    <option value="ready">Mark Ready</option>
+                    <option value="collected">Mark Collected</option>
+                    <option value="cancel">Cancel</option>
+                </select>
+                <button type="submit" class="admin-btn admin-btn-primary admin-btn-sm">Apply</button>
+            </div>
+            <div class="order-toolbar-right">
+                <span id="pageInfo" style="font-size:13px;color:var(--admin-text-muted);">
+                    Page {{ orders.number }} of {{ orders.paginator.num_pages }}
+                </span>
+            </div>
+        </div>
+
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th style="width:40px;"></th>
+                    <th>Order ID</th>
+                    <th>Customer</th>
+                    <th>Items</th>
+                    <th>Scheduled</th>
+                    <th>Total</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="ordersTableBody">
+                {% for order in orders %}
+                <tr>
+                    <td><input type="checkbox" name="order_ids" value="{{ order.id }}"></td>
+                    <td style="font-weight:700;">#{{ order.token_number }}</td>
+                    <td>
+                        <div class="user-cell">
+                            <div class="user-cell-avatar" style="background:hsl({{ order.user.id|add:100 }},50%,60%);">
+                                {{ order.user.username|first|upper }}
+                            </div>
+                            <div class="user-cell-info">
+                                <span class="user-cell-name">{{ order.user.username }}</span>
+                                <span class="user-cell-email">{{ order.user.email|truncatechars:22 }}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="order-items-cell">
+                            {% for oi in order.items.all|slice:":2" %}
+                            <span class="order-item-chip">{{ oi.quantity }}× {{ oi.item_name|truncatechars:12 }}</span>
+                            {% endfor %}
+                            {% if order.items.count > 2 %}
+                            <span class="order-item-chip">+{{ order.items.count|add:"-2" }}</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td>
+                        {% if order.scheduled_for %}
+                        <span class="status-badge" style="background:#e0f2fe;color:#0369a1;">
+                            📅 {{ order.scheduled_for|date:"M d, H:i" }}
+                        </span>
+                        {% else %}
+                        <span style="color:var(--admin-text-muted);">-</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-weight:600;">₹{{ order.total_amount|floatformat:0 }}</td>
+                    <td>
+                        <span class="status-badge {{ order.status }}">{{ order.get_status_display }}</span>
+                    </td>
+                    <td style="font-size:12px;color:var(--admin-text-muted);">
+                        {{ order.created_at|date:"M d, H:i" }}
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <!-- View Details -->
+                            <button type="button" class="action-btn view" title="View Details"
+                                onclick="openOrderModal({{ order.id }})">
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8">
+                        <div class="admin-empty">
+                            <div class="admin-empty-icon">
+                                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="1" stroke-linecap="round" stroke-linejoin="round"
+                                    style="opacity: 0.2;">
+                                    <path d="m7.5 4.27 9 5.15"></path>
+                                    <path
+                                        d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z">
+                                    </path>
+                                    <path d="m3.3 7 8.7 5 8.7-5"></path>
+                                    <path d="M12 22V12"></path>
+                                </svg>
+                            </div>
+                            <h3>No orders found</h3>
+                            <p>Try adjusting your search or filters to find what you're looking for.</p>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        {% if orders.has_other_pages %}
+        <div class="admin-pagination">
+            {% if orders.has_previous %}
+            <a class="pg-btn" href="?page={{ orders.previous_page_number }}&status={{ status_filter }}">&#8249;</a>
+            {% else %}
+            <span class="pg-btn disabled">&#8249;</span>
+            {% endif %}
+
+            {% for p in orders.paginator.page_range %}
+            {% if p == orders.number %}
+            <span class="pg-btn active">{{ p }}</span>
+            {% elif p == 1 %}
+            <a class="pg-btn" href="?page=1&status={{ status_filter }}">1</a>
+            {% elif p == orders.paginator.num_pages %}
+            <a class="pg-btn" href="?page={{ p }}&status={{ status_filter }}">{{ p }}</a>
+            {% elif p > orders.number|add:"-2" and p < orders.number|add:"2" %} <a class="pg-btn"
+                href="?page={{ p }}&status={{ status_filter }}">{{ p }}</a>
+                {% elif p == orders.number|add:"2" or p == orders.number|add:"-2" %}
+                <span class="pg-dots">&#8230;</span>
+                {% endif %}
+                {% endfor %}
+
+                {% if orders.has_next %}
+                <a class="pg-btn" href="?page={{ orders.next_page_number }}&status={{ status_filter }}">&#8250;</a>
+                {% else %}
+                <span class="pg-btn disabled">&#8250;</span>
+                {% endif %}
+        </div>
+        {% endif %}
+    </div>
+</form>
+
+<!-- Order Details Modal -->
+<div id="orderModal" class="admin-modal">
+    <div class="admin-modal-content">
+        <div class="admin-modal-header">
+            <h2 id="modalTitle">Order Details</h2>
+            <button type="button" class="close-modal" onclick="closeOrderModal()">&times;</button>
+        </div>
+        <div class="admin-modal-body" id="modalBody">
+            <!-- Populated via JS -->
+            <div class="modal-loading">Loading...</div>
+        </div>
+        <div class="admin-modal-footer">
+            <button type="button" class="admin-btn admin-btn-secondary" onclick="closeOrderModal()">Close</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function toggleAll(src) {
+        var cbs = document.querySelectorAll('input[name="order_ids"]');
+        for (var i = 0; i < cbs.length; i++) { cbs[i].checked = src.checked; }
+    }
+    window.__ordersConfig = {
+        apiUrl: "{% url 'custom_admin_orders_api' %}",
+        status: "{{ status_filter }}",
+        search: "{{ search }}",
+        page: "{{ orders.number }}",
+        csrf: "{{ csrf_token }}"
+    };
+</script>
+<script src="{% static 'js/admin_orders.js' %}?v=3.0"></script>
+{% endblock %}

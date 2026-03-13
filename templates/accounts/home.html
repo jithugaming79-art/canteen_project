@@ -1,0 +1,1818 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Home - College Canteen{% endblock %}
+
+{% block extra_css %}
+<style>
+    .chat-fab-container {
+        display: none !important;
+    }
+
+    .navbar {
+        display: none !important;
+    }
+
+    .hero-profile-icon {
+        position: absolute;
+        top: 20px;
+        right: 80px;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: opacity 0.2s;
+        padding-bottom: 15px;
+    }
+
+    .hero-profile-icon:hover {
+        opacity: 1;
+    }
+
+    .hero-profile-icon .profile-dropdown-menu {
+        display: none !important;
+        visibility: hidden !important;
+        opacity: 0 !important;
+        position: absolute !important;
+        top: 48px !important;
+        right: 0 !important;
+        background: #fff !important;
+        border-radius: 0 !important;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
+        min-width: 160px !important;
+        padding: 8px 0 !important;
+        z-index: 100 !important;
+        flex-direction: column !important;
+    }
+
+    .hero-profile-icon:hover .profile-dropdown-menu {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+    }
+
+    .hero-profile-icon .profile-dropdown-item {
+        display: block !important;
+        padding: 10px 20px !important;
+        color: #3d4152 !important;
+        text-decoration: none !important;
+        font-size: 14px !important;
+        font-weight: 700 !important;
+        font-family: 'Basis Grotesque Pro', 'BasisGrotesquePro-Bold', 'Gilroy', sans-serif !important;
+        white-space: nowrap !important;
+    }
+
+    .hero-profile-icon .profile-dropdown-item:hover {
+        background: #f2f2f6 !important;
+    }
+
+    .hero-signin-btn {
+        position: absolute;
+        top: 20px;
+        right: 80px;
+        z-index: 10;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: #1b1e24;
+        color: #fff;
+        font-family: 'Basis Grotesque Pro', 'Gilroy', sans-serif;
+        font-size: 15px;
+        font-weight: 700;
+        padding: 10px 24px;
+        border-radius: 30px;
+        text-decoration: none;
+        transition: background 0.2s;
+        letter-spacing: 0.3px;
+    }
+
+    .hero-signin-btn:hover {
+        background: #2d3138;
+    }
+
+    /* Animated Search Placeholder */
+    .hero-search-bar {
+        position: relative;
+    }
+
+    .hero-search-animated-placeholder {
+        position: absolute;
+        left: 46px;
+        top: 50%;
+        transform: translateY(-50%);
+        pointer-events: none;
+        font-family: 'Basis Grotesque Pro', 'Gilroy', sans-serif;
+        font-size: 15px;
+        color: #93959f;
+        white-space: nowrap;
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+    }
+
+    .hero-search-animated-placeholder .placeholder-static {
+        color: #93959f;
+    }
+
+    .hero-search-animated-placeholder .placeholder-typed {
+        color: #3d4152;
+        font-weight: 500;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Banner — Swiggy Style -->
+<section class="hero-banner hero-fullpage" id="heroBanner">
+    <!-- Logo (standalone since navbar is hidden) -->
+    <a href="{% url 'home' %}" class="hero-logo">
+        <svg width="28" height="28" viewBox="220 70 460 460" fill="none">
+            <circle cx="450" cy="300" r="230" fill="#fff" />
+            <g transform="translate(450, 300) rotate(45)">
+                <path
+                    d="M -140,-140 h 280 v 280 h -280 Z M -106,-106 v 89 h 89 v -89 Z M 17,-106 v 89 h 89 v -89 Z M -106,17 v 89 h 89 v -89 Z M 17,17 v 89 h 89 v -89 Z"
+                    fill="#FF5200" fill-rule="evenodd" />
+            </g>
+        </svg>
+        <span style="color:#fff;">Campus</span> <span style="color:#fff; font-weight:700;">Bites</span>
+    </a>
+
+    {% if user.is_authenticated %}
+    <!-- Swiggy-style Profile Icon with Dropdown (top-right) -->
+    <div class="hero-profile-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40" fill="none"
+            style="cursor:pointer;">
+            <path
+                d="M40 20C40 31.0457 31.0457 40 20 40C8.9543 40 0 31.0457 0 20C0 8.9543 8.9543 0 20 0C31.0457 0 40 8.9543 40 20Z"
+                fill="#3d4152" />
+            <path fill-rule="evenodd" clip-rule="evenodd"
+                d="M20.449 17.773C23.0101 17.773 25.0849 15.7528 25.0849 13.2608C25.0849 10.7702 23.0101 8.75 20.449 8.75C17.8893 8.75 15.813 10.7702 15.813 13.2608C15.813 15.7528 17.8893 17.773 20.449 17.773ZM10.4354 27.2601C11.9533 23.3136 15.8653 20.5029 20.4498 20.5029C25.037 20.5029 28.9475 23.3136 30.4646 27.26C30.9842 28.6115 31.244 29.2872 30.6889 30.0953C30.1338 30.9034 29.2269 30.9034 27.4132 30.9034H13.4865C11.6729 30.9034 10.766 30.9034 10.2109 30.0952C9.65584 29.2869 9.9157 28.6113 10.4354 27.2601Z"
+                fill="white" />
+        </svg>
+        <div class="profile-dropdown-menu">
+            <a href="{% url 'profile' %}" class="profile-dropdown-item">Profile</a>
+            <a href="{% url 'profile' %}#orders" class="profile-dropdown-item">Orders</a>
+            <a href="{% url 'profile' %}#favourites" class="profile-dropdown-item">Favourites</a>
+            <a href="{% url 'profile' %}#wallet" class="profile-dropdown-item">Wallet</a>
+            <a href="{% url 'logout' %}" class="profile-dropdown-item">Logout</a>
+        </div>
+    </div>
+    {% else %}
+    <!-- Sign In button for logged-out users -->
+    <button onclick="openSignInModal()" class="hero-signin-btn">Sign in</button>
+    {% endif %}
+    <!-- Right-side decorative food image (Swiggy style) -->
+    <img src="https://media-assets.swiggy.com/swiggy/image/upload/fl_lossy,f_auto,q_auto/portal/testing/seo-home/Sushi_replace.png"
+        alt="" class="hero-decor-right" aria-hidden="true">
+
+    <div class="container hero-banner-inner">
+        <h1 class="hero-heading">Order food from your College Canteen.<br>Skip the queue.</h1>
+
+        <!-- Search Bar -->
+        <form class="hero-search-bar" action="{% url 'menu' %}" method="GET" autocomplete="off" {% if not user.is_authenticated %}onsubmit="event.preventDefault(); openSignInModal(); return false;" {% endif %}>
+            <svg class="hero-search-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#93959f"
+                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8" />
+                <line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input type="text" name="q" placeholder="" class="hero-search-input" id="heroSearchInput">
+            <span class="hero-search-animated-placeholder" id="heroSearchPlaceholder"></span>
+        </form>
+
+        <!-- Promo Cards -->
+        <div class="hero-cards-row">
+            <!-- Card 1: Food Delivery -->
+            <a href="{% if user.is_authenticated %}{% url 'menu' %}{% else %}javascript:void(0){% endif %}"
+                class="hero-promo-card" {% if not user.is_authenticated %}onclick="openSignInModal(); return false;" {% endif %}>
+                <div class="hero-promo-text">
+                    <h3 class="hero-promo-title">FOOD DELIVERY</h3>
+                    <p class="hero-promo-subtitle">FROM CANTEEN</p>
+                    <span class="hero-promo-discount">UPTO 60% OFF</span>
+                </div>
+                <img src="{% static 'images/hero/food_delivery.png' %}" alt="Food Delivery" class="hero-promo-img">
+                <span class="hero-promo-arrow">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="5" y1="12" x2="19" y2="12" />
+                        <polyline points="12 5 19 12 12 19" />
+                    </svg>
+                </span>
+            </a>
+
+            <!-- Card 2: Quick Bites -->
+            <a href="{% if user.is_authenticated %}{% url 'menu' %}?category=3{% else %}javascript:void(0){% endif %}"
+                class="hero-promo-card" {% if not user.is_authenticated %}onclick="openSignInModal(); return false;" {% endif %}>
+                <div class="hero-promo-text">
+                    <h3 class="hero-promo-title">QUICK BITES</h3>
+                    <p class="hero-promo-subtitle">INSTANT SNACKS</p>
+                    <span class="hero-promo-discount">UPTO 60% OFF</span>
+                </div>
+                <img src="{% static 'images/hero/snacks.png' %}" alt="Quick Bites" class="hero-promo-img">
+                <span class="hero-promo-arrow">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="5" y1="12" x2="19" y2="12" />
+                        <polyline points="12 5 19 12 12 19" />
+                    </svg>
+                </span>
+            </a>
+
+            <!-- Card 3: Dine In -->
+            <a href="{% if user.is_authenticated %}{% url 'menu' %}{% else %}javascript:void(0){% endif %}"
+                class="hero-promo-card" {% if not user.is_authenticated %}onclick="openSignInModal(); return false;" {% endif %}>
+                <div class="hero-promo-text">
+                    <h3 class="hero-promo-title">DINE IN</h3>
+                    <p class="hero-promo-subtitle">EAT AT CANTEEN & SAVE MORE</p>
+                    <span class="hero-promo-discount">UPTO 50% OFF</span>
+                </div>
+                <img src="{% static 'images/hero/dineout.png' %}" alt="Dine In" class="hero-promo-img">
+                <span class="hero-promo-arrow">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="5" y1="12" x2="19" y2="12" />
+                        <polyline points="12 5 19 12 12 19" />
+                    </svg>
+                </span>
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- ========== SIGN-IN MODAL ========== -->
+{% if not user.is_authenticated %}
+<div class="signin-overlay" id="signinOverlay" onclick="if(event.target===this)closeSignInModal()">
+    <div class="signin-modal">
+        <!-- Close Button -->
+        <button class="signin-close" onclick="closeSignInModal()" aria-label="Close">&times;</button>
+
+        <!-- Step 1: Auth Method Selection -->
+        <div class="signin-step active" id="signinStep1">
+            <h2 class="signin-title">Sign up to start<br>ordering food</h2>
+
+            <button class="signin-social-btn" onclick="window.location.href='/accounts/google/login/?process=login'">
+                <svg width="20" height="20" viewBox="0 0 48 48">
+                    <path fill="#FFC107"
+                        d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 12.955 4 4 12.955 4 24s8.955 20 20 20 20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z" />
+                    <path fill="#FF3D00"
+                        d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4 16.318 4 9.656 8.337 6.306 14.691z" />
+                    <path fill="#4CAF50"
+                        d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238A11.91 11.91 0 0124 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z" />
+                    <path fill="#1976D2"
+                        d="M43.611 20.083H42V20H24v8h11.303a12.04 12.04 0 01-4.087 5.571l.003-.002 6.19 5.238C36.971 39.205 44 34 44 24c0-1.341-.138-2.65-.389-3.917z" />
+                </svg>
+                <span>Continue with Google</span>
+            </button>
+
+            <button class="signin-social-btn" onclick="goToStep('signinStepPhone')">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3d4152" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path
+                        d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z" />
+                </svg>
+                <span>Continue with Phone Number</span>
+            </button>
+
+            <div class="signin-divider"><span>OR</span></div>
+
+            <div class="signin-email-row">
+                <div class="signin-email-input-wrap">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#93959f" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="2" y="4" width="20" height="16" rx="2" />
+                        <path d="M22 7l-10 7L2 7" />
+                    </svg>
+                    <input type="text" id="signinUsername" class="signin-email-input" placeholder="Enter your username">
+                </div>
+                <button class="signin-email-btn" onclick="goToStep('signinStep2')">Continue with Email</button>
+            </div>
+
+            <p class="signin-terms">By continuing, you agree to our<br><a href="{% url 'terms' %}">Terms of Use</a> & <a
+                    href="#">Privacy Policy</a></p>
+        </div>
+
+        <!-- Step Phone: Inline Phone OTP Login -->
+        <div class="signin-step" id="signinStepPhone">
+            <button class="signin-back" onclick="goToStep('signinStep1')">&larr; Back</button>
+            <h2 class="signin-title">Login with Phone</h2>
+            <p class="signin-subtitle">We'll send you a one-time verification code.</p>
+
+            <!-- Phase 1: Phone Number Input -->
+            <div id="modalPhonePhase">
+                <div class="signin-form-group">
+                    <label>Phone Number</label>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <div class="modal-phone-prefix">🇮🇳 +91</div>
+                        <input type="tel" id="modalPhoneInput" class="signin-input" maxlength="10"
+                            placeholder="Enter 10-digit mobile"
+                            style="flex: 1; font-size: 17px; letter-spacing: 1.5px; font-weight: 600;"
+                            oninput="this.value = this.value.replace(/[^0-9]/g, ''); validateModalPhone();"
+                            onkeydown="if(event.key==='Enter'){event.preventDefault();if(!document.getElementById('modalSendOtpBtn').disabled)sendModalOTP();}">
+                    </div>
+                    <div id="modalPhoneError" class="modal-otp-error" style="display: none;"></div>
+                </div>
+                <div id="modal-recaptcha-container"></div>
+                <button type="button" id="modalSendOtpBtn" class="signin-submit-btn" onclick="sendModalOTP()" disabled>
+                    <span id="modalSendText">Get OTP</span>
+                    <span id="modalSendLoader"
+                        style="display: none; align-items: center; justify-content: center; gap: 8px;">
+                        <svg width="18" height="18" viewBox="0 0 24 24"
+                            style="animation: modalOtpSpin 1s linear infinite;">
+                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none"
+                                stroke-dasharray="30 70" />
+                        </svg>
+                        Sending...
+                    </span>
+                </button>
+            </div>
+
+            <!-- Phase 2: OTP Verification -->
+            <div id="modalOtpPhase" style="display: none;">
+                <div style="text-align: center; margin-bottom: 20px;">
+                    <div style="margin-bottom: 8px; display: flex; justify-content: center;">
+                        <div
+                            style="width: 56px; height: 56px; background: linear-gradient(135deg, #f3f4f6, #e5e7eb); border-radius: 14px; display: flex; align-items: center; justify-content: center;">
+                            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#1b1e24"
+                                stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+                                <line x1="12" y1="18" x2="12.01" y2="18" />
+                            </svg>
+                        </div>
+                    </div>
+                    <p style="color: #374151; font-size: 14px;">
+                        OTP sent to <strong id="modalDisplayPhone" style="color: #ff5200;">+91 XXXXXXXXXX</strong>
+                    </p>
+                    <a href="#" onclick="editModalPhone(); return false;"
+                        style="color: #ff5200; font-size: 13px; text-decoration: underline;">Edit number</a>
+                </div>
+
+                <div class="signin-form-group">
+                    <label style="text-align: center; display: block;">Enter 6-Digit OTP</label>
+                    <div id="modalOtpBoxes" style="display: flex; gap: 8px; justify-content: center;">
+                        <input type="text" maxlength="1" class="modal-otp-box" data-idx="0"
+                            oninput="modalOtpInput(this)" onkeydown="modalOtpKeyDown(event, this)" inputmode="numeric">
+                        <input type="text" maxlength="1" class="modal-otp-box" data-idx="1"
+                            oninput="modalOtpInput(this)" onkeydown="modalOtpKeyDown(event, this)" inputmode="numeric">
+                        <input type="text" maxlength="1" class="modal-otp-box" data-idx="2"
+                            oninput="modalOtpInput(this)" onkeydown="modalOtpKeyDown(event, this)" inputmode="numeric">
+                        <input type="text" maxlength="1" class="modal-otp-box" data-idx="3"
+                            oninput="modalOtpInput(this)" onkeydown="modalOtpKeyDown(event, this)" inputmode="numeric">
+                        <input type="text" maxlength="1" class="modal-otp-box" data-idx="4"
+                            oninput="modalOtpInput(this)" onkeydown="modalOtpKeyDown(event, this)" inputmode="numeric">
+                        <input type="text" maxlength="1" class="modal-otp-box" data-idx="5"
+                            oninput="modalOtpInput(this)" onkeydown="modalOtpKeyDown(event, this)" inputmode="numeric">
+                    </div>
+                    <div id="modalOtpError" class="modal-otp-error" style="display: none; text-align: center;"></div>
+                </div>
+
+                <button type="button" id="modalVerifyBtn" class="signin-submit-btn" onclick="verifyModalOTP()" disabled>
+                    <span id="modalVerifyText">Verify & Login</span>
+                    <span id="modalVerifyLoader"
+                        style="display: none; align-items: center; justify-content: center; gap: 8px;">
+                        <svg width="18" height="18" viewBox="0 0 24 24"
+                            style="animation: modalOtpSpin 1s linear infinite;">
+                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none"
+                                stroke-dasharray="30 70" />
+                        </svg>
+                        Verifying...
+                    </span>
+                </button>
+
+                <div style="text-align: center; margin-top: 14px;">
+                    <span id="modalResendTimer" style="font-size: 13px; color: #6b7280;">
+                        Resend OTP in <span id="modalResendCount" style="font-weight: 700; color: #ff5200;">30</span>s
+                    </span>
+                    <button type="button" id="modalResendBtn" onclick="resendModalOTP()"
+                        style="display: none; background: none; border: none; color: #ff5200; font-weight: 600; cursor: pointer; font-size: 14px; text-decoration: underline;">
+                        Resend OTP
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 2: Email Login Form -->
+        <div class="signin-step" id="signinStep2">
+            <button class="signin-back" onclick="goToStep('signinStep1')">&#8592; Back</button>
+            <h2 class="signin-title">Welcome back</h2>
+            <p class="signin-subtitle">Enter your credentials to sign in.</p>
+            <form id="signinLoginForm" onsubmit="return handleLogin(event)">
+                {% csrf_token %}
+                <div class="signin-form-group">
+                    <label>Username</label>
+                    <input type="text" name="username" id="signinLoginUser" class="signin-input" required>
+                </div>
+                <div class="signin-form-group">
+                    <label>Password</label>
+                    <input type="password" name="password" id="signinLoginPass" class="signin-input" required>
+                </div>
+                <div class="signin-form-row" style="margin-bottom:16px;">
+                    <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:#6b7280;cursor:pointer;">
+                        <input type="checkbox" name="remember_me" style="accent-color:#111827;"> Remember me
+                    </label>
+                    <a href="#" onclick="event.preventDefault();goToStep('signinStepForgot');"
+                        style="font-size:13px;color:#ff5200;font-weight:600;text-decoration:none;">Forgot password?</a>
+                </div>
+                <button type="submit" class="signin-submit-btn" id="signinLoginBtn">Sign In</button>
+                <div id="signinLoginError" class="signin-error"></div>
+            </form>
+            <p class="signin-switch">Don't have an account? <a href="#"
+                    onclick="goToStep('signinStep3');return false;">Create one</a></p>
+        </div>
+
+        <!-- Step 3: Sign Up Form -->
+        <div class="signin-step" id="signinStep3">
+            <button class="signin-back" onclick="goToStep('signinStep1')">&#8592; Back</button>
+            <h2 class="signin-title">Create account</h2>
+            <p class="signin-subtitle">Start your culinary journey today.</p>
+            <form id="signinRegForm" onsubmit="return handleRegister(event)">
+                {% csrf_token %}
+                <input type="hidden" name="website" value="">
+                <input type="hidden" name="form_load_time" id="regLoadTime" value="">
+
+                <div class="signin-role-toggle">
+                    <label class="signin-role-opt"><input type="radio" name="role" value="student" checked
+                            onchange="updateRegFields(this)"><span>Student</span></label>
+                    <label class="signin-role-opt"><input type="radio" name="role" value="teacher"
+                            onchange="updateRegFields(this)"><span>Faculty / Staff</span></label>
+                </div>
+
+                <div class="signin-form-grid">
+                    <div class="signin-form-group">
+                        <label>Username</label>
+                        <input type="text" name="username" class="signin-input" maxlength="30" required>
+                    </div>
+                    <div class="signin-form-group">
+                        <label>Email</label>
+                        <input type="email" name="email" class="signin-input" maxlength="254" required>
+                    </div>
+                    <div class="signin-form-group signin-full">
+                        <label>Full Name</label>
+                        <input type="text" name="full_name" class="signin-input" maxlength="100" required>
+                    </div>
+                    <div class="signin-form-group">
+                        <label>Phone</label>
+                        <input type="tel" name="phone" class="signin-input" maxlength="10" placeholder="10-digit number"
+                            required>
+                    </div>
+                    <div class="signin-form-group">
+                        <label id="regIdLabel">Reg. Number</label>
+                        <input type="text" name="college_id" id="regCollegeId" class="signin-input"
+                            placeholder="e.g. 03SU23..." required>
+                    </div>
+                    <div class="signin-form-group">
+                        <label>Password</label>
+                        <input type="password" name="password1" class="signin-input" required>
+                    </div>
+                    <div class="signin-form-group">
+                        <label>Confirm</label>
+                        <input type="password" name="password2" class="signin-input" required>
+                    </div>
+                </div>
+                <button type="submit" class="signin-submit-btn" id="signinRegBtn">Create Account</button>
+                <div id="signinRegError" class="signin-error"></div>
+            </form>
+            <p class="signin-switch">Already have an account? <a href="#"
+                    onclick="goToStep('signinStep2');return false;">Log in</a></p>
+        </div>
+
+        <!-- Step Forgot 1: Enter Email -->
+        <div class="signin-step" id="signinStepForgot">
+            <button class="signin-back" onclick="goToStep('signinStep2')">&larr; Back</button>
+            <h2 class="signin-title">Forgot password?</h2>
+            <p class="signin-subtitle">Enter your registered email and we'll send you a 6-digit code.</p>
+            <div class="signin-form-group">
+                <label>Email Address</label>
+                <input type="email" id="fpEmailInput" class="signin-input" placeholder="e.g. yourname@university.edu">
+            </div>
+            <button type="button" class="signin-submit-btn" id="fpSendBtn" onclick="handleForgotSend()">
+                <span id="fpSendText">Send Reset Code</span>
+                <span id="fpSendLoader" style="display:none;align-items:center;justify-content:center;gap:8px;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" style="animation:modalOtpSpin 1s linear infinite;">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none"
+                            stroke-dasharray="30 70" />
+                    </svg>
+                    Sending...
+                </span>
+            </button>
+            <div id="fpSendError" class="signin-error"></div>
+            <p class="signin-switch">Remember your password? <a href="#"
+                    onclick="goToStep('signinStep2');return false;">Log in</a></p>
+        </div>
+
+        <!-- Step Forgot 2: Verify OTP -->
+        <div class="signin-step" id="signinStepForgotOTP">
+            <button class="signin-back" onclick="goToStep('signinStepForgot')">&larr; Back</button>
+            <h2 class="signin-title">Verify your identity</h2>
+            <p class="signin-subtitle">Enter the 6-digit code sent to <strong id="fpDisplayEmail"
+                    style="color:#ff5200;"></strong></p>
+            <div class="signin-form-group">
+                <label style="text-align:center;display:block;">Enter 6-Digit Code</label>
+                <div id="fpOtpBoxes" style="display:flex;gap:8px;justify-content:center;">
+                    <input type="text" maxlength="1" class="modal-otp-box fp-otp-box" data-idx="0"
+                        oninput="fpOtpInput(this)" onkeydown="fpOtpKeyDown(event,this)" inputmode="numeric">
+                    <input type="text" maxlength="1" class="modal-otp-box fp-otp-box" data-idx="1"
+                        oninput="fpOtpInput(this)" onkeydown="fpOtpKeyDown(event,this)" inputmode="numeric">
+                    <input type="text" maxlength="1" class="modal-otp-box fp-otp-box" data-idx="2"
+                        oninput="fpOtpInput(this)" onkeydown="fpOtpKeyDown(event,this)" inputmode="numeric">
+                    <input type="text" maxlength="1" class="modal-otp-box fp-otp-box" data-idx="3"
+                        oninput="fpOtpInput(this)" onkeydown="fpOtpKeyDown(event,this)" inputmode="numeric">
+                    <input type="text" maxlength="1" class="modal-otp-box fp-otp-box" data-idx="4"
+                        oninput="fpOtpInput(this)" onkeydown="fpOtpKeyDown(event,this)" inputmode="numeric">
+                    <input type="text" maxlength="1" class="modal-otp-box fp-otp-box" data-idx="5"
+                        oninput="fpOtpInput(this)" onkeydown="fpOtpKeyDown(event,this)" inputmode="numeric">
+                </div>
+            </div>
+            <button type="button" class="signin-submit-btn" id="fpVerifyBtn" onclick="handleForgotVerify()" disabled>
+                <span id="fpVerifyText">Verify Code</span>
+                <span id="fpVerifyLoader" style="display:none;align-items:center;justify-content:center;gap:8px;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" style="animation:modalOtpSpin 1s linear infinite;">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none"
+                            stroke-dasharray="30 70" />
+                    </svg>
+                    Verifying...
+                </span>
+            </button>
+            <div id="fpVerifyError" class="signin-error"></div>
+            <div style="text-align:center;margin-top:14px;">
+                <span id="fpResendTimer" style="font-size:13px;color:#6b7280;">Resend code in <span id="fpResendCount"
+                        style="font-weight:700;color:#ff5200;">30</span>s</span>
+                <button type="button" id="fpResendBtn" onclick="handleForgotResend()"
+                    style="display:none;background:none;border:none;color:#ff5200;font-weight:600;cursor:pointer;font-size:14px;text-decoration:underline;">Resend
+                    Code</button>
+            </div>
+        </div>
+
+        <!-- Step Forgot 3: Set New Password -->
+        <div class="signin-step" id="signinStepForgotReset">
+            <button class="signin-back" onclick="goToStep('signinStepForgotOTP')">&larr; Back</button>
+            <h2 class="signin-title">Set new password</h2>
+            <p class="signin-subtitle">Create a strong password for your account.</p>
+            <div class="signin-form-group">
+                <label>New Password</label>
+                <input type="password" id="fpNewPass1" class="signin-input" placeholder="At least 8 characters">
+            </div>
+            <div class="signin-form-group">
+                <label>Confirm Password</label>
+                <input type="password" id="fpNewPass2" class="signin-input" placeholder="Re-enter password">
+            </div>
+            <button type="button" class="signin-submit-btn" id="fpResetBtn" onclick="handleForgotReset()">Reset
+                Password</button>
+            <div id="fpResetError" class="signin-error"></div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<style>
+    /* ========== SIGN-IN MODAL STYLES ========== */
+    .signin-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.55);
+        backdrop-filter: blur(4px);
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .signin-overlay.open {
+        display: flex;
+    }
+
+    .signin-modal {
+        position: relative;
+        background: #fff;
+        width: 440px;
+        max-width: 94vw;
+        max-height: 90vh;
+        overflow-y: auto;
+        border-radius: 16px;
+        padding: 40px 36px 32px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        animation: modalSlideIn 0.3s ease;
+    }
+
+    @keyframes modalSlideIn {
+        from {
+            opacity: 0;
+            transform: translateY(30px) scale(0.97);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    .signin-close {
+        position: absolute;
+        top: 12px;
+        right: 16px;
+        background: none;
+        border: none;
+        font-size: 28px;
+        color: #6b7280;
+        cursor: pointer;
+        line-height: 1;
+        padding: 4px 8px;
+        border-radius: 8px;
+        transition: background 0.15s;
+    }
+
+    .signin-close:hover {
+        background: #f2f2f6;
+        color: #111;
+    }
+
+    .signin-step {
+        display: none;
+    }
+
+    .signin-step.active {
+        display: block;
+    }
+
+    .signin-title {
+        font-family: 'Basis Grotesque Pro', 'Gilroy', sans-serif;
+        font-size: 24px;
+        font-weight: 800;
+        color: #1b1e24;
+        margin: 0 0 24px 0;
+        line-height: 1.3;
+    }
+
+    .signin-subtitle {
+        font-size: 14px;
+        color: #6b7280;
+        margin: -16px 0 20px 0;
+    }
+
+    .signin-social-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        width: 100%;
+        padding: 14px;
+        border: 1.5px solid #e0e0e5;
+        border-radius: 10px;
+        background: #fff;
+        font-family: 'Basis Grotesque Pro', 'Gilroy', sans-serif;
+        font-size: 15px;
+        font-weight: 600;
+        color: #1b1e24;
+        cursor: pointer;
+        margin-bottom: 12px;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .signin-social-btn:hover {
+        border-color: #1b1e24;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    }
+
+    .signin-divider {
+        text-align: center;
+        margin: 16px 0;
+        color: #93959f;
+        font-size: 13px;
+        font-weight: 600;
+        position: relative;
+    }
+
+    .signin-divider::before,
+    .signin-divider::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        width: 40%;
+        height: 1px;
+        background: #e0e0e5;
+    }
+
+    .signin-divider::before {
+        left: 0;
+    }
+
+    .signin-divider::after {
+        right: 0;
+    }
+
+    .signin-email-row {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .signin-email-input-wrap {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        border: 1.5px solid #e0e0e5;
+        border-radius: 10px;
+        padding: 12px 14px;
+        transition: border-color 0.2s;
+    }
+
+    .signin-email-input-wrap:focus-within {
+        border-color: #1b1e24;
+    }
+
+    .signin-email-input {
+        border: none;
+        outline: none;
+        font-size: 15px;
+        font-family: 'Basis Grotesque Pro', 'Gilroy', sans-serif;
+        width: 100%;
+        color: #1b1e24;
+        background: transparent;
+    }
+
+    .signin-email-btn {
+        width: 100%;
+        padding: 14px;
+        border: none;
+        border-radius: 10px;
+        background: #ff5200;
+        color: #fff;
+        font-family: 'Basis Grotesque Pro', 'Gilroy', sans-serif;
+        font-size: 15px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .signin-email-btn:hover {
+        background: #e64a00;
+    }
+
+    .signin-terms {
+        margin-top: 20px;
+        font-size: 12px;
+        color: #93959f;
+        text-align: center;
+        line-height: 1.6;
+    }
+
+    .signin-terms a {
+        color: #ff5200;
+        text-decoration: none;
+        font-weight: 600;
+    }
+
+    .signin-back {
+        background: none;
+        border: none;
+        font-size: 15px;
+        color: #6b7280;
+        cursor: pointer;
+        padding: 0;
+        margin-bottom: 16px;
+        font-weight: 600;
+        font-family: 'Basis Grotesque Pro', 'Gilroy', sans-serif;
+    }
+
+    .signin-back:hover {
+        color: #1b1e24;
+    }
+
+    .signin-form-group {
+        margin-bottom: 16px;
+    }
+
+    .signin-form-group label {
+        display: block;
+        font-size: 13px;
+        font-weight: 600;
+        color: #3d4152;
+        margin-bottom: 6px;
+        font-family: 'Basis Grotesque Pro', 'Gilroy', sans-serif;
+    }
+
+    .signin-input {
+        width: 100%;
+        padding: 12px 14px;
+        border: 1.5px solid #e0e0e5;
+        border-radius: 8px;
+        font-size: 15px;
+        font-family: 'Basis Grotesque Pro', 'Gilroy', sans-serif;
+        color: #1b1e24;
+        transition: border-color 0.2s;
+        box-sizing: border-box;
+    }
+
+    .signin-input:focus {
+        border-color: #1b1e24;
+        outline: none;
+    }
+
+    .signin-submit-btn {
+        width: 100%;
+        padding: 14px;
+        border: none;
+        border-radius: 10px;
+        background: #1b1e24;
+        color: #fff;
+        font-family: 'Basis Grotesque Pro', 'Gilroy', sans-serif;
+        font-size: 15px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background 0.2s;
+        margin-top: 8px;
+    }
+
+    .signin-submit-btn:hover {
+        background: #2d3138;
+    }
+
+    .signin-submit-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+    .signin-form-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .signin-switch {
+        text-align: center;
+        margin-top: 20px;
+        font-size: 14px;
+        color: #6b7280;
+    }
+
+    .signin-switch a {
+        color: #ff5200;
+        font-weight: 700;
+        text-decoration: none;
+    }
+
+    .signin-error {
+        color: #e53e3e;
+        font-size: 13px;
+        margin-top: 10px;
+        text-align: center;
+        min-height: 18px;
+    }
+
+    .signin-role-toggle {
+        display: flex;
+        background: #f2f2f6;
+        border-radius: 10px;
+        padding: 4px;
+        margin-bottom: 16px;
+    }
+
+    .signin-role-opt {
+        flex: 1;
+        text-align: center;
+        cursor: pointer;
+    }
+
+    .signin-role-opt input {
+        display: none;
+    }
+
+    .signin-role-opt span {
+        display: block;
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #6b7280;
+        font-family: 'Basis Grotesque Pro', 'Gilroy', sans-serif;
+        transition: all 0.2s;
+    }
+
+    .signin-role-opt input:checked+span {
+        background: #fff;
+        color: #1b1e24;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    .signin-form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 0 12px;
+    }
+
+    .signin-full {
+        grid-column: 1 / -1;
+    }
+
+    /* ===== Modal Phone OTP Styles ===== */
+    .modal-phone-prefix {
+        background: #f3f4f6;
+        border: 1.5px solid #e0e0e5;
+        border-radius: 8px;
+        padding: 12px 14px;
+        font-weight: 600;
+        color: #374151;
+        font-size: 15px;
+        white-space: nowrap;
+    }
+
+    .modal-otp-box {
+        width: 44px;
+        height: 52px;
+        text-align: center;
+        font-size: 22px;
+        font-weight: 700;
+        border: 1.5px solid #e0e0e5;
+        border-radius: 10px;
+        outline: none;
+        transition: all 0.2s ease;
+        color: #1b1e24;
+        background: #fff;
+        font-family: 'Basis Grotesque Pro', 'Gilroy', sans-serif;
+    }
+
+    .modal-otp-box:focus {
+        border-color: #ff5200;
+        box-shadow: 0 0 0 3px rgba(255, 82, 0, 0.12);
+    }
+
+    .modal-otp-box.filled {
+        border-color: #10b981;
+        background: #f0fdf4;
+    }
+
+    .modal-otp-box.error {
+        border-color: #ef4444;
+        background: #fef2f2;
+        animation: modalOtpShake 0.3s ease;
+    }
+
+    .modal-otp-error {
+        color: #ef4444;
+        font-size: 12px;
+        margin-top: 6px;
+    }
+
+    @keyframes modalOtpSpin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    @keyframes modalOtpShake {
+
+        0%,
+        100% {
+            transform: translateX(0);
+        }
+
+        25% {
+            transform: translateX(-4px);
+        }
+
+        75% {
+            transform: translateX(4px);
+        }
+    }
+</style>
+
+<script>
+    function openSignInModal() {
+        document.getElementById('signinOverlay').classList.add('open');
+        document.body.style.overflow = 'hidden';
+        goToStep('signinStep1');
+    }
+    function closeSignInModal() {
+        document.getElementById('signinOverlay').classList.remove('open');
+        document.body.style.overflow = '';
+    }
+    function goToStep(stepId) {
+        document.querySelectorAll('.signin-step').forEach(s => s.classList.remove('active'));
+        document.getElementById(stepId).classList.add('active');
+        // Pre-fill username if entered in step 1
+        if (stepId === 'signinStep2') {
+            var u = document.getElementById('signinUsername').value.trim();
+            if (u) document.getElementById('signinLoginUser').value = u;
+        }
+        if (stepId === 'signinStep3') {
+            document.getElementById('regLoadTime').value = (Date.now() / 1000).toString();
+        }
+    }
+    function handleLogin(e) {
+        e.preventDefault();
+        var btn = document.getElementById('signinLoginBtn');
+        var errDiv = document.getElementById('signinLoginError');
+        btn.disabled = true;
+        btn.textContent = 'Signing in...';
+        errDiv.textContent = '';
+
+        var form = document.getElementById('signinLoginForm');
+        var fd = new FormData(form);
+
+        fetch('{% url "login" %}', {
+            method: 'POST',
+            body: fd,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        }).then(r => {
+            if (r.redirected) {
+                window.location.href = r.url;
+                return;
+            }
+            return r.text();
+        }).then(html => {
+            if (html && html.includes('Invalid credentials')) {
+                errDiv.textContent = 'Invalid username or password.';
+                btn.disabled = false;
+                btn.textContent = 'Sign In';
+            } else if (html) {
+                // Login succeeded but no redirect — navigate to home
+                window.location.href = '/home/';
+            }
+        }).catch(() => {
+            errDiv.textContent = 'Something went wrong. Please try again.';
+            btn.disabled = false;
+            btn.textContent = 'Sign In';
+        });
+        return false;
+    }
+    function handleRegister(e) {
+        e.preventDefault();
+        var btn = document.getElementById('signinRegBtn');
+        var errDiv = document.getElementById('signinRegError');
+        btn.disabled = true;
+        btn.textContent = 'Creating account...';
+        errDiv.textContent = '';
+
+        var form = document.getElementById('signinRegForm');
+        var fd = new FormData(form);
+
+        fetch('{% url "register" %}', {
+            method: 'POST',
+            body: fd,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        }).then(r => {
+            if (r.redirected) {
+                window.location.href = r.url;
+                return;
+            }
+            return r.text();
+        }).then(html => {
+            if (html) {
+                // Check for error messages in response
+                var parser = new DOMParser();
+                var doc = parser.parseFromString(html, 'text/html');
+                var msgs = doc.querySelectorAll('.messages .message, .errorlist li');
+                if (msgs.length > 0) {
+                    errDiv.textContent = msgs[0].textContent.trim();
+                } else {
+                    window.location.href = '/home/';
+                }
+            }
+            btn.disabled = false;
+            btn.textContent = 'Create Account';
+        }).catch(() => {
+            errDiv.textContent = 'Something went wrong. Please try again.';
+            btn.disabled = false;
+            btn.textContent = 'Create Account';
+        });
+        return false;
+    }
+    function updateRegFields(radio) {
+        var label = document.getElementById('regIdLabel');
+        var input = document.getElementById('regCollegeId');
+        if (radio.value === 'student') {
+            label.textContent = 'Reg. Number';
+            input.placeholder = 'e.g. 03SU23...';
+        } else {
+            label.textContent = 'Staff / Faculty ID';
+            input.placeholder = 'e.g. 03SU26SI001';
+        }
+    }
+    // Close modal on Escape key
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeSignInModal();
+    });
+
+    // =============== PHONE OTP (IN-MODAL) ===============
+    var modalConfirmationResult = null;
+    var modalResendInterval = null;
+    var modalIsVerifying = false;
+    var modalRecaptchaReady = false;
+
+    function initModalRecaptcha() {
+        if (modalRecaptchaReady || typeof firebase === 'undefined') return;
+        try {
+            window.modalRecaptchaVerifier = new firebase.auth.RecaptchaVerifier('modal-recaptcha-container', {
+                'size': 'invisible',
+                'callback': function () { /* solved */ }
+            });
+            window.modalRecaptchaVerifier.render();
+            modalRecaptchaReady = true;
+        } catch (e) {
+            console.error('reCAPTCHA init error:', e);
+        }
+    }
+
+    // Initialize Firebase & reCAPTCHA when phone step is shown
+    var origGoToStep = goToStep;
+    goToStep = function (stepId) {
+        origGoToStep(stepId);
+        if (stepId === 'signinStepPhone') {
+            initModalRecaptcha();
+            setTimeout(function () {
+                var el = document.getElementById('modalPhoneInput');
+                if (el) el.focus();
+            }, 100);
+        }
+        if (stepId === 'signinStepForgot') {
+            // Pre-fill email from login username field
+            var loginVal = document.getElementById('signinLoginUser').value.trim();
+            var fpEmail = document.getElementById('fpEmailInput');
+            if (loginVal && fpEmail && !fpEmail.value) {
+                fpEmail.value = loginVal;
+            }
+            setTimeout(function () {
+                var el = document.getElementById('fpEmailInput');
+                if (el) el.focus();
+            }, 100);
+        }
+        if (stepId === 'signinStepForgotOTP') {
+            fpStartResendTimer();
+            setTimeout(function () {
+                var boxes = document.querySelectorAll('.fp-otp-box');
+                if (boxes.length) boxes[0].focus();
+            }, 100);
+        }
+    };
+
+    // =============== FORGOT PASSWORD (IN-MODAL) ===============
+    var fpResendInterval = null;
+
+    function getCSRFToken() {
+        var el = document.querySelector('[name=csrfmiddlewaretoken]');
+        return el ? el.value : '';
+    }
+
+    function handleForgotSend() {
+        var email = document.getElementById('fpEmailInput').value.trim();
+        var errDiv = document.getElementById('fpSendError');
+        var btn = document.getElementById('fpSendBtn');
+        errDiv.textContent = '';
+        if (!email) { errDiv.textContent = 'Please enter your email address.'; return; }
+
+        btn.disabled = true;
+        document.getElementById('fpSendText').style.display = 'none';
+        document.getElementById('fpSendLoader').style.display = 'flex';
+
+        var fd = new FormData();
+        fd.append('email', email);
+        fd.append('csrfmiddlewaretoken', getCSRFToken());
+
+        fetch('{% url "forgot_password" %}', {
+            method: 'POST',
+            body: fd,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            redirect: 'manual'
+        }).then(function () {
+            document.getElementById('fpDisplayEmail').textContent = email;
+            // Clear OTP boxes
+            document.querySelectorAll('.fp-otp-box').forEach(function (b) { b.value = ''; b.classList.remove('filled', 'error'); });
+            document.getElementById('fpVerifyBtn').disabled = true;
+            document.getElementById('fpVerifyError').textContent = '';
+            goToStep('signinStepForgotOTP');
+        }).catch(function () {
+            errDiv.textContent = 'Something went wrong. Please try again.';
+        }).finally(function () {
+            btn.disabled = false;
+            document.getElementById('fpSendText').style.display = '';
+            document.getElementById('fpSendLoader').style.display = 'none';
+        });
+    }
+
+    function fpOtpInput(el) {
+        el.value = el.value.replace(/[^0-9]/g, '');
+        if (el.value) {
+            el.classList.add('filled');
+            el.classList.remove('error');
+            var idx = parseInt(el.dataset.idx);
+            var boxes = document.querySelectorAll('.fp-otp-box');
+            if (idx < 5) boxes[idx + 1].focus();
+        } else {
+            el.classList.remove('filled');
+        }
+        fpCheckOtpComplete();
+    }
+
+    function fpOtpKeyDown(e, el) {
+        if (e.key === 'Backspace' && !el.value) {
+            var idx = parseInt(el.dataset.idx);
+            var boxes = document.querySelectorAll('.fp-otp-box');
+            if (idx > 0) { boxes[idx - 1].focus(); boxes[idx - 1].value = ''; boxes[idx - 1].classList.remove('filled'); }
+        }
+        if (e.key === 'Enter') { e.preventDefault(); handleForgotVerify(); }
+    }
+
+    function fpCheckOtpComplete() {
+        var boxes = document.querySelectorAll('.fp-otp-box');
+        var filled = 0;
+        boxes.forEach(function (b) { if (b.value) filled++; });
+        document.getElementById('fpVerifyBtn').disabled = (filled < 6);
+    }
+
+    function fpStartResendTimer() {
+        if (fpResendInterval) clearInterval(fpResendInterval);
+        var count = 30;
+        document.getElementById('fpResendCount').textContent = count;
+        document.getElementById('fpResendTimer').style.display = '';
+        document.getElementById('fpResendBtn').style.display = 'none';
+        fpResendInterval = setInterval(function () {
+            count--;
+            document.getElementById('fpResendCount').textContent = count;
+            if (count <= 0) {
+                clearInterval(fpResendInterval);
+                document.getElementById('fpResendTimer').style.display = 'none';
+                document.getElementById('fpResendBtn').style.display = '';
+            }
+        }, 1000);
+    }
+
+    function handleForgotVerify() {
+        var boxes = document.querySelectorAll('.fp-otp-box');
+        var otp = '';
+        boxes.forEach(function (b) { otp += b.value; });
+        var errDiv = document.getElementById('fpVerifyError');
+        errDiv.textContent = '';
+        if (otp.length !== 6) { errDiv.textContent = 'Please enter the full 6-digit code.'; return; }
+
+        var btn = document.getElementById('fpVerifyBtn');
+        btn.disabled = true;
+        document.getElementById('fpVerifyText').style.display = 'none';
+        document.getElementById('fpVerifyLoader').style.display = 'flex';
+
+        var fd = new FormData();
+        fd.append('otp', otp);
+        fd.append('csrfmiddlewaretoken', getCSRFToken());
+
+        fetch('{% url "forgot_password_verify" %}', {
+            method: 'POST',
+            body: fd,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            redirect: 'manual'
+        }).then(function (r) {
+            if (r.type === 'opaqueredirect' || r.status === 0 || r.redirected) {
+                // Check if redirected to reset page (success) or back to verify (error)
+                var loc = r.headers.get('Location') || '';
+                if (loc.includes('reset') || r.url.includes('reset')) {
+                    goToStep('signinStepForgotReset');
+                    return;
+                }
+            }
+            return r.text();
+        }).then(function (html) {
+            if (html && html.includes('reset')) {
+                goToStep('signinStepForgotReset');
+            } else if (html) {
+                // Check for error messages
+                var parser = new DOMParser();
+                var doc = parser.parseFromString(html, 'text/html');
+                var msgs = doc.querySelectorAll('.messages .message');
+                if (msgs.length) {
+                    errDiv.textContent = msgs[0].textContent.trim();
+                } else {
+                    errDiv.textContent = 'Invalid code. Please try again.';
+                }
+                boxes.forEach(function (b) { b.classList.add('error'); });
+            }
+        }).catch(function () {
+            errDiv.textContent = 'Something went wrong. Please try again.';
+        }).finally(function () {
+            btn.disabled = false;
+            document.getElementById('fpVerifyText').style.display = '';
+            document.getElementById('fpVerifyLoader').style.display = 'none';
+            fpCheckOtpComplete();
+        });
+    }
+
+    function handleForgotResend() {
+        var email = document.getElementById('fpEmailInput').value.trim();
+        var fd = new FormData();
+        fd.append('email', email);
+        fd.append('csrfmiddlewaretoken', getCSRFToken());
+
+        fetch('{% url "forgot_password_resend" %}', {
+            method: 'POST',
+            body: fd,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            redirect: 'manual'
+        }).then(function () {
+            fpStartResendTimer();
+            document.querySelectorAll('.fp-otp-box').forEach(function (b) { b.value = ''; b.classList.remove('filled', 'error'); });
+            document.getElementById('fpVerifyBtn').disabled = true;
+            document.getElementById('fpVerifyError').textContent = 'New code sent!';
+        });
+    }
+
+    function handleForgotReset() {
+        var p1 = document.getElementById('fpNewPass1').value;
+        var p2 = document.getElementById('fpNewPass2').value;
+        var errDiv = document.getElementById('fpResetError');
+        errDiv.textContent = '';
+
+        if (!p1 || !p2) { errDiv.textContent = 'Please fill in both fields.'; return; }
+        if (p1 !== p2) { errDiv.textContent = 'Passwords do not match.'; return; }
+        if (p1.length < 8) { errDiv.textContent = 'Password must be at least 8 characters.'; return; }
+
+        var btn = document.getElementById('fpResetBtn');
+        btn.disabled = true;
+        btn.textContent = 'Resetting...';
+
+        var fd = new FormData();
+        fd.append('password1', p1);
+        fd.append('password2', p2);
+        fd.append('csrfmiddlewaretoken', getCSRFToken());
+
+        fetch('{% url "forgot_password_reset" %}', {
+            method: 'POST',
+            body: fd,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' },
+            redirect: 'manual'
+        }).then(function (r) {
+            if (r.type === 'opaqueredirect' || r.redirected || r.status === 0) {
+                // Success — password was reset
+                return 'success';
+            }
+            return r.text();
+        }).then(function (result) {
+            if (result === 'success' || (typeof result === 'string' && result.includes('successfully'))) {
+                // Show success and go to login step
+                errDiv.style.color = '#10b981';
+                errDiv.textContent = 'Password reset successfully! Redirecting to login...';
+                setTimeout(function () {
+                    errDiv.style.color = '';
+                    errDiv.textContent = '';
+                    document.getElementById('fpNewPass1').value = '';
+                    document.getElementById('fpNewPass2').value = '';
+                    goToStep('signinStep2');
+                }, 1500);
+            } else if (result) {
+                var parser = new DOMParser();
+                var doc = parser.parseFromString(result, 'text/html');
+                var msgs = doc.querySelectorAll('.messages .message');
+                if (msgs.length) {
+                    errDiv.textContent = msgs[0].textContent.trim();
+                } else {
+                    errDiv.textContent = 'Could not reset password. Please try again.';
+                }
+            }
+        }).catch(function () {
+            errDiv.textContent = 'Something went wrong. Please try again.';
+        }).finally(function () {
+            btn.disabled = false;
+            btn.textContent = 'Reset Password';
+        });
+    }
+
+    function validateModalPhone() {
+        var phone = document.getElementById('modalPhoneInput').value;
+        var btn = document.getElementById('modalSendOtpBtn');
+        var error = document.getElementById('modalPhoneError');
+        if (phone.length === 10 && /^[6-9]\d{9}$/.test(phone)) {
+            btn.disabled = false;
+            error.style.display = 'none';
+        } else {
+            btn.disabled = true;
+            if (phone.length === 10) {
+                error.textContent = 'Invalid number. Must start with 6-9.';
+                error.style.display = 'block';
+            } else {
+                error.style.display = 'none';
+            }
+        }
+    }
+
+    function sendModalOTP() {
+        var phone = document.getElementById('modalPhoneInput').value;
+        var fullPhone = '+91' + phone;
+        document.getElementById('modalSendOtpBtn').disabled = true;
+        document.getElementById('modalSendText').style.display = 'none';
+        document.getElementById('modalSendLoader').style.display = 'inline-flex';
+
+        firebase.auth().signInWithPhoneNumber(fullPhone, window.modalRecaptchaVerifier)
+            .then(function (result) {
+                modalConfirmationResult = result;
+                document.getElementById('modalPhonePhase').style.display = 'none';
+                document.getElementById('modalOtpPhase').style.display = 'block';
+                document.getElementById('modalDisplayPhone').textContent = '+91 ' + phone.replace(/(\d{5})(\d{5})/, '$1 $2');
+                document.querySelector('.modal-otp-box[data-idx="0"]').focus();
+                startModalResendTimer();
+            })
+            .catch(function (error) {
+                console.error('Modal OTP Error:', error);
+                var errEl = document.getElementById('modalPhoneError');
+                if (error.code === 'auth/too-many-requests') {
+                    errEl.textContent = 'Too many requests. Please wait a few minutes.';
+                } else if (error.code === 'auth/invalid-phone-number') {
+                    errEl.textContent = 'Invalid phone number. Please check and try again.';
+                } else {
+                    errEl.textContent = 'Failed to send OTP. Please try again.';
+                }
+                errEl.style.display = 'block';
+                document.getElementById('modalSendOtpBtn').disabled = false;
+                document.getElementById('modalSendText').style.display = 'inline';
+                document.getElementById('modalSendLoader').style.display = 'none';
+                // Reset reCAPTCHA
+                if (window.modalRecaptchaVerifier) {
+                    window.modalRecaptchaVerifier.render().then(function (widgetId) {
+                        grecaptcha.reset(widgetId);
+                    });
+                }
+            });
+    }
+
+    function startModalResendTimer() {
+        var seconds = 30;
+        var countEl = document.getElementById('modalResendCount');
+        var timerEl = document.getElementById('modalResendTimer');
+        var resendBtn = document.getElementById('modalResendBtn');
+        timerEl.style.display = 'inline';
+        resendBtn.style.display = 'none';
+        if (modalResendInterval) clearInterval(modalResendInterval);
+        modalResendInterval = setInterval(function () {
+            seconds--;
+            countEl.textContent = seconds;
+            if (seconds <= 0) {
+                clearInterval(modalResendInterval);
+                timerEl.style.display = 'none';
+                resendBtn.style.display = 'inline';
+            }
+        }, 1000);
+    }
+
+    function resendModalOTP() {
+        var phone = document.getElementById('modalPhoneInput').value;
+        var fullPhone = '+91' + phone;
+        document.getElementById('modalResendBtn').style.display = 'none';
+        document.getElementById('modalResendTimer').style.display = 'inline';
+        document.getElementById('modalResendCount').textContent = '30';
+        firebase.auth().signInWithPhoneNumber(fullPhone, window.modalRecaptchaVerifier)
+            .then(function (result) {
+                modalConfirmationResult = result;
+                startModalResendTimer();
+                document.querySelectorAll('.modal-otp-box').forEach(function (b) {
+                    b.value = ''; b.classList.remove('filled', 'error');
+                });
+                document.querySelector('.modal-otp-box[data-idx="0"]').focus();
+            })
+            .catch(function () {
+                var errEl = document.getElementById('modalOtpError');
+                errEl.textContent = 'Failed to resend OTP. Please try again.';
+                errEl.style.display = 'block';
+                startModalResendTimer();
+            });
+    }
+
+    function editModalPhone() {
+        document.getElementById('modalOtpPhase').style.display = 'none';
+        document.getElementById('modalPhonePhase').style.display = 'block';
+        document.getElementById('modalSendOtpBtn').disabled = false;
+        document.getElementById('modalSendText').style.display = 'inline';
+        document.getElementById('modalSendLoader').style.display = 'none';
+        document.getElementById('modalPhoneInput').focus();
+        if (modalResendInterval) clearInterval(modalResendInterval);
+        modalIsVerifying = false;
+    }
+
+    function modalOtpInput(el) {
+        el.value = el.value.replace(/[^0-9]/g, '');
+        var idx = parseInt(el.dataset.idx);
+        if (el.value) {
+            el.classList.add('filled');
+            el.classList.remove('error');
+            if (idx < 5) document.querySelector('.modal-otp-box[data-idx="' + (idx + 1) + '"]').focus();
+        } else {
+            el.classList.remove('filled');
+        }
+        var allFilled = Array.from(document.querySelectorAll('.modal-otp-box')).every(function (b) { return b.value.length === 1; });
+        document.getElementById('modalVerifyBtn').disabled = !allFilled;
+        if (allFilled && !modalIsVerifying) {
+            setTimeout(function () { if (!modalIsVerifying) verifyModalOTP(); }, 300);
+        }
+    }
+
+    function modalOtpKeyDown(e, el) {
+        var idx = parseInt(el.dataset.idx);
+        if (e.key === 'Backspace' && !el.value && idx > 0) {
+            var prev = document.querySelector('.modal-otp-box[data-idx="' + (idx - 1) + '"]');
+            prev.value = '';
+            prev.classList.remove('filled');
+            prev.focus();
+        }
+    }
+
+    function verifyModalOTP() {
+        if (modalIsVerifying) return;
+        var otp = Array.from(document.querySelectorAll('.modal-otp-box')).map(function (b) { return b.value; }).join('');
+        if (otp.length !== 6 || !modalConfirmationResult) return;
+
+        modalIsVerifying = true;
+        document.getElementById('modalVerifyBtn').disabled = true;
+        document.getElementById('modalVerifyText').style.display = 'none';
+        document.getElementById('modalVerifyLoader').style.display = 'inline-flex';
+        document.getElementById('modalOtpError').style.display = 'none';
+
+        modalConfirmationResult.confirm(otp)
+            .then(function (result) {
+                result.user.getIdToken().then(function (idToken) {
+                    fetch('{% url "phone_verify" %}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        },
+                        body: JSON.stringify({
+                            id_token: idToken,
+                            phone: document.getElementById('modalPhoneInput').value
+                        })
+                    })
+                        .then(function (res) { return res.json(); })
+                        .then(function (data) {
+                            if (data.success) {
+                                window.location.href = data.redirect || '/home/';
+                            } else {
+                                showModalOtpError(data.error || 'Login failed. Please try again.');
+                            }
+                        })
+                        .catch(function () {
+                            showModalOtpError('Server error. Please try again.');
+                        });
+                });
+            })
+            .catch(function (error) {
+                console.error('Modal verify error:', error);
+                if (error.code === 'auth/invalid-verification-code') {
+                    showModalOtpError('Invalid OTP. Please check and try again.');
+                } else if (error.code === 'auth/code-expired') {
+                    showModalOtpError('OTP expired. Please request a new one.');
+                } else {
+                    showModalOtpError('Verification failed. Please try again.');
+                }
+                document.querySelectorAll('.modal-otp-box').forEach(function (b) {
+                    b.classList.add('error');
+                    setTimeout(function () { b.classList.remove('error'); }, 500);
+                });
+            });
+    }
+
+    function showModalOtpError(msg) {
+        modalIsVerifying = false;
+        var el = document.getElementById('modalOtpError');
+        el.textContent = msg;
+        el.style.display = 'block';
+        document.getElementById('modalVerifyBtn').disabled = false;
+        document.getElementById('modalVerifyText').style.display = 'inline';
+        document.getElementById('modalVerifyLoader').style.display = 'none';
+    }
+</script>
+
+{% if not user.is_authenticated %}
+<!-- Firebase SDK for Phone OTP -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script>
+    (function () {
+        var cfg = {
+            apiKey: "{{ firebase_config.apiKey }}",
+            authDomain: "{{ firebase_config.authDomain }}",
+            projectId: "{{ firebase_config.projectId }}",
+            storageBucket: "{{ firebase_config.storageBucket }}",
+            messagingSenderId: "{{ firebase_config.messagingSenderId }}",
+            appId: "{{ firebase_config.appId }}"
+        };
+        if (cfg.apiKey) {
+            firebase.initializeApp(cfg);
+        }
+    })();
+</script>
+{% endif %}
+
+{% endblock %}
+
+{% block footer %}
+<!-- Swiggy-Style Footer -->
+<footer class="swiggy-footer">
+    <div class="container">
+        <div class="swiggy-footer-grid">
+            <!-- Brand Column -->
+            <div class="swiggy-footer-brand">
+                <div class="swiggy-footer-logo">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ff5200" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
+                        <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
+                        <line x1="6" y1="1" x2="6" y2="4" />
+                        <line x1="10" y1="1" x2="10" y2="4" />
+                        <line x1="14" y1="1" x2="14" y2="4" />
+                    </svg>
+                    <span class="swiggy-footer-brand-name">CampusBites</span>
+                </div>
+                <p class="swiggy-footer-copy">&copy; 2026 CampusBites Limited</p>
+            </div>
+
+            <!-- Company Links -->
+            <div class="swiggy-footer-col">
+                <h4 class="swiggy-footer-heading">Company</h4>
+                <a href="#">About Us</a>
+                <a href="#">CampusBites Corporate</a>
+                <a href="#">Careers</a>
+                <a href="#">Team</a>
+            </div>
+
+            <!-- Contact Us -->
+            <div class="swiggy-footer-col">
+                <h4 class="swiggy-footer-heading">Contact us</h4>
+                <a href="#">Help & Support</a>
+                <a href="#">Partner With Us</a>
+                <a href="{% url 'user_feedback' %}">Feedback</a>
+
+                <h4 class="swiggy-footer-heading" style="margin-top: 24px;">Legal</h4>
+                <a href="{% url 'terms' %}">Terms & Conditions</a>
+                <a href="#">Cookie Policy</a>
+                <a href="#">Privacy Policy</a>
+            </div>
+
+            <!-- Available In -->
+            <div class="swiggy-footer-col">
+                <h4 class="swiggy-footer-heading">Available in</h4>
+                <a href="#">Main Campus</a>
+                <a href="#">North Block</a>
+                <a href="#">South Block</a>
+                <a href="#">Engineering Wing</a>
+                <a href="#">Library Cafe</a>
+            </div>
+
+            <!-- Life at CampusBites -->
+            <div class="swiggy-footer-col">
+                <h4 class="swiggy-footer-heading">Life at CampusBites</h4>
+                <a href="{% url 'menu' %}">Explore Menu</a>
+                <a href="#">CampusBites News</a>
+                <a href="#">Snackables</a>
+
+                <h4 class="swiggy-footer-heading" style="margin-top: 24px;">Social Links</h4>
+                <div class="swiggy-footer-socials">
+                    <!-- LinkedIn -->
+                    <a href="#" class="swiggy-social-icon" aria-label="LinkedIn">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z" />
+                            <rect x="2" y="9" width="4" height="12" />
+                            <circle cx="4" cy="4" r="2" />
+                        </svg>
+                    </a>
+                    <!-- Instagram -->
+                    <a href="#" class="swiggy-social-icon" aria-label="Instagram">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+                            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+                        </svg>
+                    </a>
+                    <!-- Facebook -->
+                    <a href="#" class="swiggy-social-icon" aria-label="Facebook">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3V2z" />
+                        </svg>
+                    </a>
+                    <!-- Pinterest -->
+                    <a href="#" class="swiggy-social-icon" aria-label="Pinterest">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                            <path
+                                d="M12 0C5.373 0 0 5.373 0 12c0 5.084 3.163 9.426 7.627 11.174-.105-.949-.2-2.405.042-3.441.218-.937 1.407-5.965 1.407-5.965s-.359-.719-.359-1.782c0-1.668.967-2.914 2.171-2.914 1.023 0 1.518.769 1.518 1.69 0 1.029-.655 2.568-.994 3.995-.283 1.194.599 2.169 1.777 2.169 2.133 0 3.772-2.249 3.772-5.495 0-2.873-2.064-4.882-5.012-4.882-3.414 0-5.418 2.561-5.418 5.207 0 1.031.397 2.138.893 2.738.098.119.112.224.083.345l-.333 1.36c-.053.22-.174.267-.402.161-1.499-.698-2.436-2.889-2.436-4.649 0-3.785 2.75-7.262 7.929-7.262 4.163 0 7.398 2.967 7.398 6.931 0 4.136-2.607 7.464-6.227 7.464-1.216 0-2.359-.632-2.75-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0z" />
+                        </svg>
+                    </a>
+                    <!-- Twitter -->
+                    <a href="#" class="swiggy-social-icon" aria-label="Twitter">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                            <path
+                                d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z" />
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Divider -->
+        <div class="swiggy-footer-divider"></div>
+
+        <!-- Bottom Bar -->
+        <div class="swiggy-footer-bottom">
+            <p>For better experience, order from CampusBites today</p>
+            <div class="swiggy-footer-badges">
+                <a href="#" class="swiggy-store-badge">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+                        <line x1="12" y1="18" x2="12.01" y2="18" />
+                    </svg>
+                    <div>
+                        <span class="badge-label">Download on the</span>
+                        <span class="badge-store">App Store</span>
+                    </div>
+                </a>
+                <a href="#" class="swiggy-store-badge">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="5 3 19 12 5 21 5 3" />
+                    </svg>
+                    <div>
+                        <span class="badge-label">GET IT ON</span>
+                        <span class="badge-store">Google Play</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+</footer>
+
+<!-- Animated Search Placeholder Script -->
+<script>
+    (function () {
+        const searchInput = document.getElementById('heroSearchInput');
+        const placeholder = document.getElementById('heroSearchPlaceholder');
+        if (!searchInput || !placeholder) return;
+
+        const items = [
+            'biryani', 'juice', 'dosa', 'pizza', 'coffee',
+            'sandwich', 'pasta', 'tea', 'burger', 'paratha',
+            'ice cream', 'noodles', 'samosa', 'milkshake', 'fried rice'
+        ];
+
+        const staticText = 'Search for ';
+        let currentIndex = 0;
+        let charIndex = 0;
+        let isDeleting = false;
+        let isPaused = false;
+        let animTimer = null;
+
+        function updatePlaceholder() {
+            const word = items[currentIndex];
+            const typed = word.substring(0, charIndex);
+            placeholder.innerHTML = '<span class="placeholder-static">Search for&nbsp;</span><span class="placeholder-typed">' + typed + '</span>';
+        }
+
+        function tick() {
+            if (isPaused) return;
+            const word = items[currentIndex];
+
+            if (!isDeleting) {
+                charIndex++;
+                updatePlaceholder();
+                if (charIndex === word.length) {
+                    // Pause at full word
+                    animTimer = setTimeout(function () {
+                        isDeleting = true;
+                        tick();
+                    }, 1800);
+                    return;
+                }
+                animTimer = setTimeout(tick, 90 + Math.random() * 40);
+            } else {
+                charIndex--;
+                updatePlaceholder();
+                if (charIndex === 0) {
+                    isDeleting = false;
+                    currentIndex = (currentIndex + 1) % items.length;
+                    animTimer = setTimeout(tick, 400);
+                    return;
+                }
+                animTimer = setTimeout(tick, 50);
+            }
+        }
+
+        function showPlaceholder() {
+            if (searchInput.value.length === 0) {
+                placeholder.style.display = 'flex';
+                isPaused = false;
+                tick();
+            }
+        }
+
+        function hidePlaceholder() {
+            placeholder.style.display = 'none';
+            isPaused = true;
+            if (animTimer) clearTimeout(animTimer);
+        }
+
+        searchInput.addEventListener('focus', hidePlaceholder);
+        searchInput.addEventListener('blur', showPlaceholder);
+        searchInput.addEventListener('input', function () {
+            if (searchInput.value.length > 0) {
+                hidePlaceholder();
+            } else {
+                showPlaceholder();
+            }
+        });
+
+        // Start animation
+        updatePlaceholder();
+        tick();
+    })();
+</script>
+{% endblock %}

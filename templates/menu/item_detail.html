@@ -1,0 +1,418 @@
+{% extends 'base.html' %}
+
+{% block content %}
+{% if maintenance_mode %}
+<div class="maintenance-banner">
+    <div class="maintenance-banner-inner">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <span>The canteen is currently under maintenance. Orders are temporarily paused.</span>
+    </div>
+</div>
+<style>
+    .maintenance-banner { background: #1b1e24; color: #fff; padding: 14px 20px; text-align: center; position: sticky; top: 70px; z-index: 100; box-shadow: 0 2px 8px rgba(0,0,0,0.15); }
+    .maintenance-banner-inner { display: flex; align-items: center; justify-content: center; gap: 10px; font-size: 14px; font-weight: 600; }
+    .maintenance-banner svg { color: #ff5200; flex-shrink: 0; }
+    .item-image-full { filter: grayscale(100%) !important; opacity: 0.7 !important; }
+</style>
+{% endif %}
+<div class="container" style="padding: 2rem 1rem;">
+    <!-- Breadcrumb -->
+    <nav style="margin-bottom: 1.5rem;">
+        <a href="{% url 'menu' %}" class="btn btn-outline btn-sm">← Back to Menu</a>
+    </nav>
+
+    <!-- Item Details Card -->
+    <div class="card" style="overflow: hidden;">
+        <div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 2rem;">
+            <!-- Image Section -->
+            <!-- Image Section -->
+            <div class="item-image-container">
+                {% if item.image %}
+                <img src="{{ item.image.url }}" alt="{{ item.name }}" class="item-image-full">
+                {% else %}
+                <div class="item-image-placeholder">
+                    <span>🍽️</span>
+                </div>
+                {% endif %}
+
+                <div class="item-badges-top">
+                    {% if item.is_todays_special %}
+                    <span class="badge special">Special</span>
+                    {% endif %}
+
+                    {% if item.is_vegetarian %}
+                    <span class="badge veg">🌱 Veg</span>
+                    {% else %}
+                    <span class="badge nonveg">🍗 Non-Veg</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <style>
+                .item-image-container {
+                    position: relative;
+                    width: 100%;
+                    height: 400px;
+                    border-radius: 24px;
+                    overflow: hidden;
+                    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15);
+                    background: var(--gray-100);
+                    border: 1px solid rgba(255, 255, 255, 0.1);
+                }
+
+                .item-image-full {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1);
+                }
+
+                .item-image-container:hover .item-image-full {
+                    transform: scale(1.05);
+                }
+
+                .item-image-placeholder {
+                    width: 100%;
+                    height: 100%;
+                    background: linear-gradient(135deg, var(--gray-100), var(--gray-200));
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 5rem;
+                    color: var(--gray-300);
+                    animation: pulse-placeholder 2s infinite;
+                }
+
+                @keyframes pulse-placeholder {
+                    0% {
+                        opacity: 0.8;
+                    }
+
+                    50% {
+                        opacity: 1;
+                    }
+
+                    100% {
+                        opacity: 0.8;
+                    }
+                }
+
+                .item-badges-top {
+                    position: absolute;
+                    top: 1.5rem;
+                    left: 1.5rem;
+                    right: 1.5rem;
+                    display: flex;
+                    justify-content: space-between;
+                    pointer-events: none;
+                }
+
+                .badge {
+                    padding: 0.6rem 1.2rem;
+                    border-radius: 50px;
+                    font-size: 0.85rem;
+                    font-weight: 700;
+                    letter-spacing: 0.5px;
+                    backdrop-filter: blur(12px);
+                    -webkit-backdrop-filter: blur(12px);
+                    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+                    text-transform: uppercase;
+                }
+
+                .badge.special {
+                    background: rgba(255, 215, 0, 0.9);
+                    color: #000;
+                    border: 1px solid rgba(255, 255, 255, 0.3);
+                }
+
+                .badge.veg {
+                    background: rgba(34, 197, 94, 0.9);
+                    color: white;
+                    margin-left: auto;
+                    /* Push to right */
+                    border: 1px solid rgba(255, 255, 255, 0.2);
+                }
+
+                .badge.nonveg {
+                    background: rgba(239, 68, 68, 0.9);
+                    color: white;
+                    margin-left: auto;
+                    border: 1px solid rgba(255, 255, 255, 0.2);
+                }
+            </style>
+
+            <!-- Details Section -->
+            <div style="padding: 2rem;">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 0.5rem;">
+                    <h1
+                        style="font-family: 'Basis Grotesque Pro', 'Gilroy', sans-serif; font-size: 2rem; font-weight: 800; margin: 0; letter-spacing: -0.3px; color: rgba(2, 6, 12, 0.92);">
+                        {{ item.name }}</h1>
+                    <button class="detail-fav-btn {% if is_favorite %}active{% endif %}" id="detailFavBtn"
+                        onclick="toggleDetailFav(this, {{ item.id }})"
+                        title="{% if is_favorite %}Remove from favourites{% else %}Add to favourites{% endif %}">
+                        <svg class="heart-outline" viewBox="0 0 24 24" width="24" height="24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path
+                                d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                        </svg>
+                        <svg class="heart-filled" viewBox="0 0 24 24" width="24" height="24" fill="currentColor"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path
+                                d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+                        </svg>
+                    </button>
+                </div>
+                <style>
+                    .detail-fav-btn {
+                        background: none;
+                        border: none;
+                        cursor: pointer;
+                        padding: 4px;
+                        color: #93959f;
+                        transition: all 0.2s ease;
+                        flex-shrink: 0;
+                    }
+
+                    .detail-fav-btn:hover {
+                        color: #e43b4f;
+                        transform: scale(1.15);
+                    }
+
+                    .detail-fav-btn .heart-filled {
+                        display: none;
+                    }
+
+                    .detail-fav-btn .heart-outline {
+                        display: block;
+                    }
+
+                    .detail-fav-btn.active {
+                        color: #e43b4f;
+                    }
+
+                    .detail-fav-btn.active .heart-filled {
+                        display: block;
+                    }
+
+                    .detail-fav-btn.active .heart-outline {
+                        display: none;
+                    }
+
+                    body.dark-mode .detail-fav-btn {
+                        color: #666;
+                    }
+
+                    body.dark-mode .detail-fav-btn:hover,
+                    body.dark-mode .detail-fav-btn.active {
+                        color: #e43b4f;
+                    }
+                </style>
+
+                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                    <!-- Rating Display -->
+                    <div style="display: flex; align-items: center; gap: 0.3rem;">
+                        {% if item.average_rating > 0 %}
+                        <span style="color: var(--warning); font-size: 1.2rem;">★</span>
+                        <strong>{{ item.average_rating }}</strong>
+                        <span style="color: #888;">({{ item.review_count }} reviews)</span>
+                        {% else %}
+                        <span style="color: #888;">No reviews yet</span>
+                        {% endif %}
+                    </div>
+
+                    <span style="color: #888;">|</span>
+                    <span style="color: #888;"><svg viewBox="0 0 24 24" width="13" height="13" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            style="vertical-align: -2px; margin-right: 2px;">
+                            <circle cx="12" cy="12" r="10" />
+                            <polyline points="12 6 12 12 16 14" />
+                        </svg>{{ item.preparation_time }} mins</span>
+                </div>
+
+                <p style="color: #666; font-size: 1rem; line-height: 1.6; margin-bottom: 1.5rem;">
+                    {{ item.description|default:"A delicious item prepared with fresh ingredients." }}
+                </p>
+
+                <div id="total-price" data-unit-price="{{ item.price }}"
+                    style="font-size: 2rem; color: var(--primary); font-weight: 700; margin-bottom: 1.5rem;">
+                    ₹{{ item.price }}
+                </div>
+
+                <!-- Add to Cart Form -->
+                {% if maintenance_mode %}
+                <div style="padding: 14px 20px; background: #f8f8f8; border-radius: 10px; text-align: center; color: #666; font-size: 14px; font-weight: 600; border: 1.5px dashed #ddd;">
+                    🔧 Ordering is paused — canteen is under maintenance
+                </div>
+                {% else %}
+                <form action="{% url 'add_to_cart' item.id %}" method="post"
+                    style="display: flex; gap: 1rem; align-items: center;">
+                    {% csrf_token %}
+                    <input type="hidden" name="next" value="{% url 'item_detail' item.id %}">
+                    <div class="quantity-selector">
+                        <button type="button" onclick="updateQty(-1)" class="qty-btn"
+                            aria-label="Decrease quantity">−</button>
+                        <input type="number" name="quantity" id="qty" value="1" min="1" max="10" readonly>
+                        <button type="button" onclick="updateQty(1)" class="qty-btn"
+                            aria-label="Increase quantity">+</button>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="flex: 1;">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            style="vertical-align: -3px; margin-right: 4px;">
+                            <circle cx="9" cy="21" r="1" />
+                            <circle cx="20" cy="21" r="1" />
+                            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6" />
+                        </svg>Add to Cart
+                    </button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Reviews Section -->
+    <div style="margin-top: 3rem;">
+        <h2 style="margin-bottom: 1.5rem;">Customer Reviews</h2>
+
+        <!-- Add/Edit Review Form -->
+        <div class="card" style="margin-bottom: 2rem; padding: 1.5rem;">
+            <h4 style="margin-bottom: 1rem;">
+                {% if user_review %}Edit Your Review{% else %}Write a Review{% endif %}
+            </h4>
+            <form action="{% url 'add_review' item.id %}" method="post">
+                {% csrf_token %}
+
+                <!-- Star Rating -->
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem;">Your Rating</label>
+                    <div class="star-rating" id="starRating">
+                        {% for i in "12345" %}
+                        <span
+                            class="star {% if user_review and user_review.rating >= forloop.counter %}active{% endif %}"
+                            data-rating="{{ forloop.counter }}" onclick="setRating({{ forloop.counter }})"
+                            style="font-size: 2rem; cursor: pointer; color: {% if user_review and user_review.rating >= forloop.counter %}var(--warning){% else %}#ddd{% endif %};">
+                            ★
+                        </span>
+                        {% endfor %}
+                    </div>
+                    <input type="hidden" name="rating" id="ratingInput" value="{{ user_review.rating|default:5 }}">
+                </div>
+
+                <!-- Comment -->
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; margin-bottom: 0.5rem;">Your Comment (optional)</label>
+                    <textarea name="comment" rows="3"
+                        style="width: 100%; padding: 0.8rem; border: 1px solid var(--gray-200); border-radius: 8px; resize: vertical;"
+                        placeholder="Share your experience...">{{ user_review.comment|default:"" }}</textarea>
+                </div>
+
+                <div style="display: flex; gap: 1rem;">
+                    <button type="submit" class="btn btn-primary">
+                        {% if user_review %}Update Review{% else %}Submit Review{% endif %}
+                    </button>
+                    {% if user_review %}
+                    <a href="{% url 'delete_review' item.id %}" class="btn btn-outline"
+                        onclick="return confirm('Delete your review?')">Delete</a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+
+        <!-- Reviews List -->
+        {% if reviews %}
+        <div style="display: grid; gap: 1rem;">
+            {% for review in reviews %}
+            <div class="card" style="padding: 1.2rem;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                    <div>
+                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                            <strong>{{ review.user.username }}</strong>
+                            <span style="color: var(--warning);">
+                                {% for i in "12345" %}
+                                {% if forloop.counter <= review.rating %}★{% else %}☆{% endif %} {% endfor %} </span>
+                        </div>
+                        {% if review.comment %}
+                        <p style="color: #555; margin: 0;">{{ review.comment }}</p>
+                        {% endif %}
+
+                        {% if review.admin_response %}
+                        <div
+                            style="margin-top: 1rem; padding: 0.8rem; background: #f0f7ff; border-left: 3px solid #3b82f6; border-radius: 4px;">
+                            <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 4px;">
+                                <span
+                                    style="font-size: 10px; font-weight: 800; text-transform: uppercase; background: #3b82f6; color: white; padding: 2px 6px; border-radius: 4px;">Admin
+                                    Reply</span>
+                                <span style="font-size: 12px; font-weight: 600; color: #1e40af;">Canteen Staff</span>
+                            </div>
+                            <p style="color: #1e3a8a; margin: 0; font-size: 0.95rem;">{{ review.admin_response }}</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <span style="color: #888; font-size: 0.85rem;">
+                        {{ review.created_at|date:"M d, Y" }}
+                    </span>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="card" style="text-align: center; padding: 3rem; color: #888;">
+            <p>No reviews yet. Be the first to review!</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    function toggleDetailFav(btn, itemId) {
+        fetch(`/menu/${itemId}/favorite/`, {
+            method: 'GET',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+            .then(res => res.json())
+            .then(data => {
+                if (data.is_favorited) {
+                    btn.classList.add('active');
+                    btn.title = 'Remove from favourites';
+                } else {
+                    btn.classList.remove('active');
+                    btn.title = 'Add to favourites';
+                }
+            })
+            .catch(() => { });
+    }
+</script>
+
+<script>
+    function updateQty(change) {
+        const qtyInput = document.getElementById('qty');
+        const priceDisplay = document.getElementById('total-price');
+        const unitPrice = parseFloat(priceDisplay.dataset.unitPrice);
+        let newQty = parseInt(qtyInput.value) + change;
+
+        if (newQty >= 1 && newQty <= 10) {
+            qtyInput.value = newQty;
+            const totalPrice = (unitPrice * newQty).toFixed(2);
+            priceDisplay.textContent = '₹' + totalPrice;
+        }
+    }
+
+    function setRating(rating) {
+        document.getElementById('ratingInput').value = rating;
+        var stars = document.querySelectorAll('#starRating .star');
+        stars.forEach(function (star, index) {
+            if (index < rating) {
+                star.style.color = 'var(--warning)';
+                star.classList.add('active');
+            } else {
+                star.style.color = '#ddd';
+                star.classList.remove('active');
+            }
+        });
+    }
+</script>
+{% endblock %}

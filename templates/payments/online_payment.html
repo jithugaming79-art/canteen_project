@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Redirecting to Payment - CampusBites{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/payment.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="payment-section">
+    <div class="container">
+        <div class="stripe-redirect-card">
+            <div class="stripe-redirect-icon">
+                <svg viewBox="0 0 24 24" width="48" height="48" stroke="#ff5200" stroke-width="2" fill="none"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                    <line x1="1" y1="10" x2="23" y2="10"></line>
+                </svg>
+            </div>
+            <h2>Redirecting to Payment Gateway...</h2>
+            <p>You'll be taken to Dodo Payments' secure checkout page to complete your payment.</p>
+            <div class="stripe-spinner"></div>
+            <div class="stripe-redirect-info">
+                <span class="stripe-amount">₹{{ order.total_amount }}</span>
+                <span class="stripe-order">Order #{{ order.token_number }}</span>
+            </div>
+            <a href="{% url 'payment_page' order.id %}" class="stripe-cancel-link">← Cancel and go back</a>
+        </div>
+    </div>
+</section>
+{% endblock %}

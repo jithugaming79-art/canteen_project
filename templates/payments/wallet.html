@@ -1,0 +1,415 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Wallet - Canteen{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/payment.css' %}?v=5">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<section class="stripe-wallet-section">
+    <div class="container">
+
+        <!-- Page Header -->
+        <div class="sw-page-header">
+            <div>
+                <h1 class="sw-page-title">Wallet</h1>
+                <p class="sw-page-subtitle">Manage your balance and view transactions</p>
+            </div>
+            <button onclick="window.print()" class="sw-export-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="7 10 12 15 17 10" />
+                    <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                Export
+            </button>
+        </div>
+
+        <div class="sw-grid">
+            <!-- LEFT COLUMN -->
+            <div class="sw-left-col">
+
+                <!-- Balance Panel -->
+                <div class="sw-panel sw-balance-panel">
+                    <div class="sw-balance-top">
+                        <div class="sw-balance-icon-wrap">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="2" y="5" width="20" height="14" rx="2" />
+                                <line x1="2" y1="10" x2="22" y2="10" />
+                            </svg>
+                        </div>
+                        <span class="sw-balance-label">Available Balance</span>
+                    </div>
+                    <div class="sw-balance-value">₹{{ balance }}</div>
+
+                    <!-- Wallet Limit Bar -->
+                    <div class="sw-limit-section">
+                        <div class="sw-limit-row">
+                            <span class="sw-limit-label">Wallet limit</span>
+                            <span class="sw-limit-value">₹{{ balance }} / ₹{{ max_wallet }}</span>
+                        </div>
+                        <div class="sw-limit-track">
+                            <div class="sw-limit-fill {% if cap_pct >= 90 %}limit-danger{% elif cap_pct >= 70 %}limit-warning{% endif %}"
+                                style="width: {{ cap_pct }}%;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== STRIPE CHECKOUT PANEL ===== -->
+                <div class="sc-checkout-panel">
+                    <!-- Checkout Header -->
+                    <div class="sc-header">
+                        <span class="sc-header-title">Add money to wallet</span>
+                    </div>
+
+                    <!-- Amount -->
+                    <div class="sc-amount-section">
+                        <form id="addMoneyForm" method="POST" action="{% url 'add_money_to_wallet' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="payment_method" id="selectedMethod" value="card">
+                            <label class="sc-label">Amount</label>
+                            <div class="sc-amount-input-wrap">
+                                <span class="sc-currency">₹</span>
+                                <input type="number" id="topup_amount" name="amount" placeholder="0.00"
+                                    class="sc-amount-input" min="10" required>
+                            </div>
+                        </form>
+                        <div class="sc-quick-row">
+                            <button type="button" onclick="setAmount(100)" class="sc-quick-chip">₹100</button>
+                            <button type="button" onclick="setAmount(200)" class="sc-quick-chip">₹200</button>
+                            <button type="button" onclick="setAmount(500)" class="sc-quick-chip">₹500</button>
+                            <button type="button" onclick="setAmount(1000)" class="sc-quick-chip">₹1,000</button>
+                        </div>
+                    </div>
+
+                    <!-- Payment Method Tabs -->
+                    <div class="sc-method-tabs">
+                        <button class="sc-tab active" onclick="switchTab(this, 'card')" data-method="card">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <rect x="1" y="4" width="22" height="16" rx="2" />
+                                <line x1="1" y1="10" x2="23" y2="10" />
+                            </svg>
+                            Card
+                        </button>
+                        <button class="sc-tab" onclick="switchTab(this, 'upi')" data-method="upi">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
+                            </svg>
+                            UPI
+                        </button>
+                    </div>
+
+                    <!-- Tab Content: Card -->
+                    <div class="sc-tab-content" id="tab-card">
+                        <label class="sc-label">Card information</label>
+                        <div class="sc-card-group">
+                            <div class="sc-card-number-row">
+                                <input type="text" class="sc-input sc-input-number" placeholder="1234 1234 1234 1234"
+                                    maxlength="19" oninput="formatCardNumber(this)" autocomplete="cc-number">
+                                <div class="sc-card-icons">
+                                    <span class="sc-brand visa">VISA</span>
+                                    <span class="sc-brand mc">MC</span>
+                                    <span class="sc-brand rupay">RuPay</span>
+                                </div>
+                            </div>
+                            <div class="sc-card-bottom-row">
+                                <input type="text" class="sc-input sc-input-expiry" placeholder="MM / YY" maxlength="7"
+                                    oninput="formatExpiry(this)" autocomplete="cc-exp">
+                                <input type="text" class="sc-input sc-input-cvc" placeholder="CVC" maxlength="4"
+                                    autocomplete="cc-csc">
+                            </div>
+                        </div>
+
+                        <label class="sc-label" style="margin-top:16px">Name on card</label>
+                        <input type="text" class="sc-input sc-input-single" placeholder="Full name on card"
+                            autocomplete="cc-name">
+
+                        <label class="sc-label sc-label-check">
+                            <input type="checkbox" class="sc-checkbox" checked> Save this card for future payments
+                        </label>
+                    </div>
+
+                    <!-- Tab Content: UPI -->
+                    <div class="sc-tab-content" id="tab-upi" style="display:none">
+                        <label class="sc-label">UPI ID</label>
+                        <input type="text" class="sc-input sc-input-single" placeholder="yourname@upi"
+                            autocomplete="off">
+
+                        <div class="sc-upi-apps">
+                            <p class="sc-upi-or">Or pay using</p>
+                            <div class="sc-upi-grid">
+                                <button type="button" class="sc-upi-btn" onclick="selectUpiApp(this, 'gpay')">
+                                    <span class="sc-upi-logo">
+                                        <img src="{% static 'images/logos/gpay.svg' %}" alt="GPay" width="24"
+                                            height="24" style="border-radius:6px">
+                                    </span>
+                                    <span>GPay</span>
+                                </button>
+                                <button type="button" class="sc-upi-btn" onclick="selectUpiApp(this, 'phonepe')">
+                                    <span class="sc-upi-logo">
+                                        <img src="{% static 'images/logos/phonepe.svg' %}" alt="PhonePe" width="24"
+                                            height="24" style="border-radius:6px">
+                                    </span>
+                                    <span>PhonePe</span>
+                                </button>
+                                <button type="button" class="sc-upi-btn" onclick="selectUpiApp(this, 'paytm')">
+                                    <span class="sc-upi-logo">
+                                        <img src="{% static 'images/logos/paytm.png' %}" alt="Paytm" width="24"
+                                            height="24" style="border-radius:6px">
+                                    </span>
+                                    <span>Paytm</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <!-- Pay Button -->
+                    <button type="button" onclick="startWalletTopup()" class="sc-pay-btn" id="payBtn">
+                        <svg class="sc-pay-lock" width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
+                            <path
+                                d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z" />
+                        </svg>
+                        Add funds
+                    </button>
+
+                    <!-- Footer -->
+                    <div class="sc-footer">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" />
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                        </svg>
+                        <span>Secured by <strong>256-bit SSL</strong> encryption</span>
+                        <span class="sc-footer-sep">·</span>
+                        <span>Powered by <strong style="color:#282c3f">Dodo Payments</strong></span>
+                    </div>
+                </div>
+
+                <!-- Monthly Summary -->
+                <div class="sw-panel sw-stats-panel">
+                    <h3 class="sw-panel-title">This Month</h3>
+                    <div class="sw-stats-grid">
+                        <div class="sw-stat-card sw-stat-credit">
+                            <div class="sw-stat-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="12" y1="19" x2="12" y2="5" />
+                                    <polyline points="5 12 12 5 19 12" />
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="sw-stat-label">Money In</div>
+                                <div class="sw-stat-value credit-val">+₹{{ month_credits }}</div>
+                            </div>
+                        </div>
+                        <div class="sw-stat-card sw-stat-debit">
+                            <div class="sw-stat-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <line x1="12" y1="5" x2="12" y2="19" />
+                                    <polyline points="19 12 12 19 5 12" />
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="sw-stat-label">Money Out</div>
+                                <div class="sw-stat-value debit-val">-₹{{ month_debits }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Processing Overlay -->
+                <div class="sw-overlay" id="processingOverlay">
+                    <div class="sw-overlay-content">
+                        <div class="sw-spinner"></div>
+                        <div class="sw-overlay-title" id="procText1">Processing payment...</div>
+                        <div class="sw-overlay-sub" id="procSub">Please do not close this page</div>
+                    </div>
+                </div>
+
+                <!-- Success Overlay -->
+                <div class="sw-overlay sw-overlay-success" id="successOverlay">
+                    <div class="sw-overlay-content">
+                        <div class="sw-success-check">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                        </div>
+                        <div class="sw-overlay-title">Payment successful</div>
+                        <div class="sw-overlay-amount" id="successAmountDisplay">₹0</div>
+                        <p class="sw-overlay-sub">Redirecting...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT COLUMN: Transactions -->
+            <div class="sw-panel sw-txn-panel">
+                <div class="sw-txn-header">
+                    <h3 class="sw-panel-title">Transactions</h3>
+                    <div class="sw-txn-filters">
+                        <a href="?filter=all"
+                            class="sw-filter-btn {% if filter_type == 'all' %}active{% endif %}">All</a>
+                        <a href="?filter=credit"
+                            class="sw-filter-btn {% if filter_type == 'credit' %}active{% endif %}">Credits</a>
+                        <a href="?filter=debit"
+                            class="sw-filter-btn {% if filter_type == 'debit' %}active{% endif %}">Debits</a>
+                    </div>
+                </div>
+
+                <div class="sw-txn-list">
+                    {% for txn in transactions %}
+                    <div class="sw-txn-row">
+                        <div
+                            class="sw-txn-icon {% if txn.transaction_type == 'credit' %}sw-txn-icon-credit{% else %}sw-txn-icon-debit{% endif %}">
+                            {% if txn.transaction_type == 'credit' %}
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.5">
+                                <line x1="12" y1="19" x2="12" y2="5" />
+                                <polyline points="5 12 12 5 19 12" />
+                            </svg>
+                            {% else %}
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.5">
+                                <line x1="12" y1="5" x2="12" y2="19" />
+                                <polyline points="19 12 12 19 5 12" />
+                            </svg>
+                            {% endif %}
+                        </div>
+                        <div class="sw-txn-info">
+                            <p class="sw-txn-desc">{{ txn.description }}</p>
+                            <div class="sw-txn-meta">
+                                <span class="sw-txn-date">{{ txn.created_at|date:"d M Y, h:i A" }}</span>
+                                {% if txn.reference_id %}
+                                <span class="sw-txn-ref">{{ txn.reference_id }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                        <div
+                            class="sw-txn-amount {% if txn.transaction_type == 'credit' %}sw-txn-amount-credit{% else %}sw-txn-amount-debit{% endif %}">
+                            {% if txn.transaction_type == 'credit' %}+{% else %}-{% endif %}₹{{ txn.amount }}
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="sw-txn-empty">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="1.5" style="opacity:0.25;margin-bottom:12px">
+                            <rect x="2" y="5" width="20" height="14" rx="2" />
+                            <line x1="2" y1="10" x2="22" y2="10" />
+                        </svg>
+                        <p class="sw-txn-empty-title">No transactions yet</p>
+                        <p class="sw-txn-empty-sub">Your wallet activity will appear here.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                {% with items=transactions %}
+                {% include 'includes/pagination.html' %}
+                {% endwith %}
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    let currentMethod = 'card';
+
+    function setAmount(amount) {
+        document.getElementById('topup_amount').value = amount;
+        document.querySelectorAll('.sc-quick-chip').forEach(b => b.classList.remove('active'));
+        event.target.classList.add('active');
+    }
+
+    function switchTab(el, method) {
+        currentMethod = method;
+        document.getElementById('selectedMethod').value = method;
+        document.querySelectorAll('.sc-tab').forEach(t => t.classList.remove('active'));
+        el.classList.add('active');
+        document.querySelectorAll('.sc-tab-content').forEach(c => c.style.display = 'none');
+        document.getElementById('tab-' + method).style.display = 'block';
+    }
+
+    function selectUpiApp(el, app) {
+        document.querySelectorAll('.sc-upi-btn').forEach(b => b.classList.remove('active'));
+        el.classList.add('active');
+    }
+
+    function selectWallet(el, w) {
+        document.querySelectorAll('.sc-wallet-option').forEach(b => b.classList.remove('active'));
+        el.classList.add('active');
+    }
+
+    function formatCardNumber(input) {
+        let v = input.value.replace(/\D/g, '').substring(0, 16);
+        input.value = v.replace(/(.{4})/g, '$1 ').trim();
+    }
+
+    function formatExpiry(input) {
+        let v = input.value.replace(/\D/g, '').substring(0, 4);
+        if (v.length >= 2) v = v.substring(0, 2) + ' / ' + v.substring(2);
+        input.value = v;
+    }
+
+    function startWalletTopup() {
+        let amount = document.getElementById('topup_amount').value;
+        if (!amount || amount < 10) {
+            alert('Please enter a valid amount (Minimum ₹10)');
+            return;
+        }
+
+        // Show processing overlay
+        document.getElementById('processingOverlay').classList.add('active');
+        let t = document.getElementById('procText1');
+        t.innerText = 'Connecting to payment gateway...';
+
+        // Send AJAX request to create DoDo payment link
+        let formData = new FormData(document.getElementById('addMoneyForm'));
+
+        fetch('{% url "add_money_to_wallet" %}', {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(r => r.json())
+        .then(data => {
+            if (data.url) {
+                t.innerText = 'Redirecting to payment page...';
+                setTimeout(() => { window.location.href = data.url; }, 500);
+            } else if (data.error) {
+                document.getElementById('processingOverlay').classList.remove('active');
+                alert(data.error);
+            }
+        })
+        .catch(err => {
+            document.getElementById('processingOverlay').classList.remove('active');
+            alert('Unable to connect to payment gateway. Please try again.');
+            console.error(err);
+        });
+    }
+</script>
+
+<style>
+    @media print {
+
+        .sc-checkout-panel,
+        .sw-export-btn,
+        .sw-txn-filters,
+        nav,
+        footer {
+            display: none !important;
+        }
+
+        .sw-grid {
+            grid-template-columns: 1fr !important;
+        }
+    }
+</style>
+{% endblock %}

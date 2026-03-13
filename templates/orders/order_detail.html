@@ -1,0 +1,879 @@
+{% extends 'base.html' %}
+
+{% block title %}Order {{ order.token_number }} - CampusBites{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ===== Order Detail — Swiggy-Level Premium Design ===== */
+    .od-page {
+        font-family: 'Basis Grotesque Pro', 'Gilroy', sans-serif;
+    }
+
+    .footer {
+        display: none !important;
+    }
+
+    /* Dark Header Banner */
+    .od-header {
+        background: #282c3f;
+        padding: 28px 0 32px;
+    }
+
+    .od-header-inner {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+
+    .od-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 13px;
+        font-weight: 500;
+        text-decoration: none;
+        margin-bottom: 20px;
+        transition: color 0.2s;
+    }
+
+    .od-back:hover {
+        color: #fff;
+    }
+
+    .od-back svg {
+        width: 16px;
+        height: 16px;
+    }
+
+    .od-token {
+        font-size: 28px;
+        font-weight: 800;
+        color: #fff;
+        letter-spacing: 1px;
+        margin: 0 0 4px;
+    }
+
+    .od-status-text {
+        font-size: 14px;
+        color: rgba(255, 255, 255, 0.65);
+        font-weight: 400;
+    }
+
+    .od-status-badge {
+        display: inline-block;
+        padding: 3px 10px;
+        border-radius: 2px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        margin-left: 6px;
+    }
+
+    .od-status-badge.confirmed {
+        background: #e8f5e9;
+        color: #2e7d32;
+    }
+
+    .od-status-badge.pending {
+        background: #fff8e1;
+        color: #f57f17;
+    }
+
+    .od-status-badge.preparing {
+        background: #e3f2fd;
+        color: #1565c0;
+    }
+
+    .od-status-badge.ready {
+        background: #ff5200;
+        color: #fff;
+    }
+
+    .od-status-badge.collected {
+        background: #e0e0e0;
+        color: #424242;
+    }
+
+    .od-status-badge.cancelled {
+        background: #fce4ec;
+        color: #c62828;
+    }
+
+    /* Stepper */
+    .od-stepper {
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        gap: 0;
+        margin-top: 28px;
+    }
+
+    .od-step {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        min-width: 60px;
+    }
+
+    .od-step-circle {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.12);
+        border: 2px solid rgba(255, 255, 255, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s;
+    }
+
+    .od-step-circle svg {
+        width: 16px;
+        height: 16px;
+        stroke: rgba(255, 255, 255, 0.35);
+        fill: none;
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+    }
+
+    .od-step.active .od-step-circle {
+        background: #fff;
+        border-color: #fff;
+        box-shadow: 0 0 12px rgba(255, 255, 255, 0.3);
+    }
+
+    .od-step.active .od-step-circle svg {
+        stroke: #ff5200;
+    }
+
+    .od-step.done .od-step-circle {
+        background: rgba(255, 255, 255, 0.2);
+        border-color: rgba(255, 255, 255, 0.5);
+    }
+
+    .od-step.done .od-step-circle svg {
+        stroke: #fff;
+    }
+
+    .od-step-label {
+        font-size: 11px;
+        color: rgba(255, 255, 255, 0.35);
+        font-weight: 500;
+        text-align: center;
+    }
+
+    .od-step.active .od-step-label,
+    .od-step.done .od-step-label {
+        color: rgba(255, 255, 255, 0.9);
+        font-weight: 600;
+    }
+
+    .od-step-line {
+        width: 40px;
+        height: 2px;
+        background: rgba(255, 255, 255, 0.12);
+        margin-top: 18px;
+        flex-shrink: 0;
+    }
+
+    .od-step-line.active {
+        background: rgba(255, 255, 255, 0.5);
+    }
+
+    /* Content Area */
+    .od-content {
+        max-width: 800px;
+        margin: 24px auto 40px;
+        padding: 0 20px;
+    }
+
+    /* Cards */
+    .od-card {
+        background: #fff;
+        border-radius: 0;
+        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+        margin-bottom: 16px;
+        border: 1px solid #e9e9eb;
+        overflow: hidden;
+    }
+
+    .od-card-title {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        color: #7e808c;
+        padding: 16px 20px 12px;
+        border-bottom: 1px solid #f2f2f2;
+    }
+
+    /* QR Section */
+    .od-qr {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        padding: 20px;
+    }
+
+    .od-qr img {
+        width: 120px;
+        height: 120px;
+        border: 1px solid #e9e9eb;
+        border-radius: 4px;
+    }
+
+    .od-qr-info h4 {
+        font-size: 15px;
+        font-weight: 700;
+        color: #282c3f;
+        margin: 0 0 4px;
+    }
+
+    .od-qr-info p {
+        font-size: 13px;
+        color: #93959f;
+        margin: 0;
+        line-height: 1.5;
+    }
+
+    /* Info Grid */
+    .od-info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        border-bottom: 1px solid #f2f2f2;
+    }
+
+    .od-info-item {
+        padding: 16px 20px;
+        border-right: 1px solid #f2f2f2;
+    }
+
+    .od-info-item:last-child {
+        border-right: none;
+    }
+
+    .od-info-label {
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.3px;
+        text-transform: uppercase;
+        color: #93959f;
+        margin-bottom: 4px;
+    }
+
+    .od-info-value {
+        font-size: 14px;
+        font-weight: 600;
+        color: #282c3f;
+    }
+
+    .od-paid-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+        color: #60b246;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .od-paid-badge svg {
+        width: 14px;
+        height: 14px;
+    }
+
+    /* Items List */
+    .od-item {
+        display: flex;
+        align-items: center;
+        padding: 14px 20px;
+        border-bottom: 1px solid #f2f2f2;
+    }
+
+    .od-item:last-of-type {
+        border-bottom: none;
+    }
+
+    .od-item-veg {
+        width: 14px;
+        height: 14px;
+        border: 1.5px solid;
+        border-radius: 2px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        margin-right: 10px;
+    }
+
+    .od-item-veg.veg {
+        border-color: #0f8a65;
+    }
+
+    .od-item-veg.veg::after {
+        content: '';
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #0f8a65;
+    }
+
+    .od-item-veg.nonveg {
+        border-color: #e43b4f;
+    }
+
+    .od-item-veg.nonveg::after {
+        content: '';
+        width: 0;
+        height: 0;
+        border-left: 3.5px solid transparent;
+        border-right: 3.5px solid transparent;
+        border-bottom: 7px solid #e43b4f;
+    }
+
+    .od-item-name {
+        flex: 1;
+        font-size: 14px;
+        font-weight: 500;
+        color: #282c3f;
+    }
+
+    .od-item-qty {
+        font-size: 13px;
+        color: #93959f;
+        margin: 0 16px;
+    }
+
+    .od-item-price {
+        font-size: 14px;
+        font-weight: 600;
+        color: #282c3f;
+        min-width: 60px;
+        text-align: right;
+    }
+
+    .od-total-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 14px 20px;
+        background: #fafafa;
+        border-top: 2px solid #282c3f;
+    }
+
+    .od-total-label {
+        font-size: 14px;
+        font-weight: 700;
+        color: #282c3f;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .od-total-value {
+        font-size: 14px;
+        font-weight: 700;
+        color: #282c3f;
+    }
+
+    /* Special Instructions */
+    .od-instructions {
+        padding: 14px 20px;
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+    }
+
+    .od-instructions svg {
+        width: 16px;
+        height: 16px;
+        stroke: #93959f;
+        flex-shrink: 0;
+        margin-top: 1px;
+    }
+
+    .od-instructions p {
+        font-size: 13px;
+        color: #535665;
+        margin: 0;
+        line-height: 1.5;
+    }
+
+    /* Delivery Card */
+    .od-delivery {
+        padding: 16px 20px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .od-delivery-icon {
+        width: 40px;
+        height: 40px;
+        background: #f2f2f2;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .od-delivery-icon svg {
+        width: 18px;
+        height: 18px;
+        stroke: #282c3f;
+    }
+
+    .od-delivery-text h5 {
+        font-size: 14px;
+        font-weight: 600;
+        color: #282c3f;
+        margin: 0 0 2px;
+    }
+
+    .od-delivery-text p {
+        font-size: 12px;
+        color: #93959f;
+        margin: 0;
+    }
+
+    /* Action Buttons */
+    .od-actions {
+        display: flex;
+        gap: 12px;
+        padding: 20px;
+        justify-content: center;
+    }
+
+    .od-btn {
+        padding: 12px 28px;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        border: none;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-family: inherit;
+        transition: all 0.2s;
+    }
+
+    .od-btn-primary {
+        background: #ff5200;
+        color: #fff;
+    }
+
+    .od-btn-primary:hover {
+        background: #e64a00;
+    }
+
+    .od-btn-danger {
+        background: none;
+        color: #e43b4f;
+        border: 1px solid #e43b4f;
+    }
+
+    .od-btn-danger:hover {
+        background: #fce4ec;
+    }
+
+    /* Dark mode */
+    body.dark-mode .od-card {
+        background: #1e1e2e;
+        border-color: #2a2a3a;
+    }
+
+    body.dark-mode .od-card-title {
+        color: #8b8d9a;
+        border-color: #2a2a3a;
+    }
+
+    body.dark-mode .od-item-name,
+    body.dark-mode .od-item-price,
+    body.dark-mode .od-total-label,
+    body.dark-mode .od-total-value,
+    body.dark-mode .od-info-value,
+    body.dark-mode .od-qr-info h4,
+    body.dark-mode .od-delivery-text h5 {
+        color: #e4e4e7;
+    }
+
+    body.dark-mode .od-item-qty,
+    body.dark-mode .od-info-label,
+    body.dark-mode .od-qr-info p,
+    body.dark-mode .od-delivery-text p {
+        color: #71717a;
+    }
+
+    body.dark-mode .od-total-row {
+        background: #252537;
+        border-color: #e4e4e7;
+    }
+
+    body.dark-mode .od-info-item {
+        border-color: #2a2a3a;
+    }
+
+    body.dark-mode .od-info-grid {
+        border-color: #2a2a3a;
+    }
+
+    body.dark-mode .od-item {
+        border-color: #2a2a3a;
+    }
+
+    body.dark-mode .od-delivery-icon {
+        background: #2a2a3a;
+    }
+
+    body.dark-mode .od-delivery-icon svg {
+        stroke: #e4e4e7;
+    }
+
+    body.dark-mode .od-qr img {
+        border-color: #2a2a3a;
+    }
+
+    body.dark-mode .od-instructions p {
+        color: #a1a1aa;
+    }
+
+    @media (max-width: 600px) {
+        .od-info-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .od-info-item {
+            border-right: none;
+            border-bottom: 1px solid #f2f2f2;
+        }
+
+        body.dark-mode .od-info-item {
+            border-color: #2a2a3a;
+        }
+
+        .od-stepper {
+            gap: 0;
+        }
+
+        .od-step-line {
+            width: 24px;
+        }
+
+        .od-step {
+            min-width: 48px;
+        }
+
+        .od-qr {
+            flex-direction: column;
+            text-align: center;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="od-page">
+    <!-- Dark Header -->
+    <div class="od-header">
+        <div class="od-header-inner">
+            <a href="{% url 'menu' %}" class="od-back">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <polyline points="15 18 9 12 15 6"></polyline>
+                </svg>
+                Back to Menu
+            </a>
+            <h1 class="od-token">{{ order.token_number }}</h1>
+            <p class="od-status-text">
+                Status
+                <span class="od-status-badge {{ order.status }}">{{ order.get_status_display }}</span>
+            </p>
+
+            <!-- Stepper -->
+            <div class="od-stepper">
+                {% with s=order.status %}
+                <!-- Placed -->
+                <div
+                    class="od-step {% if s == 'pending' %}active{% elif s == 'confirmed' or s == 'preparing' or s == 'ready' or s == 'collected' %}done{% endif %}">
+                    <div class="od-step-circle">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                            <polyline points="14 2 14 8 20 8" />
+                            <line x1="16" y1="13" x2="8" y2="13" />
+                            <line x1="16" y1="17" x2="8" y2="17" />
+                        </svg>
+                    </div>
+                    <span class="od-step-label">Placed</span>
+                </div>
+                <div
+                    class="od-step-line {% if s == 'confirmed' or s == 'preparing' or s == 'ready' or s == 'collected' %}active{% endif %}">
+                </div>
+
+                <!-- Confirmed -->
+                <div
+                    class="od-step {% if s == 'confirmed' %}active{% elif s == 'preparing' or s == 'ready' or s == 'collected' %}done{% endif %}">
+                    <div class="od-step-circle">
+                        <svg viewBox="0 0 24 24">
+                            <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                    </div>
+                    <span class="od-step-label">Confirmed</span>
+                </div>
+                <div
+                    class="od-step-line {% if s == 'preparing' or s == 'ready' or s == 'collected' %}active{% endif %}">
+                </div>
+
+                <!-- Preparing -->
+                <div
+                    class="od-step {% if s == 'preparing' %}active{% elif s == 'ready' or s == 'collected' %}done{% endif %}">
+                    <div class="od-step-circle">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
+                            <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
+                            <line x1="6" y1="1" x2="6" y2="4" />
+                            <line x1="10" y1="1" x2="10" y2="4" />
+                            <line x1="14" y1="1" x2="14" y2="4" />
+                        </svg>
+                    </div>
+                    <span class="od-step-label">Preparing</span>
+                </div>
+                <div class="od-step-line {% if s == 'ready' or s == 'collected' %}active{% endif %}"></div>
+
+                <!-- Ready -->
+                <div class="od-step {% if s == 'ready' %}active{% elif s == 'collected' %}done{% endif %}">
+                    <div class="od-step-circle">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+                        </svg>
+                    </div>
+                    <span class="od-step-label">Ready</span>
+                </div>
+                <div class="od-step-line {% if s == 'collected' %}active{% endif %}"></div>
+
+                <!-- Collected -->
+                <div class="od-step {% if s == 'collected' %}active done{% endif %}">
+                    <div class="od-step-circle">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                            <polyline points="22 4 12 14.01 9 11.01" />
+                        </svg>
+                    </div>
+                    <span class="od-step-label">Collected</span>
+                </div>
+                {% endwith %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Content -->
+    <div class="od-content">
+        <!-- QR Code Card -->
+        <div class="od-card">
+            <div class="od-qr">
+                <img src="{{ order.qr_code_data }}" alt="Order QR Code">
+                <div class="od-qr-info">
+                    <h4>Show this at the counter</h4>
+                    <p>Present this QR code when collecting your order. Keep it handy for quick pickup.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Info Card -->
+        <div class="od-card">
+            <div class="od-info-grid">
+                <div class="od-info-item">
+                    <div class="od-info-label">Order Date</div>
+                    <div class="od-info-value">{{ order.created_at|date:"d M Y, h:i A" }}</div>
+                </div>
+                <div class="od-info-item">
+                    <div class="od-info-label">Payment</div>
+                    <div class="od-info-value">
+                        {{ order.get_payment_method_display }}
+                        {% if order.is_paid %}
+                        <span class="od-paid-badge">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                            Paid
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="od-info-item">
+                    <div class="od-info-label">
+                        {% if order.delivery_type == 'pickup' %}Pickup{% else %}Delivery{% endif %}
+                    </div>
+                    <div class="od-info-value">
+                        {% if order.delivery_type == 'pickup' %}Counter Pickup
+                        {% elif order.delivery_type == 'classroom' %}Room {{ order.delivery_location }}
+                        {% elif order.delivery_type == 'staffroom' %}{{ order.delivery_location }}
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% if order.scheduled_for %}
+            <div class="od-info-grid" style="border-bottom: none;">
+                <div class="od-info-item" style="grid-column: 1 / -1;">
+                    <div class="od-info-label" style="color: #6366f1;">Scheduled For</div>
+                    <div class="od-info-value" style="color: #6366f1;">{{ order.scheduled_for|date:"d M Y, h:i A" }}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Items Card -->
+        <div class="od-card">
+            <div class="od-card-title">Order Items</div>
+            {% for item in order.items.all %}
+            <div class="od-item">
+                <span
+                    class="od-item-veg {% if item.menu_item and item.menu_item.is_vegetarian %}veg{% else %}nonveg{% endif %}"></span>
+                <span class="od-item-name">{{ item.item_name }}</span>
+                <span class="od-item-qty">× {{ item.quantity }}</span>
+                <span class="od-item-price">₹{{ item.get_subtotal }}</span>
+            </div>
+            {% endfor %}
+
+            {% if order.delivery_fee > 0 %}
+            <div class="od-item" style="border-top: 1px dashed #e9e9eb;">
+                <span style="width: 14px; margin-right: 10px;"></span>
+                <span class="od-item-name" style="color: #93959f;">Delivery Fee</span>
+                <span class="od-item-qty"></span>
+                <span class="od-item-price" style="color: #93959f;">₹{{ order.delivery_fee }}</span>
+            </div>
+            {% endif %}
+
+            <div class="od-total-row">
+                <span class="od-total-label">Total</span>
+                <span class="od-total-value">₹{{ order.total_amount }}</span>
+            </div>
+        </div>
+
+        {% if order.special_instructions %}
+        <!-- Instructions Card -->
+        <div class="od-card">
+            <div class="od-card-title">Special Instructions</div>
+            <div class="od-instructions">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                </svg>
+                <p>{{ order.special_instructions }}</p>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- Delivery/Pickup Card -->
+        <div class="od-card">
+            <div class="od-delivery">
+                <div class="od-delivery-icon">
+                    {% if order.delivery_type == 'pickup' %}
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                        <polyline points="9 22 9 12 15 12 15 22" />
+                    </svg>
+                    {% else %}
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <rect x="1" y="3" width="15" height="13" rx="2" ry="2" />
+                        <polygon points="16 8 20 8 23 11 23 16 16 16 16 8" />
+                        <circle cx="5.5" cy="18.5" r="2.5" />
+                        <circle cx="18.5" cy="18.5" r="2.5" />
+                    </svg>
+                    {% endif %}
+                </div>
+                <div class="od-delivery-text">
+                    {% if order.delivery_type == 'pickup' %}
+                    <h5>Pickup at Counter</h5>
+                    <p>Collect your order from the canteen counter when ready</p>
+                    {% elif order.delivery_type == 'classroom' %}
+                    <h5>Classroom Delivery — {{ order.delivery_location }}</h5>
+                    <p>Your order will be delivered to your classroom</p>
+                    {% elif order.delivery_type == 'staffroom' %}
+                    <h5>Staffroom Delivery — {{ order.delivery_location }}</h5>
+                    <p>Your order will be delivered to the staffroom</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Buttons -->
+        {% if order.status == 'pending' or order.status == 'collected' or order.status == 'cancelled' %}
+        <div class="od-card">
+            <div class="od-actions">
+                {% if order.status == 'pending' %}
+                <form method="POST" action="{% url 'cancel_order' order.id %}" style="margin:0;">
+                    {% csrf_token %}
+                    <button type="submit" class="od-btn od-btn-danger" onclick="return confirm('Cancel this order?')">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="15" y1="9" x2="9" y2="15" />
+                            <line x1="9" y1="9" x2="15" y2="15" />
+                        </svg>
+                        Cancel Order
+                    </button>
+                </form>
+                {% endif %}
+                {% if order.status == 'collected' or order.status == 'cancelled' %}
+                <a href="{% url 'reorder' order.id %}" class="od-btn od-btn-primary">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="23 4 23 10 17 10" />
+                        <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10" />
+                    </svg>
+                    Reorder
+                </a>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Live status polling (no page blink) -->
+{% if order.status != 'collected' and order.status != 'cancelled' %}
+<script>
+    (function () {
+        var currentStatus = '{{ order.status }}';
+        function checkStatus() {
+            fetch('{% url "order_status_api" order.id %}')
+                .then(function (r) { return r.json(); })
+                .then(function (data) {
+                    if (data.status !== currentStatus) {
+                        // Status changed — reload once to update the UI
+                        window.location.reload();
+                    }
+                })
+                .catch(function () { });
+        }
+        setInterval(checkStatus, 8000);
+    })();
+</script>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    (function () {
+        // Mark that we completed an order flow
+        sessionStorage.setItem('orderFlowComplete', '1');
+
+        // Replace current history entry with /menu/, push order on top
+        // So: [..., /menu/, /order/X/]
+        // Back from order → /menu/ naturally
+        var orderUrl = location.href;
+        history.replaceState(null, '', '/menu/');
+        history.pushState(null, '', orderUrl);
+    })();
+</script>
+{% endblock %}

@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SRS Chapter 2 - Smart College Canteen Management System</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        
+        :root {
+            --primary: #1a1a2e;
+            --secondary: #16213e;
+            --accent: #533483;
+            --text: #333;
+            --border: #ddd;
+        }
+
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            line-height: 1.5;
+            color: var(--text);
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 50px;
+            background: #fff;
+        }
+
+        h1, h2, h3, h4 {
+            font-family: 'Inter', sans-serif;
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        h1 {
+            font-size: 28pt;
+            text-align: center;
+            margin-top: 50px;
+            margin-bottom: 30px;
+            text-transform: uppercase;
+            border-bottom: 3px solid var(--primary);
+            padding-bottom: 10px;
+            page-break-before: always;
+        }
+
+        h1:first-of-type {
+            page-break-before: avoid;
+            margin-top: 0;
+        }
+
+        h2 {
+            font-size: 20pt;
+            margin-top: 40px;
+            border-bottom: 2px solid var(--secondary);
+            padding-bottom: 5px;
+        }
+
+        h3 {
+            font-size: 16pt;
+            margin-top: 30px;
+            color: var(--accent);
+        }
+
+        hr {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 40px 0;
+        }
+
+        .table-container {
+            margin: 20px 0;
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11pt;
+        }
+
+        th, td {
+            border: 1px solid #000;
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background: #f2f2f2;
+            font-weight: bold;
+        }
+
+        tr:nth-child(even) {
+            background: #fafafa;
+        }
+
+        @media print {
+            body {
+                padding: 0;
+                margin: 20mm;
+            }
+            h1, h2, h3 {
+                page-break-after: avoid;
+            }
+            table, tr, td {
+                page-break-inside: avoid;
+            }
+            .no-print {
+                display: none;
+            }
+        }
+
+        .no-print {
+            background: #e74c3c;
+            color: white;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+            text-align: center;
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+</head>
+<body>
+    <div class="no-print">
+        <strong>🖨️ PDF Generation Instructions:</strong><br>
+        1. Press <strong>Ctrl + P</strong> (Windows) or <strong>Cmd + P</strong> (Mac).<br>
+        2. Set Destination to <strong>"Save as PDF"</strong>.<br>
+        3. Make sure <strong>"Background graphics"</strong> is checked under More settings.<br>
+        4. Click <strong>Save</strong>.
+    </div>
+    
+    <h2>2.1 Introduction</h2><br>The Smart College Canteen Management System (CampusBites) is a web-based application developed to modernize the traditional food ordering process in educational institutions. This chapter provides a detailed specification of the requirements for the system, covering everything from the purpose and scope to specific technical requirements and constraints. It serves as a foundational document for the development, testing, and deployment phases of the project.<br><br><h2>2.2 Purpose</h2><br>The primary purpose of this specification is to define the functional and non-functional requirements of the Smart College Canteen Management System. It aims to eliminate long queues, improve order accuracy, enable cashless transactions, and provide real-time order tracking. This document provides a clear understanding of the system's goals and functionality for developers, stakeholders, and users, ensuring that the final product meets the needs of the college community.<br><br><h2>2.3 scope</h2><br>The scope of the project includes the development of a responsive web application for students, staff, and canteen administrators. Key features include user registration and authentication, a dynamic menu with filtering options, a shopping cart system, order placement with delivery preferences (pickup, classroom, or staffroom), a digital wallet for payments, QR code generation for order verification, and an admin dashboard for managing menu items and processing orders. The system focuses on a single canteen location and does not include real-world payment gateway integration or inventory management.<br><br><h2>2.4 Defination, Acronyms, Abbreviation</h2><br>- <strong>SRS</strong>: Software Requirement Specification<br>- <strong>DFD</strong>: Data Flow Diagram<br>- <strong>ER</strong>: Entity Relationship<br>- <strong>CRUD</strong>: Create, Read, Update, Delete<br>- <strong>UPI</strong>: Unified Payments Interface (Simulated)<br>- <strong>QR</strong>: Quick Response (code)<br>- <strong>UI</strong>: User Interface<br>- <strong>MVT</strong>: Model-View-Template (Architecture)<br>- <strong>ORM</strong>: Object-Relational Mapping<br>- <strong>Veg</strong>: Vegetarian<br>- <strong>Non-Veg</strong>: Non-Vegetarian<br>- <strong>Admin</strong>: Administrator<br>- <strong>CSRF</strong>: Cross-Site Request Forgery (Security)<br>- <strong>Wallet</strong>: Virtual balance for transactions<br>- <strong>Cart</strong>: Temporary storage for items before ordering<br><br><h2>2.5 Overview</h2><br>The Smart College Canteen Management System is structured to provide a seamless interaction between three primary user groups: Customers (Students/Staff), Kitchen Staff, and Administrators. The system is built using the Django framework with a MySQL database. It provides a front-end interface for browsing and ordering, and a back-end admin panel for management. This chapter outlines the detailed requirements necessary to build, maintain, and secure this ecosystem.<br><br><h2>2.6 Overal Description</h2><br>The system is a standalone web application designed specifically for college canteens. It replaces manual, paper-based processes with a digital platform. Users can access the system via any modern web browser on smartphones or laptops. It handles the complete lifecycle of a food order, from browsing the digital menu and selecting items to secure payment and real-time status updates until the order is collected or delivered to a specified campus location.<br><br><h2>2.7 Productive Perspective</h2><br>This system is part of a larger push toward campus digitalization. It integrates multiple sub-systems including:<br>- <strong>User Management</strong>: Handling profiles and role-based access.<br>- <strong>Menu System</strong>: Providing dynamic catalog management.<br>- <strong>Transaction System</strong>: Managing the digital wallet and simulated payments.<br>- <strong>Order Queue</strong>: Organizing kitchen operations and fulfillment.<br>- <strong>Notification System</strong>: Communicating status updates via the web UI and email.<br><br><h2>2.8 Product Function</h2><br>Major functions of the product include:<br>- User registration with role selection (Student/Teacher).<br>- Login via credentials or Social Media (Google/Facebook).<br>- Browsing the menu with category and dietary filters (Veg/Non-Veg).<br>- Adding items to a persistent shopping cart with custom instructions.<br>- Placing orders with specific delivery locations (Classrooms/Staffrooms).<br>- Cashless payments using a built-in wallet system.<br>- Real-time order status tracking with Token numbers and QR codes.<br>- Managing menu items, categories, and order fulfillment via Admin Dashboard.<br>- User review and rating system for quality feedback.<br><br><h2>2.9 User classes and Characteristics</h2><br>- <strong>Student User</strong>: Primary user class, frequent users, tech-savvy, uses mobile devices, needs fast ordering.<br>- <strong>Staff User</strong>: Faculty and administrative staff, uses laptops/mobiles, requires staffroom delivery.<br>- <strong>Admin User</strong>: Canteen managers/owners, manages menu items, prices, and systems access.<br>- <strong>Kitchen Staff</strong>: Personnel responsible for food prep, updates order status in real-time.<br><br><h2>2.10 Genral Constraints</h2><br>- Requires stable internet connectivity for all operations.<br>- Must be accessed through modern web browsers with JavaScript enabled.<br>- Limited to single-language (English) support in the current version.<br>- Data storage is constrained by the MySQL 8.0 environment.<br>- Responsive design must accommodate screen sizes from mobile to desktop.<br>- Orders can only be processed during canteen operational hours.<br><br><h2>2.11 Assumptions and Dependensies</h2><br>- <strong>Assumptions</strong>: Users have basic computer literacy; users have valid email IDs for registration; the canteen has a dedicated tablet or computer for the kitchen display.<br>- <strong>Dependensies</strong>: Relies on the Django 6.0 framework; depends on MySQL 8.0 database; requires Python 3.10+ runtime; depends on third-party libraries for QR code generation and social authentication.<br><br><h2>2.12 Specific Requirements</h2><br>The system must adhere to precise technical specifications to ensure compatibility and performance across various devices and environments.<br><br><h3>2.12.1 softtware Requirements</h3><br>- <strong>Operating System</strong>: Windows 10/11, Linux, or macOS.<br>- <strong>Language</strong>: Python 3.13.<br>- <strong>Framework</strong>: Django 6.0.<br>- <strong>Database</strong>: MySQL 8.0.<br>- <strong>Web Browser</strong>: Chrome 90+, Firefox 88+, Edge 90+.<br>- <strong>Libraries</strong>: django-allauth, Pillow, mysqlclient, qrcode.<br><br><h3>2.12.2 Hardware Requirements</h3><br>- <strong>Server</strong>: Intel Core i3 (Minimum), 4GB RAM, 10GB free disk space.<br>- <strong>Client</strong>: Any smartphone or laptop with internet access.<br>- <strong>Kitchen Display</strong>: A tablet with a minimum 10-inch screen for easy visibility.<br>- <strong>Network</strong>: Minimum 2 Mbps for users, 10 Mbps for the server.<br><br><h3>2.12.3 Communication Interface</h3><br>- <strong>Protocol</strong>: HTTP/HTTPS for web traffic.<br>- <strong>Data Exchange</strong>: JSON format for internal API communication.<br>- <strong>Notifications</strong>: SMTP protocol for email delivery.<br>- <strong>Database Connection</strong>: TCP/IP for MySQL connectivity.<br><br><h2>2.13 Functional Requirements</h2><br>The system shall provide high-priority functions including:<br>- Secure account creation and login.<br>- Dynamic menu browsing with search and category filters.<br>- Cart operations including adding, updating, and removing items.<br>- Order processing with unique token and QR code generation.<br>- Wallet balance management and transaction logging.<br>- Role-based dashboard views for users and administrators.<br>- Status update mechanism for orders (Preparing, Ready, etc.).<br><br><h2>2.14 Performance Requirements</h2><br>- <strong>Response Time</strong>: Home page should load under 2 seconds.<br>- <strong>Throughput</strong>: Support 200+ concurrent users with no lag.<br>- <strong>Availability</strong>: 99% uptime during canteen operating hours.<br>- <strong>Accuracy</strong>: 100% accuracy in financial transaction logging.<br>- <strong>Storage</strong>: Scalable database to handle up to 5,000 users and 50,000 historical orders.<br><br><h2>2.15 Design Contraints</h2><br>- The UI must follow a professional dark theme with glassmorphism styles.<br>- The application must strictly follow the Model-View-Template (MVT) architecture.<br>- All code must adhere to PEP 8 standards for Python development.<br>- The database schema must be normalized to at least 3NF.<br>- All sensitive operations must be protected by CSRF tokens.<br><br><h2>2.16 System Attributes</h2><br>- <strong>Reliability</strong>: Graceful handling of errors with user-friendly alerts.<br>- <strong>Security</strong>: Password hashing and role-based access control.<br>- <strong>Maintainability</strong>: Modular code divided into specific Django apps.<br>- <strong>Usability</strong>: Intuitive design requiring zero user training.<br>- <strong>Portability</strong>: Codebase runnable on various operating systems.<br><br><h2>2.17 Other Requirements</h2><br>Supplementary requirements to ensure the overall quality and safety of the system.<br><br><h3>2.17.1 Safety Requirments</h3><br>- Input validation on all forms to prevent SQL injection and XSS.<br>- Automatic session timeout after 24 hours of inactivity.<br>- Detailed logging of all data modifications for audit trails.<br>- Ensuring menu items have accurate descriptions to prevent allergen issues.<br><br><h3>2.17.2 Security Requirments</h3><br>- Encryption of sensitive data in transit (HTTPS).<br>- Secure storage of user passwords using PBKDF2 hashing.<br>- Role-based permissions to prevent unauthorized access to admin features.<br>- Protection against common web vulnerabilities via Django's security middleware.<br>
+</body>
+</html>

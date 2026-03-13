@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="College Canteen - Order delicious food online">
+    <meta name="theme-color" content="#ff6b35">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="CampusBites">
+    <title>{% block title %}College Canteen{% endblock %}</title>
+
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="/static/manifest.json">
+    <link rel="apple-touch-icon" href="/static/images/icon-192.png">
+
+    <!-- Fonts loaded locally via @font-face in style.css -->
+
+    <!-- Main CSS -->
+    <link rel="stylesheet" href="/static/css/style.css?v=122">
+
+    <!-- Apply saved theme IMMEDIATELY to prevent flash on back/forward navigation -->
+    <script>
+        (function() {
+            if (localStorage.getItem('theme') === 'dark') {
+                document.documentElement.classList.add('dark-mode');
+            }
+        })();
+    </script>
+
+    <!-- Smooth page transition -->
+    <style>
+        @keyframes pageFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(6px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        main {
+            animation: pageFadeIn 0.3s ease-out;
+        }
+    </style>
+
+    <style>
+        body {
+            font-family: 'Gilroy', sans-serif;
+        }
+    </style>
+
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body class="dark-mode">
+    <script>
+        // Check local storage immediately to prevent rendering flash
+        if (localStorage.getItem('theme') === 'light') {
+            document.body.classList.remove('dark-mode');
+        }
+    </script>
+    {% block navbar %}
+    <!-- Navbar — Swiggy Style -->
+    <nav class="navbar">
+        <div class="navbar-container">
+            <a href="{% url 'home' %}" class="navbar-brand">
+                <svg width="34" height="34" viewBox="220 70 460 460" fill="none">
+                    <circle cx="450" cy="300" r="230" fill="#FF5200"/>
+                    <g transform="translate(450, 300) rotate(45)">
+                        <path d="M -140,-140 h 280 v 280 h -280 Z M -106,-106 v 89 h 89 v -89 Z M 17,-106 v 89 h 89 v -89 Z M -106,17 v 89 h 89 v -89 Z M 17,17 v 89 h 89 v -89 Z" fill="#FFFFFF" fill-rule="evenodd"/>
+                    </g>
+                </svg>
+                <span class="brand-campus">Campus</span><span class="brand-bites">Bites</span>
+            </a>
+
+            <button class="menu-toggle" onclick="toggleMobileMenu()">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="3" y1="6" x2="21" y2="6" />
+                    <line x1="3" y1="12" x2="21" y2="12" />
+                    <line x1="3" y1="18" x2="21" y2="18" />
+                </svg>
+            </button>
+
+            <div class="navbar-nav" id="navbarNav">
+                {% if user.is_authenticated %}
+
+                {% if user.profile.role == 'kitchen' and not user.profile.is_admin %}
+                <!-- KITCHEN STAFF NAV -->
+                <a href="{% url 'kitchen_dashboard' %}" class="nav-link active">Order Queue</a>
+                <button id="themeToggle" class="nav-link nav-icon-btn" title="Toggle Dark Mode">
+                    <svg class="icon-sun" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5" />
+                        <line x1="12" y1="1" x2="12" y2="3" />
+                        <line x1="12" y1="21" x2="12" y2="23" />
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+                        <line x1="1" y1="12" x2="3" y2="12" />
+                        <line x1="21" y1="12" x2="23" y2="12" />
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+                    </svg>
+                    <svg class="icon-moon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                        stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                    </svg>
+                </button>
+                <a href="{% url 'logout' %}" class="nav-link">Logout</a>
+
+                {% else %}
+                <!-- REGULAR USER / ADMIN NAV (Swiggy Style) -->
+                <a href="javascript:void(0)" onclick="openSearch()" class="nav-link">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path
+                            d="M11 19C15.4183 19 19 15.4183 19 11C19 6.58172 15.4183 3 11 3C6.58172 3 3 6.58172 3 11C3 15.4183 6.58172 19 11 19Z"
+                            stroke="#3D4152" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                        <path d="M21 21L16.65 16.65" stroke="#3D4152" stroke-width="2" stroke-linecap="round"
+                            stroke-linejoin="round"></path>
+                    </svg>
+                    <span>Search</span>
+                </a>
+                <a href="{% url 'user_feedback' %}" class="nav-link">
+                    <svg viewBox="6 -1 12 25" height="19" width="19" fill="#3D4152"
+                        style="vertical-align: middle; position: relative; top: -1px;">
+                        <path
+                            d="M21.966903,13.2244898 C22.0156989,12.8231523 22.0408163,12.4145094 22.0408163,12 C22.0408163,11.8357822 22.036874,11.6724851 22.029079,11.5101984 L17.8574333,11.5102041 C17.8707569,11.6717062 17.877551,11.8350597 17.877551,12 C17.877551,12.4199029 17.8335181,12.8295214 17.749818,13.2244898 L21.966903,13.2244898 Z M21.5255943,15.1836735 L16.9414724,15.1836735 C15.8950289,16.8045422 14.0728218,17.877551 12,17.877551 C9.92717823,17.877551 8.1049711,16.8045422 7.05852762,15.1836735 L2.47440565,15.1836735 C3.80564362,19.168549 7.56739481,22.0408163 12,22.0408163 C16.4326052,22.0408163 20.1943564,19.168549 21.5255943,15.1836735 Z M21.7400381,9.55102041 C20.6468384,5.18931674 16.7006382,1.95918367 12,1.95918367 C7.2993618,1.95918367 3.3531616,5.18931674 2.25996187,9.55102041 L6.6553883,9.55102041 C7.58404845,7.5276442 9.62792376,6.12244898 12,6.12244898 C14.3720762,6.12244898 16.4159515,7.5276442 17.3446117,9.55102041 L21.7400381,9.55102041 Z M2.03309705,13.2244898 L6.25018203,13.2244898 C6.16648186,12.8295214 6.12244898,12.4199029 6.12244898,12 C6.12244898,11.8350597 6.1292431,11.6717062 6.14256675,11.5102041 L1.97092075,11.5102041 C1.96312595,11.6724851 1.95918367,11.8357822 1.95918367,12 C1.95918367,12.4145094 1.98430112,12.8231523 2.03309705,13.2244898 Z M12,24 C5.372583,24 0,18.627417 0,12 C0,5.372583 5.372583,0 12,0 C18.627417,0 24,5.372583 24,12 C24,18.627417 18.627417,24 12,24 Z M12,15.9183673 C14.1640545,15.9183673 15.9183673,14.1640545 15.9183673,12 C15.9183673,9.83594547 14.1640545,8.08163265 12,8.08163265 C9.83594547,8.08163265 8.08163265,9.83594547 8.08163265,12 C8.08163265,14.1640545 9.83594547,15.9183673 12,15.9183673 Z">
+                        </path>
+                    </svg>
+                    <span>Help</span>
+                </a>
+
+                <!-- Swiggy-style Profile Dropdown -->
+                <div class="nav-profile-dropdown" id="profileDropdown">
+                    <a href="{% url 'profile' %}" class="nav-profile-trigger">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                d="M20 21V19C20 17.9391 19.5786 16.9217 18.8284 16.1716C18.0783 15.4214 17.0609 15 16 15H8C6.93913 15 5.92172 15.4214 5.17157 16.1716C4.42143 16.9217 4 17.9391 4 19V21"
+                                stroke="#3D4152" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                            <path
+                                d="M12 11C14.2091 11 16 9.20914 16 7C16 4.79086 14.2091 3 12 3C9.79086 3 8 4.79086 8 7C8 9.20914 9.79086 11 12 11Z"
+                                stroke="#3D4152" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
+                        <span class="nav-profile-name">{{ user.first_name|default:user.username }}</span>
+                    </a>
+                    <div class="profile-dropdown-menu" id="profileDropdownMenu">
+                        <a href="{% url 'profile' %}" class="profile-dropdown-item">Profile</a>
+                        <a href="{% url 'profile' %}#orders" class="profile-dropdown-item">Orders</a>
+                        <a href="{% url 'profile' %}#favourites" class="profile-dropdown-item">Favourites</a>
+                        <a href="{% url 'profile' %}#wallet" class="profile-dropdown-item">Wallet</a>
+                        <a href="{% url 'logout' %}" class="profile-dropdown-item">Logout</a>
+                    </div>
+                </div>
+
+                <div class="nav-cart-dropdown" id="cartDropdown">
+                    <a href="{% url 'view_cart' %}"
+                        class="nav-link nav-cart-swiggy {% if cart_type == 'veg' %}cart-veg{% elif cart_type == 'nonveg' %}cart-nonveg{% elif cart_type == 'mixed' %}cart-mixed{% endif %}"
+                        title="Cart">
+                        <span class="swiggy-cart-icon">
+                            <svg viewBox="-1 0 37 32" height="20" width="20" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M4.438 0l-2.598 5.11-1.84 26.124h34.909l-1.906-26.124-2.597-5.11z" />
+                            </svg>
+                            <span class="swiggy-cart-count">{{ request.session.cart|length|default:"0" }}</span>
+                        </span>
+                        <span>Cart</span>
+                    </a>
+                    {% block cart_dropdown_menu %}
+                    <div class="cart-dropdown-menu" id="cartDropdownMenu">
+                        <div class="cart-dropdown-arrow"></div>
+                        {% if cart_items %}
+                        <div class="cart-dd-header">
+                            <div class="cart-dd-header-left">
+                                <div class="cart-dd-title">Your Cart</div>
+                            </div>
+                        </div>
+                        <div class="cart-dd-items">
+                            {% for item in cart_items %}
+                            <div class="cart-dd-item">
+                                <span
+                                    class="cart-dd-veg-icon {% if item.is_veg %}veg{% else %}nonveg{% endif %}"></span>
+                                <span class="cart-dd-item-name">{{ item.name }} x {{ item.qty }}</span>
+                                <span class="cart-dd-item-price">&#8377;{{ item.total }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                        <div class="cart-dd-footer">
+                            <div class="cart-dd-subtotal">
+                                <span>Sub total</span>
+                                <span>&#8377;{{ cart_subtotal }}</span>
+                            </div>
+                            <div class="cart-dd-extra">Extra charges may apply</div>
+                            <a href="{% url 'view_cart' %}" class="cart-dd-checkout-btn">CHECKOUT</a>
+                        </div>
+                        {% else %}
+                        <div class="cart-dd-empty">
+                            <h3 class="cart-dd-empty-title">Cart Empty</h3>
+                            <p class="cart-dd-empty-text">Good food is always home food!<br>Go ahead, order some yummy
+                                items from the menu.</p>
+                        </div>
+                        {% endif %}
+                    </div>
+                    {% endblock %}
+                </div>
+
+                {% if user.profile.is_admin %}
+                <div class="nav-admin-links">
+                    <a href="{% url 'custom_admin_overview' %}" class="nav-link nav-admin-link">Admin</a>
+                    <a href="{% url 'kitchen_dashboard' %}" class="nav-link nav-kitchen-link">Kitchen</a>
+                </div>
+                {% endif %}
+                {% endif %}
+
+                {% else %}
+                <a href="{% url 'login' %}" class="btn btn-outline btn-sm">Login</a>
+                <a href="{% url 'register' %}" class="btn btn-primary btn-sm">Sign Up</a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+    {% endblock %}
+
+    <!-- Flash Messages (Toasts) -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    {% if messages %}
+    <script>
+        document.addEventListener('turbo:load', function () {
+            {% for message in messages %}
+            showToast("{{ message|escapejs }}", "{{ message.tags }}");
+            {% endfor %}
+        });
+        document.addEventListener('DOMContentLoaded', function () {
+            {% for message in messages %}
+            showToast("{{ message|escapejs }}", "{{ message.tags }}");
+            {% endfor %}
+        });
+    </script>
+    {% endif %}
+
+    <!-- Main Content -->
+    <main>
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    {% block footer %}
+    {% endblock %}
+
+    <!-- Chatbot (Premium UI) -->
+    {% if user.is_authenticated %}
+    <div class="chat-fab-container">
+        <div class="chat-fab" onclick="toggleChat()">
+            <!-- Message Icon -->
+            <svg class="chat-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+            </svg>
+            <!-- Close Icon -->
+            <svg class="close-icon" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="18" y1="6" x2="6" y2="18"></line>
+                <line x1="6" y1="6" x2="18" y2="18"></line>
+            </svg>
+        </div>
+        <div class="chat-fab-pulse"></div>
+    </div>
+
+    <div class="chat-window" id="chatWindow">
+        <div class="chat-header">
+            <div class="chat-header-info">
+                <div class="chat-avatar-large">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="11" width="18" height="10" rx="2"></rect>
+                        <circle cx="12" cy="5" r="2"></circle>
+                        <path d="M12 7v4"></path>
+                        <line x1="8" y1="16" x2="8" y2="16"></line>
+                        <line x1="16" y1="16" x2="16" y2="16"></line>
+                    </svg>
+                </div>
+                <div>
+                    <h4>Assistant</h4>
+                    <span class="status-indicator">Online</span>
+                </div>
+            </div>
+            <div class="chat-header-actions">
+                <button class="chat-action-btn" onclick="clearChat()" title="Clear Chat">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                </button>
+                <button class="chat-action-btn" onclick="toggleChat()" title="Close">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <div class="chat-messages" id="chatMessages">
+            <div class="chat-date-divider">Today</div>
+            <div class="chat-message bot">
+                <div class="chat-avatar-small">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="11" width="18" height="10" rx="2"></rect>
+                        <circle cx="12" cy="5" r="2"></circle>
+                        <path d="M12 7v4"></path>
+                        <line x1="8" y1="16" x2="8" y2="16"></line>
+                        <line x1="16" y1="16" x2="16" y2="16"></line>
+                    </svg>
+                </div>
+                <!-- Intro Message -->
+                <div class="chat-bubble">
+                    Hi {{ user.username }}! 👋<br>I'm your AI assistant. Need help with the <b>Menu or Orders?</b>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick replies - OUTSIDE the scrollable area, between messages and input -->
+        <div id="quickRepliesArea" class="quick-replies-fixed">
+            <div class="quick-replies">
+                <button class="quick-reply" onclick="sendQuickReply('Show me the menu')">Menu</button>
+                <button class="quick-reply" onclick="sendQuickReply('What are today\'s specials?')">Specials</button>
+                <button class="quick-reply" onclick="sendQuickReply('Where is my order?')">My Orders</button>
+                <button class="quick-reply" onclick="sendQuickReply('Help')">Help</button>
+            </div>
+        </div>
+
+        <div class="chat-input-area">
+            <input type="text" id="chatInput" placeholder="Type a message..." onkeypress="handleChatKeyPress(event)">
+            <button class="chat-send-btn" onclick="sendChatMessage()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+            </button>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Scripts -->
+    <script>
+        // Mobile Menu Toggle
+        function toggleMobileMenu() {
+            document.getElementById('navbarNav').classList.toggle('active');
+        }
+
+        // Profile Dropdown Toggle
+        function toggleProfileDropdown(e) {
+            e.stopPropagation();
+            const dropdown = document.getElementById('profileDropdown');
+            dropdown.classList.toggle('open');
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function (e) {
+            const dropdown = document.getElementById('profileDropdown');
+            if (dropdown && !dropdown.contains(e.target)) {
+                dropdown.classList.remove('open');
+            }
+        });
+
+        // =======================
+        // Chatbot Logic (Production)
+        // =======================
+        const CHAT_HISTORY_KEY = 'campusbites_chat_history_v2';
+        const CHAT_STATE_KEY = 'campusbites_chat_open';
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadChatHistory();
+
+            // Restore Open State
+            if (localStorage.getItem(CHAT_STATE_KEY) === 'true') {
+                const chatWindow = document.getElementById('chatWindow');
+                const fab = document.querySelector('.chat-fab');
+                if (chatWindow && fab) {
+                    chatWindow.classList.add('active');
+                    fab.classList.add('active');
+                    setTimeout(scrollToBottom, 100);
+                }
+            }
+        });
+
+        function toggleChat() {
+            const chatWindow = document.getElementById('chatWindow');
+            const fab = document.querySelector('.chat-fab');
+
+            chatWindow.classList.toggle('active');
+            fab.classList.toggle('active');
+
+            const isOpen = chatWindow.classList.contains('active');
+            localStorage.setItem(CHAT_STATE_KEY, isOpen);
+
+            if (isOpen) {
+                setTimeout(() => {
+                    document.getElementById('chatInput').focus();
+                    scrollToBottom();
+                }, 300);
+            }
+        }
+
+        function scrollToBottom() {
+            const messagesDiv = document.getElementById('chatMessages');
+            if (messagesDiv) messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+
+        function loadChatHistory() {
+            const history = JSON.parse(localStorage.getItem(CHAT_HISTORY_KEY) || '[]');
+            const messagesDiv = document.getElementById('chatMessages');
+            if (!messagesDiv) return;
+
+            // If history exists, clear default welcome message and render history
+            if (history.length > 0) {
+                messagesDiv.innerHTML = '<div class="chat-date-divider">Earlier</div>';
+                history.forEach(msg => renderMessageHTML(msg.text, msg.sender, msg.timestamp, false));
+                // Append Quick Replies at the end if last message was from bot?
+                // For now, let's always append quick replies for easy access.
+                addQuickReplies();
+            }
+            scrollToBottom();
+        }
+
+        function saveMessage(text, sender) {
+            const history = JSON.parse(localStorage.getItem(CHAT_HISTORY_KEY) || '[]');
+            const timestamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            history.push({ text, sender, timestamp });
+            // Limit history to last 50 messages
+            if (history.length > 50) history.shift();
+            localStorage.setItem(CHAT_HISTORY_KEY, JSON.stringify(history));
+            return timestamp;
+        }
+
+        function clearChat() {
+            if (confirm("Clear chat history?")) {
+                localStorage.removeItem(CHAT_HISTORY_KEY);
+                const messagesDiv = document.getElementById('chatMessages');
+                messagesDiv.innerHTML = `
+                    <div class="chat-date-divider">Today</div>
+                    <div class="chat-message bot">
+                        <div class="chat-avatar-small">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"></rect><circle cx="12" cy="5" r="2"></circle><path d="M12 7v4"></path><line x1="8" y1="16" x2="8" y2="16"></line><line x1="16" y1="16" x2="16" y2="16"></line></svg>
+                        </div>
+                        <div class="chat-bubble">Chat cleared! How can I help?</div>
+                        <span class="chat-timestamp">${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                    </div>
+                `;
+                addQuickReplies();
+            }
+        }
+
+        const DEFAULT_QUICK_REPLIES = [
+            { label: 'Menu', message: 'Show me the menu' },
+            { label: 'Specials', message: "What are today's specials?" },
+            { label: 'My Orders', message: 'Where is my order?' },
+            { label: 'Help', message: 'Help' },
+        ];
+
+        function addQuickReplies(replies) {
+            const area = document.getElementById('quickRepliesArea');
+            if (!area) return;
+
+            const buttons = replies || DEFAULT_QUICK_REPLIES;
+            if (!buttons.length) {
+                area.style.display = 'none';
+                return;
+            }
+
+            const buttonsHTML = buttons.map(btn =>
+                `<button class="quick-reply" onclick="sendQuickReply('${btn.message.replace(/'/g, "\\'")}')">${btn.label}</button>`
+            ).join('');
+            area.innerHTML = `<div class="quick-replies">${buttonsHTML}</div>`;
+            area.style.display = 'block';
+        }
+
+        function removeQuickReplies() {
+            const area = document.getElementById('quickRepliesArea');
+            if (area) area.style.display = 'none';
+        }
+
+        function handleChatKeyPress(event) {
+            if (event.key === 'Enter') sendChatMessage();
+        }
+
+        function sendQuickReply(msg) {
+            document.getElementById('chatInput').value = msg;
+            sendChatMessage();
+        }
+
+        function sendChatMessage() {
+            const input = document.getElementById('chatInput');
+            const message = input.value.trim();
+            if (!message) return;
+
+            input.value = '';
+
+            // 1. Remove old Quick Replies
+            removeQuickReplies();
+
+            // 2. Render User Message
+            const timestamp = saveMessage(message, 'user');
+            renderMessageHTML(message, 'user', timestamp, true);
+
+            // 3. Show Typing
+            showTyping();
+
+            // 4. API Call
+            fetch('/chat/api/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token }}'
+                },
+                body: JSON.stringify({ message: message })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    hideTyping();
+                    const ts = saveMessage(data.response || 'Sorry, no response.', 'bot');
+                    renderMessageHTML(data.response || 'Sorry, no response.', 'bot', ts, true);
+                    // Dynamic quick replies from API, fall back to defaults
+                    addQuickReplies(data.quick_replies && data.quick_replies.length ? data.quick_replies : null);
+                    // Extra scroll after render to guarantee chips are visible
+                    setTimeout(() => scrollToBottom(), 150);
+                })
+                .catch(() => {
+                    hideTyping();
+                    renderMessageHTML("Connection error. Please try again.", 'bot', new Date().toLocaleTimeString(), false);
+                    addQuickReplies();
+                });
+        }
+
+        function renderMessageHTML(text, sender, timestamp, scrollToEnd = true) {
+            const messagesDiv = document.getElementById('chatMessages');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `chat-message ${sender}`;
+
+            // Markdown Parsing (Basic)
+            let formattedText = text
+                .replace(/\n/g, '<br>')
+                .replace(/\*\*(.*?)\*\*/g, '<b>$1</b>') // Bold
+                .replace(/__(.*?)__/g, '<i>$1</i>');    // Italics
+
+            // List handling (bullet points starting with - )
+            if (formattedText.includes('- ')) {
+                formattedText = formattedText.replace(/- (.*?)(<br>|$)/g, '<li>$1</li>');
+                formattedText = formattedText.replace(/(<li>.*<\/li>)/g, '<ul>$1</ul>');
+                // Fix nested ul/br issues if any (simple approach)
+            }
+
+            let avatarHTML = sender === 'bot' ? `
+                <div class="chat-avatar-small">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"></rect><circle cx="12" cy="5" r="2"></circle><path d="M12 7v4"></path><line x1="8" y1="16" x2="8" y2="16"></line><line x1="16" y1="16" x2="16" y2="16"></line></svg>
+                </div>` : '';
+
+            msgDiv.innerHTML = `
+                ${avatarHTML}
+                <div>
+                    <div class="chat-bubble">${formattedText}</div>
+                    <span class="chat-timestamp">${timestamp || ''}</span>
+                </div>
+            `;
+
+            messagesDiv.appendChild(msgDiv);
+            if (scrollToEnd) scrollToBottom();
+        }
+
+        function showTyping() {
+            const messagesDiv = document.getElementById('chatMessages');
+            const typingDiv = document.createElement('div');
+            typingDiv.id = 'typing-indicator';
+            typingDiv.className = 'chat-message bot';
+            typingDiv.innerHTML = `
+                <div class="chat-avatar-small">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"></rect><circle cx="12" cy="5" r="2"></circle><path d="M12 7v4"></path><line x1="8" y1="16" x2="8" y2="16"></line><line x1="16" y1="16" x2="16" y2="16"></line></svg>
+                </div>
+                <div class="chat-bubble typing-bubble">
+                    <span>.</span><span>.</span><span>.</span>
+                </div>`;
+            messagesDiv.appendChild(typingDiv);
+            scrollToBottom();
+        }
+
+        function hideTyping() {
+            document.getElementById('typing-indicator')?.remove();
+        }
+
+
+        // =======================
+        // Dark Mode & Utilities
+        // =======================
+        const themeToggle = document.getElementById('themeToggle');
+        const body = document.body;
+
+        function updateThemeIcon() {
+            const isDark = body.classList.contains('dark-mode');
+            if (themeToggle) {
+                themeToggle.classList.toggle('dark-active', isDark);
+            }
+        }
+
+        // Apply saved theme (default to light mode)
+        if (localStorage.getItem('theme') === 'dark') {
+            body.classList.add('dark-mode');
+        } else {
+            body.classList.remove('dark-mode');
+            document.documentElement.classList.remove('dark-mode');
+        }
+        updateThemeIcon();
+
+        // Re-apply theme when page is restored from bfcache (back/forward navigation)
+        window.addEventListener('pageshow', function(event) {
+            if (event.persisted) {
+                const savedTheme = localStorage.getItem('theme');
+                if (savedTheme === 'dark') {
+                    body.classList.add('dark-mode');
+                } else {
+                    body.classList.remove('dark-mode');
+                }
+                updateThemeIcon();
+            }
+        });
+
+        if (themeToggle) {
+            themeToggle.addEventListener('click', () => {
+                body.classList.toggle('dark-mode');
+                if (body.classList.contains('dark-mode')) {
+                    localStorage.setItem('theme', 'dark');
+                } else {
+                    localStorage.setItem('theme', 'light');
+                }
+                updateThemeIcon();
+            });
+        }
+
+        // Toast Notification System — Swiggy/Zomato Level
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+
+            // SVG icons matching each type
+            const icons = {
+                success: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
+                error: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+                danger: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+                warning: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+                info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>',
+            };
+
+            const titles = {
+                success: 'Success',
+                error: 'Error',
+                danger: 'Error',
+                warning: 'Warning',
+                info: 'Info',
+            };
+
+            const t = (['success', 'error', 'danger', 'warning'].includes(type)) ? type : 'info';
+
+            const toast = document.createElement('div');
+            toast.className = `toast ${t}`;
+            toast.innerHTML = `
+                <div class="toast-icon">${icons[t]}</div>
+                <div class="toast-body">
+                    <div class="toast-title">${titles[t]}</div>
+                    <div class="toast-text">${message}</div>
+                </div>
+                <button class="toast-close" onclick="dismissToast(this.parentElement)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+                <div class="toast-progress"></div>
+            `;
+
+            container.appendChild(toast);
+
+            // Auto-dismiss after 4 seconds
+            setTimeout(() => dismissToast(toast), 4000);
+        }
+
+        function dismissToast(toast) {
+            if (!toast || !toast.parentElement) return;
+            toast.classList.add('hiding');
+            setTimeout(() => { if (toast && toast.parentElement) toast.remove(); }, 350);
+        }
+    </script>
+
+    <!-- Service Worker Registration -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/static/sw.js')
+                    .then(reg => console.log('Service Worker registered'))
+                    .catch(err => console.log('SW registration failed:', err));
+            });
+        }
+    </script>
+
+    {% block extra_js %}{% endblock %}
+
+    <!-- Premium UI Scripts -->
+    <script>
+        // Navbar frosted glass shrink on scroll
+        (function () {
+            const navbar = document.querySelector('.navbar');
+            if (!navbar) return;
+            let lastScroll = 0;
+            window.addEventListener('scroll', () => {
+                const y = window.scrollY;
+                if (y > 40) {
+                    navbar.classList.add('navbar-scrolled');
+                } else {
+                    navbar.classList.remove('navbar-scrolled');
+                }
+                lastScroll = y;
+            }, { passive: true });
+        })();
+
+        // Scroll Reveal - Intersection Observer
+        (function () {
+            const revealElements = document.querySelectorAll('.reveal-on-scroll, .reveal-left');
+            if (!revealElements.length) return;
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('revealed');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.08, rootMargin: '0px 0px -20px 0px' });
+
+            revealElements.forEach(el => {
+                // Check if element is already visible in viewport
+                const rect = el.getBoundingClientRect();
+                if (rect.top < window.innerHeight && rect.bottom > 0) {
+                    // Already in viewport — don't hide, just mark as revealed
+                    el.classList.add('revealed');
+                } else {
+                    // Off-screen — hide it and observe
+                    el.classList.add('will-reveal');
+                    observer.observe(el);
+                }
+            });
+        })();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,214 @@
+{% extends "admin/admin_base.html" %}
+{% block title %}Feedback{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <div class="page-header-left">
+        <h1>Feedback &amp; Reviews</h1>
+        <p>User feedback and menu reviews</p>
+    </div>
+</div>
+
+<div class="filter-tabs-row">
+    <a href="?status=all" class="filter-tab-btn {% if status_filter == 'all' %}active{% endif %}">All</a>
+    <a href="?status=open" class="filter-tab-btn {% if status_filter == 'open' %}active{% endif %}">Open</a>
+    <a href="?status=in_progress" class="filter-tab-btn {% if status_filter == 'in_progress' %}active{% endif %}">
+        In Progress
+    </a>
+    <a href="?status=resolved" class="filter-tab-btn {% if status_filter == 'resolved' %}active{% endif %}">Resolved</a>
+</div>
+
+{% if feedbacks %}
+<div style="margin-bottom:32px;">
+    <h2 style="font-size:18px;font-weight:700;margin-bottom:16px;">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+            stroke-linejoin="round" style="vertical-align: -4px; margin-right: 4px;">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+        </svg> User Feedback
+    </h2>
+    <div class="data-card">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Feedback</th>
+                    <th>Status</th>
+                    <th>Response</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for fb in feedbacks %}
+                <tr>
+                    <td>
+                        <div class="user-cell">
+                            <div class="user-cell-avatar"
+                                style="width:36px;height:36px;font-size:12px;background:hsl({{ fb.user.id|add:150 }},60%,50%);">
+                                {{ fb.user.username|first|upper }}
+                            </div>
+                            <div class="user-cell-info">
+                                <span class="user-cell-name">
+                                    {{ fb.user.get_full_name|default:fb.user.username }}
+                                </span>
+                                <span class="user-cell-email">{{ fb.user.email }}</span>
+                            </div>
+                        </div>
+                    </td>
+                    <td style="max-width: 250px;">
+                        <div style="font-weight:600;margin-bottom:4px;color:var(--admin-text);">{{ fb.subject }}</div>
+                        <div style="font-size:12px;color:var(--admin-text-muted);line-height:1.4;">
+                            {{ fb.message|truncatewords:15 }}
+                        </div>
+                    </td>
+                    <td>
+                        <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-start;">
+                            <span class="status-badge {{ fb.status }}">
+                                {{ fb.get_status_display }}
+                            </span>
+
+                            <div style="display:flex;gap:4px;">
+                                {% if fb.status == 'open' %}
+                                <form method="post" style="display:inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="feedback_id" value="{{ fb.id }}">
+                                    <input type="hidden" name="status" value="in_progress">
+                                    <button type="submit" class="admin-btn admin-btn-xs admin-btn-outline"
+                                        title="Mark In Progress">
+                                        ➤ Process
+                                    </button>
+                                </form>
+                                {% endif %}
+
+                                {% if fb.status == 'in_progress' %}
+                                <form method="post" style="display:inline;">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="feedback_id" value="{{ fb.id }}">
+                                    <input type="hidden" name="status" value="resolved">
+                                    <button type="submit" class="admin-btn admin-btn-xs admin-btn-primary"
+                                        title="Mark Resolved">
+                                        ✓ Resolve
+                                    </button>
+                                </form>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </td>
+                    <td style="width: 300px;">
+                        {% if fb.admin_response %}
+                        <div
+                            style="padding:8px;background:rgba(9, 132, 227, 0.05);border:1px solid rgba(9, 132, 227, 0.1);border-radius:6px;font-size:12px;">
+                            <strong style="color:var(--admin-info);display:block;margin-bottom:2px;">You
+                                replied:</strong>
+                            {{ fb.admin_response }}
+                        </div>
+                        {% else %}
+                        <form method="post" style="display:flex;gap:4px;">
+                            {% csrf_token %}
+                            <input type="hidden" name="feedback_id" value="{{ fb.id }}">
+                            <input type="text" name="admin_response" placeholder="Reply..." required
+                                style="flex:1;background:var(--admin-bg);border:1px solid var(--admin-border);color:var(--admin-text);padding:6px 10px;border-radius:4px;font-size:12px;outline:none;">
+                            <button type="submit" class="admin-btn admin-btn-primary"
+                                style="padding:4px 10px;font-size:11px;height:28px;white-space:nowrap;">Reply</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                    <td style="font-size:12px;color:var(--admin-text-muted);white-space:nowrap;">
+                        {{ fb.created_at|timesince }} ago
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+{% if reviews %}
+<div>
+    <h2 style="font-size:18px;font-weight:700;margin-bottom:16px;display:flex;align-items:center;gap:8px;">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--admin-warning)" stroke-width="2.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <polygon
+                points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+            </polygon>
+        </svg>
+        Menu Reviews
+    </h2>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px;">
+        {% for review in reviews %}
+        <div class="feedback-card">
+            <div class="feedback-card-header">
+                <div class="feedback-card-user">
+                    <div class="user-cell-avatar"
+                        style="width:38px;height:38px;font-size:13px;background:hsl({{ review.user.id|add:40 }},50%,60%);">
+                        {{ review.user.username|first|upper }}
+                    </div>
+                    <div>
+                        <div style="font-weight:600;font-size:14px;color:var(--admin-text);">
+                            {{ review.user.get_full_name|default:review.user.username }}
+                        </div>
+                        <div style="font-size:12px;color:var(--admin-text-muted);">{{ review.menu_item.name }}</div>
+                    </div>
+                </div>
+                <div style="font-size:12px;color:var(--admin-text-muted);">{{ review.created_at|date:"M d, Y" }}</div>
+            </div>
+
+            <div style="margin:12px 0 8px;display:flex;align-items:center;gap:3px;">
+                {% for i in "12345" %}
+                {% if forloop.counter <= review.rating %} <svg width="16" height="16" viewBox="0 0 24 24" fill="#f39c12"
+                    stroke="none">
+                    <path
+                        d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                    </svg>
+                    {% else %}
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--admin-border)"
+                        stroke-width="1.5">
+                        <path
+                            d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                    </svg>
+                    {% endif %}
+                    {% endfor %}
+                    <span style="font-size:12px;color:var(--admin-text-muted);margin-left:4px;">
+                        {{ review.rating }}/5
+                    </span>
+            </div>
+
+            <div class="feedback-card-message">{{ review.comment }}</div>
+
+            {% if review.admin_response %}
+            <div
+                style="padding:10px 14px;background:var(--admin-bg);border:1px solid var(--admin-border);border-radius:var(--admin-radius-xs);font-size:12px;border-left:3px solid var(--admin-accent);">
+                <strong
+                    style="color:var(--admin-accent);display:block;margin-bottom:2px;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;">Admin
+                    reply</strong>
+                <span style="color:var(--admin-text-light);">{{ review.admin_response }}</span>
+            </div>
+            {% else %}
+            <form method="post" style="display:flex;gap:6px;margin-top:4px;">
+                {% csrf_token %}
+                <input type="hidden" name="review_id" value="{{ review.id }}">
+                <input type="text" name="admin_response" placeholder="Write a reply…" required
+                    style="flex:1;background:var(--admin-bg);border:1px solid var(--admin-border);color:var(--admin-text);padding:8px 12px;border-radius:var(--admin-radius-xs);font-size:12px;outline:none;transition:var(--admin-transition);"
+                    onfocus="this.style.borderColor='var(--admin-accent)';this.style.boxShadow='0 0 0 3px var(--admin-accent-light)'"
+                    onblur="this.style.borderColor='var(--admin-border)';this.style.boxShadow='none'">
+                <button type="submit" class="admin-btn admin-btn-primary admin-btn-sm"
+                    style="white-space:nowrap;">Reply</button>
+            </form>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% if not feedbacks and not reviews %}
+<div class="admin-empty">
+    <div class="admin-empty-icon"><svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="currentColor" stroke-width="1.5"
+            stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+        </svg></div>
+    <h3>No feedback yet</h3>
+    <p>Feedback will appear here</p>
+</div>
+{% endif %}
+{% endblock %}

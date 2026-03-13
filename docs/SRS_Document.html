@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>SRS - Smart College Canteen Management System</title>
+    <style>
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            font-size: 12pt;
+            line-height: 1.6;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 20px;
+            color: #333;
+        }
+        h1 {
+            font-size: 24pt;
+            text-align: center;
+            color: #1a1a2e;
+            border-bottom: 2px solid #1a1a2e;
+            padding-bottom: 10px;
+            page-break-before: always;
+        }
+        h1:first-of-type {
+            page-break-before: avoid;
+        }
+        h2 {
+            font-size: 18pt;
+            color: #16213e;
+            margin-top: 30px;
+            border-bottom: 1px solid #ddd;
+        }
+        h3 {
+            font-size: 14pt;
+            color: #0f3460;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        th, td {
+            border: 1px solid #333;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        th {
+            background: #1a1a2e;
+            color: white;
+        }
+        tr:nth-child(even) {
+            background: #f5f5f5;
+        }
+        code {
+            background: #f4f4f4;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        pre {
+            background: #1a1a2e;
+            color: #fff;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        pre code {
+            background: transparent;
+            color: #fff;
+        }
+        hr {
+            border: none;
+            border-top: 1px solid #ddd;
+            margin: 30px 0;
+        }
+        @media print {
+            body {
+                margin: 0;
+                padding: 20px;
+            }
+            h1 {
+                page-break-before: always;
+            }
+            h1:first-of-type {
+                page-break-before: avoid;
+            }
+        }
+    </style>
+</head>
+<body>
+<h1 id="smart-college-canteen-management-system">SMART COLLEGE CANTEEN MANAGEMENT SYSTEM</h1>
+
+<h2 id="software-requirement-specification-srs-document">Software Requirement Specification (SRS) Document</h2>
+
+<hr />
+
+<h1 id="contents">CONTENTS</h1>
+
+<p>i. Declaration
+ii. Acknowledgement<br />
+iii. Abstract
+iv. List of Figures</p>
+
+<hr />
+
+<h2 id="i-declaration">i. Declaration</h2>
+
+<p>I hereby declare that the project work entitled <strong>"Smart College Canteen Management System"</strong> submitted to the Department of Computer Science is a record of original work done by me under the guidance of my project guide. This project work is submitted in partial fulfillment of the requirements for the award of the degree.</p>
+
+<p>Date: February 2026</p>
+
+<hr />
+
+<h2 id="ii-acknowledgement">ii. Acknowledgement</h2>
+
+<p>I would like to express my sincere gratitude to my project guide for their valuable guidance and support throughout the development of this project. I am also thankful to my institution for providing the necessary resources and infrastructure.</p>
+
+<p>Special thanks to my friends and family for their constant encouragement and support during this project.</p>
+
+<hr />
+
+<h2 id="iii-abstract">iii. Abstract</h2>
+
+<p>The <strong>Smart College Canteen Management System</strong> is a web-based application designed to digitize and streamline the food ordering process in a college canteen. The system eliminates traditional queuing problems by allowing students and staff to browse menus, place orders online, make payments, and track order status in real-time.</p>
+
+<p>The application features user authentication with role-based access, a comprehensive menu management system with veg/non-veg filtering, cart functionality, multiple payment options (Cash, Wallet, Online UPI/Card), delivery options to classrooms, and order history tracking. Built using Django framework with MySQL database, the system provides a modern, responsive user interface accessible from any device.</p>
+
+<p><strong>Keywords:</strong> Canteen Management, Online Food Ordering, Django, MySQL, Web Application</p>
+
+<hr />
+
+<h2 id="iv-list-of-figures">iv. List of Figures</h2>
+
+<table>
+<thead>
+<tr>
+  <th>Figure No.</th>
+  <th>Description</th>
+  <th>Page No.</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Fig 1.1</td>
+  <td>System Architecture</td>
+  <td>-</td>
+</tr>
+<tr>
+  <td>Fig 2.1</td>
+  <td>Use Case Diagram</td>
+  <td>-</td>
+</tr>
+<tr>
+  <td>Fig 3.1</td>
+  <td>Context Flow Diagram</td>
+  <td>-</td>
+</tr>
+<tr>
+  <td>Fig 3.2</td>
+  <td>Level 0 DFD</td>
+  <td>-</td>
+</tr>
+<tr>
+  <td>Fig 3.3</td>
+  <td>Level 1 DFD - User Module</td>
+  <td>-</td>
+</tr>
+<tr>
+  <td>Fig 3.4</td>
+  <td>Level 1 DFD - Admin Module</td>
+  <td>-</td>
+</tr>
+<tr>
+  <td>Fig 3.5</td>
+  <td>ER Diagram</td>
+  <td>-</td>
+</tr>
+<tr>
+  <td>Fig 4.1</td>
+  <td>Home Page Screenshot</td>
+  <td>-</td>
+</tr>
+<tr>
+  <td>Fig 4.2</td>
+  <td>Menu Page Screenshot</td>
+  <td>-</td>
+</tr>
+<tr>
+  <td>Fig 4.3</td>
+  <td>Cart Page Screenshot</td>
+  <td>-</td>
+</tr>
+<tr>
+  <td>Fig 4.4</td>
+  <td>Payment Page Screenshot</td>
+  <td>-</td>
+</tr>
+</tbody>
+</table>
+
+<hr />
+
+<h1 id="chapter-1-synopsis">CHAPTER 1: SYNOPSIS</h1>
+
+<h2 id="11-title-of-the-project">1.1 Title of the Project</h2>
+
+<p><strong>Smart College Canteen Management System</strong></p>
+
+<hr />
+
+<h2 id="12-introduction-of-the-project">1.2 Introduction of the Project</h2>
+
+<p>The Smart College Canteen Management System is a comprehensive web-based solution designed to modernize the traditional canteen ordering process in educational institutions. </p>
+
+<p>In conventional canteen systems, students and staff face numerous challenges:
+- Long queues during peak hours
+- Limited menu visibility
+- Cash handling issues
+- No order tracking
+- Manual record keeping errors</p>
+
+<p>This project addresses these challenges by providing a digital platform where users can:
+- Browse the complete menu with images and descriptions
+- Filter items by category (Breakfast, Lunch, Snacks, Beverages, Desserts)
+- Filter items by dietary preference (Veg/Non-Veg)
+- Add items to cart and checkout seamlessly
+- Choose from multiple payment options
+- Track order status in real-time
+- Get food delivered to classrooms</p>
+
+<hr />
+
+<h2 id="13-objective-of-the-project">1.3 Objective of the Project</h2>
+
+<p>The main objectives of this project are:</p>
+
+<ol>
+<li><p><strong>Eliminate Queue Problems</strong>: Allow users to order food online, reducing physical queuing time.</p></li>
+<li><p><strong>Improve User Experience</strong>: Provide an intuitive, modern interface for browsing menus and placing orders.</p></li>
+<li><p><strong>Multiple Payment Options</strong>: Support Cash, Wallet, and Online (UPI/Card) payment methods.</p></li>
+<li><p><strong>Order Tracking</strong>: Enable real-time tracking of order status from placement to delivery.</p></li>
+<li><p><strong>Delivery Feature</strong>: Allow food delivery to classrooms and staffrooms.</p></li>
+<li><p><strong>Admin Management</strong>: Provide admin panel for menu management, order processing, and user management.</p></li>
+<li><p><strong>Digital Records</strong>: Maintain digital records of all transactions for better accounting.</p></li>
+</ol>
+
+<hr />
+
+<h2 id="14-category">1.4 Category</h2>
+
+<p><strong>Web Application</strong> - Full Stack Development Project</p>
+
+<p><strong>Domain</strong>: Food Service Management / E-Commerce</p>
+
+<hr />
+
+<h2 id="15-language-to-be-used">1.5 Language to be Used</h2>
+
+<table>
+<thead>
+<tr>
+  <th>Component</th>
+  <th>Technology</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Frontend</td>
+  <td>HTML5, CSS3, JavaScript</td>
+</tr>
+<tr>
+  <td>Backend</td>
+  <td>Python 3.13</td>
+</tr>
+<tr>
+  <td>Framework</td>
+  <td>Django 6.0</td>
+</tr>
+<tr>
+  <td>Database</td>
+  <td>MySQL 8.0</td>
+</tr>
+<tr>
+  <td>IDE</td>
+  <td>PyCharm / VS Code</td>
+</tr>
+</tbody>
+</table>
+
+<hr />
+
+<h2 id="16-hardware-interface">1.6 Hardware Interface</h2>
+
+<p><strong>Minimum Hardware Requirements:</strong></p>
+
+<table>
+<thead>
+<tr>
+  <th>Component</th>
+  <th>Specification</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Processor</td>
+  <td>Intel Core i3 or equivalent</td>
+</tr>
+<tr>
+  <td>RAM</td>
+  <td>4 GB minimum</td>
+</tr>
+<tr>
+  <td>Storage</td>
+  <td>10 GB free space</td>
+</tr>
+<tr>
+  <td>Display</td>
+  <td>1366 x 768 resolution</td>
+</tr>
+<tr>
+  <td>Network</td>
+  <td>Internet connectivity</td>
+</tr>
+</tbody>
+</table>
+
+<hr />
+
+<h2 id="17-software-interface">1.7 Software Interface</h2>
+
+<table>
+<thead>
+<tr>
+  <th>Software</th>
+  <th>Version/Details</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Operating System</td>
+  <td>Windows 10/11, Linux, macOS</td>
+</tr>
+<tr>
+  <td>Web Browser</td>
+  <td>Chrome, Firefox, Edge (latest versions)</td>
+</tr>
+<tr>
+  <td>Python</td>
+  <td>3.10 or higher</td>
+</tr>
+<tr>
+  <td>MySQL Server</td>
+  <td>8.0 or higher</td>
+</tr>
+<tr>
+  <td>Django</td>
+  <td>6.0</td>
+</tr>
+<tr>
+  <td>Additional Packages</td>
+  <td>django-allauth, Pillow, mysqlclient</td>
+</tr>
+</tbody>
+</table>
+
+<hr />
+
+<h2 id="18-description">1.8 Description</h2>
+
+<p>The Smart College Canteen Management System is designed with a modular architecture consisting of the following key components:</p>
+
+<p><strong>User Authentication Module:</strong>
+- User registration with email verification
+- Login/Logout functionality
+- Role-based access (Student, Staff, Admin)
+- Social login options (Google, Facebook)</p>
+
+<p><strong>Menu Management Module:</strong>
+- Dynamic menu display with categories
+- Veg/Non-Veg filtering
+- Search functionality
+- Today's specials highlighting
+- Price and preparation time display</p>
+
+<p><strong>Cart Module:</strong>
+- Add/Remove items
+- Quantity adjustment
+- Real-time price calculation</p>
+
+<p><strong>Order Module:</strong>
+- Order placement with special instructions
+- Multiple delivery options (Pickup, Classroom, Staffroom)
+- Order history tracking
+- Reorder functionality</p>
+
+<p><strong>Payment Module:</strong>
+- Cash at counter
+- Wallet balance
+- Online payment (UPI/Card simulation)
+- Transaction history</p>
+
+<hr />
+
+<h2 id="19-module-description">1.9 Module Description</h2>
+
+<h3 id="module-1-user-authentication">Module 1: User Authentication</h3>
+
+<ul>
+<li>Registration with form validation</li>
+<li>Secure password storage (hashed)</li>
+<li>Session management</li>
+<li>Password reset functionality</li>
+</ul>
+
+<h3 id="module-2-menu-management">Module 2: Menu Management</h3>
+
+<ul>
+<li>CRUD operations for menu items</li>
+<li>Category management</li>
+<li>Image upload for items</li>
+<li>Availability toggle</li>
+</ul>
+
+<h3 id="module-3-cart-management">Module 3: Cart Management</h3>
+
+<ul>
+<li>Session-based cart storage</li>
+<li>Dynamic subtotal calculation</li>
+<li>Cart persistence across sessions</li>
+</ul>
+
+<h3 id="module-4-order-processing">Module 4: Order Processing</h3>
+
+<ul>
+<li>Token number generation</li>
+<li>Estimated wait time calculation</li>
+<li>Order status updates</li>
+<li>Email notifications</li>
+</ul>
+
+<h3 id="module-5-payment-processing">Module 5: Payment Processing</h3>
+
+<ul>
+<li>Multiple payment method support</li>
+<li>Wallet management</li>
+<li>Transaction logging</li>
+<li>Payment confirmation</li>
+</ul>
+
+<h3 id="module-6-admin-dashboard">Module 6: Admin Dashboard</h3>
+
+<ul>
+<li>User management</li>
+<li>Order management</li>
+<li>Menu item management</li>
+<li>Reports and analytics</li>
+</ul>
+
+<hr />
+
+<h2 id="110-future-scope">1.10 Future Scope</h2>
+
+<ol>
+<li><p><strong>Mobile Application</strong>: Develop native Android/iOS applications for better accessibility.</p></li>
+<li><p><strong>AI-based Recommendations</strong>: Implement machine learning to suggest items based on user preferences.</p></li>
+<li><p><strong>Real-time Notifications</strong>: Push notifications for order status updates.</p></li>
+<li><p><strong>QR Code Ordering</strong>: Enable table-side ordering using QR codes.</p></li>
+<li><p><strong>Inventory Management</strong>: Automatic stock tracking and alerts.</p></li>
+<li><p><strong>Analytics Dashboard</strong>: Detailed sales analytics and reports.</p></li>
+<li><p><strong>Multi-branch Support</strong>: Extend to support multiple canteen locations.</p></li>
+<li><p><strong>Loyalty Program</strong>: Points-based rewards system for regular customers.</p></li>
+</ol>
+
+<hr />
+
+<h1 id="chapter-2-software-requirement-specification">CHAPTER 2: SOFTWARE REQUIREMENT SPECIFICATION</h1>
+
+<h2 id="21-introduction">2.1 Introduction</h2>
+
+<p>This chapter describes the software requirements for the Smart College Canteen Management System. It provides a detailed specification of the system's functional and non-functional requirements.</p>
+
+<hr />
+
+<h2 id="22-purpose">2.2 Purpose</h2>
+
+<p>The purpose of this SRS document is to provide a comprehensive description of the Smart College Canteen Management System. It will cover the complete system from user perspective and technical specification required for development.</p>
+
+<hr />
+
+<h2 id="23-scope">2.3 Scope</h2>
+
+<p>The system scope includes:
+- User registration and authentication
+- Menu browsing with filters
+- Shopping cart functionality
+- Order placement and tracking
+- Payment processing
+- Admin management panel
+- Delivery management</p>
+
+<p><strong>Out of Scope:</strong>
+- Real payment gateway integration
+- Inventory management
+- Supplier management</p>
+
+<hr />
+
+<h2 id="24-definitions-acronyms-abbreviations">2.4 Definitions, Acronyms, Abbreviations</h2>
+
+<table>
+<thead>
+<tr>
+  <th>Term</th>
+  <th>Definition</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>SRS</td>
+  <td>Software Requirement Specification</td>
+</tr>
+<tr>
+  <td>DFD</td>
+  <td>Data Flow Diagram</td>
+</tr>
+<tr>
+  <td>ER</td>
+  <td>Entity Relationship</td>
+</tr>
+<tr>
+  <td>CRUD</td>
+  <td>Create, Read, Update, Delete</td>
+</tr>
+<tr>
+  <td>UPI</td>
+  <td>Unified Payments Interface</td>
+</tr>
+<tr>
+  <td>OTP</td>
+  <td>One Time Password</td>
+</tr>
+<tr>
+  <td>UI</td>
+  <td>User Interface</td>
+</tr>
+<tr>
+  <td>API</td>
+  <td>Application Programming Interface</td>
+</tr>
+</tbody>
+</table>
+
+<hr />
+
+<h2 id="25-overview">2.5 Overview</h2>
+
+<p>The Smart College Canteen Management System consists of:
+- <strong>Frontend</strong>: Web-based responsive interface
+- <strong>Backend</strong>: Django-based REST APIs
+- <strong>Database</strong>: MySQL relational database
+- <strong>Authentication</strong>: Django authentication with django-allauth</p>
+
+<hr />
+
+<h2 id="26-overall-description">2.6 Overall Description</h2>
+
+<p>The system serves three types of users:
+1. <strong>Students</strong>: Can browse menu, place orders, make payments
+2. <strong>Staff</strong>: Same as students with optional staff room delivery
+3. <strong>Admin</strong>: Full system management access</p>
+
+<hr />
+
+<h2 id="27-product-perspective">2.7 Product Perspective</h2>
+
+<p>This is a standalone web application designed specifically for college canteen management. It integrates:
+- User management system
+- Menu catalog system
+- Order processing system
+- Payment handling system
+- Notification system</p>
+
+<hr />
+
+<h2 id="28-product-functions">2.8 Product Functions</h2>
+
+<table>
+<thead>
+<tr>
+  <th>Function</th>
+  <th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>User Registration</td>
+  <td>Create new user accounts</td>
+</tr>
+<tr>
+  <td>User Login</td>
+  <td>Authenticate existing users</td>
+</tr>
+<tr>
+  <td>Browse Menu</td>
+  <td>View all available food items</td>
+</tr>
+<tr>
+  <td>Search Items</td>
+  <td>Find items by name or category</td>
+</tr>
+<tr>
+  <td>Add to Cart</td>
+  <td>Select items for purchase</td>
+</tr>
+<tr>
+  <td>Checkout</td>
+  <td>Complete order with delivery preference</td>
+</tr>
+<tr>
+  <td>Make Payment</td>
+  <td>Process payment via selected method</td>
+</tr>
+<tr>
+  <td>Track Order</td>
+  <td>View order status</td>
+</tr>
+<tr>
+  <td>Manage Menu</td>
+  <td>Admin CRUD for menu items</td>
+</tr>
+</tbody>
+</table>
+
+<hr />
+
+<h2 id="29-user-classes-and-characteristics">2.9 User Classes and Characteristics</h2>
+
+<p><strong>1. Student User</strong>
+- Primary user group
+- Tech-savvy, mobile-first
+- Uses system during breaks
+- Needs quick ordering</p>
+
+<p><strong>2. Staff User</strong>
+- Faculty and administrative staff
+- May need delivery to staffroom
+- Less frequent usage</p>
+
+<p><strong>3. Admin User</strong>
+- Canteen manager/owner
+- Full system access
+- Manages menu and orders</p>
+
+<hr />
+
+<h2 id="210-general-constraints">2.10 General Constraints</h2>
+
+<ol>
+<li>System requires internet connectivity</li>
+<li>Browser must support JavaScript</li>
+<li>MySQL database required</li>
+<li>Python 3.10+ environment needed</li>
+</ol>
+
+<hr />
+
+<h2 id="211-assumptions-and-dependencies">2.11 Assumptions and Dependencies</h2>
+
+<p><strong>Assumptions:</strong>
+- Users have access to internet-enabled devices
+- Users have basic computer literacy
+- Canteen has network infrastructure</p>
+
+<p><strong>Dependencies:</strong>
+- Django framework
+- MySQL database server
+- Python runtime environment
+- Web browser</p>
+
+<hr />
+
+<h2 id="212-specific-requirements">2.12 Specific Requirements</h2>
+
+<h3 id="2121-software-requirements">2.12.1 Software Requirements</h3>
+
+<table>
+<thead>
+<tr>
+  <th>Requirement</th>
+  <th>Specification</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Python</td>
+  <td>Version 3.10 or higher</td>
+</tr>
+<tr>
+  <td>Django</td>
+  <td>Version 6.0</td>
+</tr>
+<tr>
+  <td>MySQL</td>
+  <td>Version 8.0</td>
+</tr>
+<tr>
+  <td>Browser</td>
+  <td>Chrome/Firefox/Edge (latest)</td>
+</tr>
+</tbody>
+</table>
+
+<h3 id="2122-hardware-requirements">2.12.2 Hardware Requirements</h3>
+
+<table>
+<thead>
+<tr>
+  <th>Component</th>
+  <th>Minimum Requirement</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Processor</td>
+  <td>Intel Core i3</td>
+</tr>
+<tr>
+  <td>RAM</td>
+  <td>4 GB</td>
+</tr>
+<tr>
+  <td>Storage</td>
+  <td>10 GB</td>
+</tr>
+<tr>
+  <td>Network</td>
+  <td>1 Mbps internet</td>
+</tr>
+</tbody>
+</table>
+
+<h3 id="2123-communication-interface">2.12.3 Communication Interface</h3>
+
+<ul>
+<li>HTTP/HTTPS protocol for web communication</li>
+<li>TCP/IP for database connectivity</li>
+<li>SMTP for email notifications</li>
+</ul>
+
+<hr />
+
+<h2 id="213-functional-requirements">2.13 Functional Requirements</h2>
+
+<table>
+<thead>
+<tr>
+  <th>FR ID</th>
+  <th>Requirement</th>
+  <th>Priority</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>FR01</td>
+  <td>User shall be able to register</td>
+  <td>High</td>
+</tr>
+<tr>
+  <td>FR02</td>
+  <td>User shall be able to login</td>
+  <td>High</td>
+</tr>
+<tr>
+  <td>FR03</td>
+  <td>User shall be able to browse menu</td>
+  <td>High</td>
+</tr>
+<tr>
+  <td>FR04</td>
+  <td>User shall be able to search items</td>
+  <td>Medium</td>
+</tr>
+<tr>
+  <td>FR05</td>
+  <td>User shall be able to filter by veg/non-veg</td>
+  <td>Medium</td>
+</tr>
+<tr>
+  <td>FR06</td>
+  <td>User shall be able to add items to cart</td>
+  <td>High</td>
+</tr>
+<tr>
+  <td>FR07</td>
+  <td>User shall be able to modify cart</td>
+  <td>High</td>
+</tr>
+<tr>
+  <td>FR08</td>
+  <td>User shall be able to place order</td>
+  <td>High</td>
+</tr>
+<tr>
+  <td>FR09</td>
+  <td>User shall be able to make payment</td>
+  <td>High</td>
+</tr>
+<tr>
+  <td>FR10</td>
+  <td>User shall be able to track order</td>
+  <td>High</td>
+</tr>
+<tr>
+  <td>FR11</td>
+  <td>Admin shall be able to manage menu</td>
+  <td>High</td>
+</tr>
+<tr>
+  <td>FR12</td>
+  <td>Admin shall be able to manage orders</td>
+  <td>High</td>
+</tr>
+</tbody>
+</table>
+
+<hr />
+
+<h2 id="214-performance-requirements">2.14 Performance Requirements</h2>
+
+<table>
+<thead>
+<tr>
+  <th>Requirement</th>
+  <th>Specification</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Response Time</td>
+  <td>&lt; 3 seconds for page load</td>
+</tr>
+<tr>
+  <td>Concurrent Users</td>
+  <td>Support 100+ simultaneous users</td>
+</tr>
+<tr>
+  <td>Database Queries</td>
+  <td>&lt; 100ms average query time</td>
+</tr>
+<tr>
+  <td>Uptime</td>
+  <td>99% availability</td>
+</tr>
+</tbody>
+</table>
+
+<hr />
+
+<h2 id="215-design-constraints">2.15 Design Constraints</h2>
+
+<ol>
+<li>Must be responsive (mobile-friendly)</li>
+<li>Must use dark theme for UI</li>
+<li>Must follow Django best practices</li>
+<li>Must use MySQL as database</li>
+</ol>
+
+<hr />
+
+<h2 id="216-system-attributes">2.16 System Attributes</h2>
+
+<p><strong>Reliability</strong>: System should handle errors gracefully with appropriate error messages.</p>
+
+<p><strong>Availability</strong>: System should be available during canteen operating hours.</p>
+
+<p><strong>Security</strong>: User passwords are hashed, CSRF protection enabled.</p>
+
+<p><strong>Maintainability</strong>: Modular code structure for easy updates.</p>
+
+<hr />
+
+<h2 id="217-other-requirements">2.17 Other Requirements</h2>
+
+<h3 id="2171-safety-requirements">2.17.1 Safety Requirements</h3>
+
+<ul>
+<li>Input validation to prevent SQL injection</li>
+<li>XSS protection</li>
+<li>Secure session handling</li>
+</ul>
+
+<h3 id="2172-security-requirements">2.17.2 Security Requirements</h3>
+
+<ul>
+<li>Password hashing using Django's built-in hasher</li>
+<li>CSRF token validation</li>
+<li>HTTPS recommended for production</li>
+<li>Role-based access control</li>
+</ul>
+
+<hr />
+
+<h1 id="chapter-3-system-design">CHAPTER 3: SYSTEM DESIGN</h1>
+
+<h2 id="31-introduction">3.1 Introduction</h2>
+
+<p>This chapter presents the system design including data flow diagrams, entity relationship diagrams, and system architecture.</p>
+
+<hr />
+
+<h2 id="32-context-flow-design">3.2 Context Flow Design</h2>
+
+<pre><code>[User] ----&gt; [Canteen Management System] ----&gt; [Database]
+                      |
+                      v
+               [Admin Panel]
+</code></pre>
+
+<hr />
+
+<h2 id="33-data-flow-diagram">3.3 Data Flow Diagram</h2>
+
+<p>The DFD represents the flow of data through the system at various levels.</p>
+
+<hr />
+
+<h2 id="34-rules-regarding-dfd-constraints">3.4 Rules Regarding DFD Constraints</h2>
+
+<ol>
+<li>All data flows must have a source and destination</li>
+<li>All processes must have inputs and outputs</li>
+<li>Data stores cannot directly connect to each other</li>
+<li>External entities cannot directly connect to data stores</li>
+</ol>
+
+<hr />
+
+<h2 id="35-dfd-symbols">3.5 DFD Symbols</h2>
+
+<table>
+<thead>
+<tr>
+  <th>Symbol</th>
+  <th>Name</th>
+  <th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>○</td>
+  <td>Process</td>
+  <td>Transforms data</td>
+</tr>
+<tr>
+  <td>□</td>
+  <td>External Entity</td>
+  <td>Source/Destination of data</td>
+</tr>
+<tr>
+  <td>═</td>
+  <td>Data Store</td>
+  <td>Storage of data</td>
+</tr>
+<tr>
+  <td>→</td>
+  <td>Data Flow</td>
+  <td>Movement of data</td>
+</tr>
+</tbody>
+</table>
+
+<hr />
+
+<h2 id="36-dfd-for-admin">3.6 DFD for Admin</h2>
+
+<h3 id="361-dfd-for-login">3.6.1 DFD for Login</h3>
+
+<pre><code>[Admin] --credentials--&gt; (1.0 Validate Login) --session--&gt; [Admin Dashboard]
+</code></pre>
+
+<h3 id="362-dfd-for-menu-management">3.6.2 DFD for Menu Management</h3>
+
+<pre><code>[Admin] --menu data--&gt; (2.0 Manage Menu) &lt;--&gt; [Menu Database]
+</code></pre>
+
+<h3 id="363-dfd-for-order-management">3.6.3 DFD for Order Management</h3>
+
+<pre><code>[Admin] --status update--&gt; (3.0 Process Order) &lt;--&gt; [Order Database]
+</code></pre>
+
+<h3 id="364-dfd-for-view-payment">3.6.4 DFD for View Payment</h3>
+
+<pre><code>[Admin] --request--&gt; (4.0 View Payments) --payment list--&gt; [Admin]
+                           ^
+                           |
+                    [Payment Database]
+</code></pre>
+
+<h3 id="365-dfd-for-view-users">3.6.5 DFD for View Users</h3>
+
+<pre><code>[Admin] --request--&gt; (5.0 View Users) --user list--&gt; [Admin]
+                           ^
+                           |
+                      [User Database]
+</code></pre>
+
+<hr />
+
+<h2 id="37-dfd-for-user">3.7 DFD for User</h2>
+
+<h3 id="371-dfd-for-login">3.7.1 DFD for Login</h3>
+
+<pre><code>[User] --credentials--&gt; (1.0 Authenticate) --session--&gt; [Home Page]
+                              ^
+                              |
+                        [User Database]
+</code></pre>
+
+<h3 id="372-dfd-for-register">3.7.2 DFD for Register</h3>
+
+<pre><code>[User] --registration data--&gt; (2.0 Register) --confirmation--&gt; [User]
+                                    |
+                                    v
+                              [User Database]
+</code></pre>
+
+<h3 id="373-dfd-for-view-menu">3.7.3 DFD for View Menu</h3>
+
+<pre><code>[User] --request--&gt; (3.0 Fetch Menu) --menu items--&gt; [User]
+                          ^
+                          |
+                    [Menu Database]
+</code></pre>
+
+<h3 id="374-dfd-for-add-to-cart">3.7.4 DFD for Add to Cart</h3>
+
+<pre><code>[User] --item selection--&gt; (4.0 Update Cart) &lt;--&gt; [Session Storage]
+</code></pre>
+
+<h3 id="375-dfd-for-place-order">3.7.5 DFD for Place Order</h3>
+
+<pre><code>[User] --order details--&gt; (5.0 Create Order) --confirmation--&gt; [User]
+                                |
+                                v
+                          [Order Database]
+</code></pre>
+
+<h3 id="376-dfd-for-make-payment">3.7.6 DFD for Make Payment</h3>
+
+<pre><code>[User] --payment info--&gt; (6.0 Process Payment) --receipt--&gt; [User]
+                               |
+                               v
+                        [Payment Database]
+</code></pre>
+
+<h3 id="377-dfd-for-view-order-history">3.7.7 DFD for View Order History</h3>
+
+<pre><code>[User] --request--&gt; (7.0 Fetch Orders) --order list--&gt; [User]
+                          ^
+                          |
+                    [Order Database]
+</code></pre>
+
+<hr />
+
+<h2 id="38-entity-relationship-diagram-er-diagram">3.8 Entity Relationship Diagram (ER Diagram)</h2>
+
+<p><strong>Entities:</strong></p>
+
+<ol>
+<li><strong>User</strong>: user<em>id, username, email, password, role, wallet</em>balance</li>
+<li><strong>Category</strong>: category<em>id, name, description, is</em>active</li>
+<li><strong>MenuItem</strong>: item<em>id, name, price, description, image, is</em>available, is_vegetarian</li>
+<li><strong>Order</strong>: order<em>id, user</em>id, total<em>amount, status, delivery</em>type, created_at</li>
+<li><strong>OrderItem</strong>: id, order<em>id, item</em>id, quantity, price</li>
+<li><strong>Payment</strong>: payment<em>id, order</em>id, amount, method, status, transaction_id</li>
+</ol>
+
+<p><strong>Relationships:</strong>
+- User (1) --- (M) Order
+- Order (1) --- (M) OrderItem
+- MenuItem (1) --- (M) OrderItem
+- Category (1) --- (M) MenuItem
+- Order (1) --- (1) Payment</p>
+
+<hr />
+
+<h2 id="database-schema">Database Schema</h2>
+
+<pre><code>-- Users Table
+CREATE TABLE users (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    username VARCHAR(150) UNIQUE,
+    email VARCHAR(254) UNIQUE,
+    password VARCHAR(128),
+    role VARCHAR(20),
+    wallet_balance DECIMAL(10,2)
+);
+
+-- Category Table
+CREATE TABLE category (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    name VARCHAR(100),
+    description TEXT,
+    is_active BOOLEAN
+);
+
+-- MenuItem Table
+CREATE TABLE menu_item (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    category_id INT FOREIGN KEY REFERENCES category(id),
+    name VARCHAR(100),
+    price DECIMAL(8,2),
+    description TEXT,
+    is_available BOOLEAN,
+    is_vegetarian BOOLEAN
+);
+
+-- Order Table
+CREATE TABLE orders (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT FOREIGN KEY REFERENCES users(id),
+    token_number VARCHAR(20),
+    total_amount DECIMAL(10,2),
+    status VARCHAR(20),
+    delivery_type VARCHAR(20),
+    created_at DATETIME
+);
+
+-- OrderItem Table
+CREATE TABLE order_items (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    order_id INT FOREIGN KEY REFERENCES orders(id),
+    menu_item_id INT FOREIGN KEY REFERENCES menu_item(id),
+    quantity INT,
+    price DECIMAL(8,2)
+);
+
+-- Payment Table
+CREATE TABLE payments (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    order_id INT FOREIGN KEY REFERENCES orders(id),
+    amount DECIMAL(10,2),
+    method VARCHAR(20),
+    status VARCHAR(20),
+    transaction_id VARCHAR(50)
+);
+</code></pre>
+
+<hr />
+
+<h1 id="end-of-document">END OF DOCUMENT</h1>
+
+<hr />
+
+<p><strong>Prepared By:</strong> [Your Name]
+<strong>Date:</strong> February 2026
+<strong>Version:</strong> 1.0</p>
+
+</body>
+</html>

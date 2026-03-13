@@ -1,0 +1,385 @@
+{% extends 'base.html' %}
+
+{% block title %}Checkout - CampusBites{% endblock %}
+
+
+{% block content %}
+
+<style>
+    .footer { display: none !important; }
+    main { background: #e9ecee !important; min-height: calc(100vh - 80px) !important; padding: 0 !important; display: block !important; overflow: auto !important; }
+    body, html { overflow: auto !important; }
+
+    .sw-checkout-wrap { max-width: 680px; margin: 0 auto; padding: 16px 20px 30px; display: flex; flex-direction: column; align-items: stretch; font-family: 'Basis Grotesque Pro', 'Gilroy', sans-serif; }
+    .sw-checkout-left { width: 100%; }
+
+    /* Step Card */
+    .sw-step-card { background: #fff; box-shadow: 0 1px 4px rgba(28,28,28,.06); }
+    .sw-step-card + .sw-step-card { margin-top: 0; }
+    .sw-step-connector { width: 1px; height: 10px; background: #d4d5d9; margin-left: 46px; }
+
+    .sw-step-header { display: flex; align-items: center; padding: 14px 20px; gap: 12px; }
+    .sw-step-icon { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; background: #282c3f; }
+    .sw-step-icon svg { width: 15px; height: 15px; }
+    .sw-step-content { flex: 1; min-width: 0; }
+    .sw-step-title { font-size: 15px; font-weight: 800; color: #282c3f; margin: 0; text-transform: uppercase; letter-spacing: 0.5px; }
+    .sw-step-subtitle { font-size: 12px; color: #7e808c; margin: 0; display: none; }
+
+    /* Delivery options */
+    .co-options-col { display: flex; flex-direction: column; gap: 0; padding: 0 20px 14px; }
+    .co-option { display: flex; align-items: center; padding: 10px 14px; border: 2px solid #e8e8e8; cursor: pointer; transition: all 0.15s; position: relative; margin-bottom: -2px; }
+    .co-option:first-child { border-radius: 0; }
+    .co-option:last-child { border-radius: 0; }
+    .co-option:hover { border-color: rgba(255,82,0,0.35); z-index: 1; }
+    .co-option input[type="radio"] { display: none; }
+    .co-option-body { display: flex; align-items: center; gap: 12px; flex: 1; }
+    .co-option-icon { width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; background: #f0f0f5; border-radius: 8px; flex-shrink: 0; color: #93959f; transition: all 0.15s; }
+    .co-option-text strong { font-size: 14px; display: block; color: #282c3f; }
+    .co-tag { font-size: 12px; font-weight: 600; color: #93959f; margin-top: 2px; display: inline-block; }
+    .co-tag-green { color: #60b246; }
+    .co-radio { width: 20px; height: 20px; border-radius: 50%; border: 2px solid #d4d5d9; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-left: 8px; transition: all 0.15s; }
+    .co-radio::after { content: ''; width: 0; height: 0; border-radius: 50%; background: #ff5200; transition: all 0.15s; }
+    .co-option:has(input:checked) { border-color: #ff5200; background: rgba(255,82,0,0.03); z-index: 2; }
+    .co-option:has(input:checked) .co-option-icon { background: rgba(255,82,0,0.1); color: #ff5200; }
+    .co-option:has(input:checked) .co-radio { border-color: #ff5200; }
+    .co-option:has(input:checked) .co-radio::after { width: 10px; height: 10px; }
+
+    /* Room input */
+    .co-room-group { padding: 0 20px 14px; display: none; }
+    .co-form-label { display: block; font-size: 11px; font-weight: 700; color: #93959f; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; }
+    .co-form-input { width: 100%; padding: 10px 14px; border: 1px solid #d4d5d9; font-size: 14px; font-family: inherit; color: #282c3f; background: #fff; box-sizing: border-box; }
+    .co-form-input:focus { border-color: #ff5200; outline: none; }
+    .co-hint { font-size: 12px; color: #93959f; margin-top: 6px; display: block; }
+
+    /* Scheduling options row */
+    .co-options-row { display: flex; gap: 0; padding: 0 20px 14px; }
+    .co-options-row .co-option { flex: 1; }
+
+    /* Payment options */
+    .co-pay-options { padding: 0 20px 14px; }
+    .co-pay-option { display: flex; align-items: center; padding: 10px 14px; border: 1px solid #e8e8e8; cursor: pointer; transition: all 0.15s; margin-bottom: -1px; }
+    .co-pay-option:hover { background: #fafafa; }
+    .co-pay-option input[type="radio"] { display: none; }
+    .co-pay-body { display: flex; align-items: center; gap: 14px; flex: 1; }
+    .co-pay-icon { width: 34px; height: 34px; border-radius: 8px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .co-pay-info { display: flex; flex-direction: column; }
+    .co-pay-info strong { font-size: 14px; font-weight: 600; color: #282c3f; }
+    .co-pay-info span { font-size: 12px; color: #93959f; margin-top: 2px; }
+    .co-pay-check { width: 20px; height: 20px; border-radius: 50%; border: 2px solid #d4d5d9; flex-shrink: 0; margin-left: 12px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; }
+    .co-pay-check::after { content: ''; width: 0; height: 0; border-radius: 50%; background: #ff5200; transition: all 0.15s; }
+    .co-pay-option:has(input:checked) { border-color: #ff5200; background: rgba(255,82,0,0.02); z-index: 1; }
+    .co-pay-option:has(input:checked) .co-pay-check { border-color: #ff5200; }
+    .co-pay-option:has(input:checked) .co-pay-check::after { width: 10px; height: 10px; }
+
+    /* Special instructions */
+    .co-instructions { padding: 0 20px 14px; }
+    .co-instructions textarea { width: 100%; padding: 10px 14px; border: 1px solid #d4d5d9; font-size: 13px; font-family: inherit; color: #282c3f; background: #fff; box-sizing: border-box; resize: vertical; }
+    .co-instructions textarea:focus { border-color: #ff5200; outline: none; }
+
+    /* Right panel - Order Summary */
+    .sw-order-card { background: #fff; box-shadow: 0 1px 4px rgba(28,28,28,.06); }
+    .sw-order-header { display: flex; align-items: center; gap: 10px; padding: 14px 18px; border-bottom: 1px solid #e9e9eb; }
+    .sw-order-header-info h3 { font-size: 15px; font-weight: 700; color: #282c3f; margin: 0 0 2px; }
+    .sw-order-header-info p { font-size: 12px; color: #93959f; margin: 0; }
+    .sw-order-items { padding: 0 18px; }
+    .sw-order-item { display: flex; align-items: center; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f0f0f5; gap: 8px; }
+    .sw-order-item:last-child { border-bottom: none; }
+    .sw-order-item-left { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
+    .sw-cart-veg-icon { width: 14px; height: 14px; border: 1.5px solid; border-radius: 2px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .sw-cart-veg-icon.veg { border-color: #0f8a65; }
+    .sw-cart-veg-icon.veg::after { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #0f8a65; }
+    .sw-cart-veg-icon.nonveg { border-color: #e43b4f; }
+    .sw-cart-veg-icon.nonveg::after { content: ''; width: 0; height: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-bottom: 6px solid #e43b4f; }
+    .sw-order-item-name { font-size: 14px; color: #282c3f; font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sw-order-item-qty { font-size: 14px; color: #282c3f; font-weight: 500; flex-shrink: 0; }
+    .sw-order-item-price { font-size: 14px; color: #282c3f; font-weight: 400; flex-shrink: 0; }
+
+    /* Bill Details */
+    .sw-bill-section { border-top: 2px solid #e9e9eb; }
+    .sw-bill-title { font-size: 13px; font-weight: 800; color: #282c3f; padding: 12px 18px 6px; text-transform: uppercase; }
+    .sw-bill-row { display: flex; justify-content: space-between; padding: 4px 18px; font-size: 13px; color: #535665; }
+    .sw-bill-row span:last-child { color: #282c3f; }
+    .sw-bill-row.free span:last-child { color: #60b246; font-weight: 500; }
+    .sw-bill-divider { height: 1px; background: #e9e9eb; margin: 4px 18px; }
+    .sw-bill-total { display: flex; justify-content: space-between; padding: 10px 18px; font-size: 14px; font-weight: 700; color: #282c3f; border-top: 2px solid #282c3f; }
+
+    .sw-checkout-btn { display: block; width: 100%; background: #ff5200; color: #fff; text-align: center; padding: 14px; font-size: 15px; font-weight: 700; border: none; cursor: pointer; text-decoration: none; font-family: inherit; letter-spacing: 0.5px; margin-top: 12px; transition: background 0.2s; }
+    .sw-checkout-btn:hover { background: #e04800; }
+
+    /* Review notice */
+    .sw-review-notice { background: #fef6ed; padding: 12px 18px; margin-top: 12px; }
+    .sw-review-notice h4 { font-size: 13px; font-weight: 700; color: #282c3f; margin: 0 0 4px; }
+    .sw-review-notice p { font-size: 11px; color: #7e808c; margin: 0; line-height: 1.4; }
+
+    /* Wait banner */
+    .sw-wait-banner { background: #282c3f; padding: 10px 18px; display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+    .sw-wait-icon { width: 32px; height: 32px; border-radius: 50%; background: rgba(255,255,255,0.12); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .sw-wait-time { font-size: 13px; font-weight: 700; color: #fff; }
+    .sw-wait-detail { margin: 1px 0 0; font-size: 11px; color: rgba(255,255,255,0.6); }
+
+    @media (max-width: 900px) {
+        .sw-checkout-wrap { flex-direction: column; }
+        .sw-checkout-right { width: 100%; position: static; }
+        .co-options-row { flex-direction: column; }
+    }
+
+    /* Overlay */
+    .stripe-overlay { display: none; position: fixed; inset: 0; z-index: 9999; background: rgba(0,0,0,0.6); flex-direction: column; align-items: center; justify-content: center; }
+    .stripe-overlay.active { display: flex; }
+    .stripe-overlay-card { background: #fff; border-radius: 16px; padding: 48px 56px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.2); max-width: 400px; width: 90%; font-family: 'Basis Grotesque Pro', 'Gilroy', sans-serif; }
+    .stripe-overlay-icon { width: 64px; height: 64px; margin: 0 auto 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+    .stripe-progress-bar { width: 100%; height: 4px; background: #e9e9eb; border-radius: 4px; overflow: hidden; margin-bottom: 20px; }
+    .stripe-progress-fill { width: 0%; height: 100%; background: linear-gradient(90deg, #ff5200, #ff9a3c); border-radius: 4px; animation: progressAnim 3s ease-in-out forwards; }
+    @keyframes progressAnim { 0% { width: 0%; } 40% { width: 60%; } 70% { width: 80%; } 100% { width: 95%; } }
+    .stripe-step { display: flex; align-items: center; gap: 6px; font-size: 12px; color: #93959f; transition: color 0.4s; }
+    .stripe-step.active { color: #ff5200; font-weight: 600; }
+    .stripe-step.done { color: #60b246; }
+    .stripe-step-dot { width: 8px; height: 8px; border-radius: 50%; background: #e9e9eb; transition: background 0.4s; }
+    .stripe-step.active .stripe-step-dot { background: #ff5200; }
+    .stripe-step.done .stripe-step-dot { background: #60b246; }
+</style>
+
+<form method="POST" action="{% url 'place_order' %}" id="checkoutForm">
+{% csrf_token %}
+
+<div class="sw-checkout-wrap">
+    <!-- Left Panel: Steps -->
+    <div class="sw-checkout-left">
+
+        <!-- Wait Time Banner -->
+        <div class="sw-wait-banner">
+            <div class="sw-wait-icon">
+                <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="10"/><polyline points="11 5 11 11 15 13"/>
+                </svg>
+            </div>
+            <div>
+                <div class="sw-wait-time">Estimated Wait: ~{{ estimated_wait }} mins</div>
+                <p class="sw-wait-detail">
+                    {% if pending_orders > 0 %}{{ pending_orders }} order(s) ahead of you{% else %}No queue — prepared immediately!{% endif %}
+                </p>
+            </div>
+        </div>
+
+        <!-- Single Checkout Card -->
+        <div class="sw-step-card">
+
+            <!-- Delivery Section -->
+            <div class="sw-step-header">
+                <div class="sw-step-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+                    </svg>
+                </div>
+                <div class="sw-step-content">
+                    <h2 class="sw-step-title">Delivery</h2>
+                </div>
+            </div>
+            <div class="co-options-col">
+                <label class="co-option">
+                    <input type="radio" name="delivery_type" value="pickup" checked onchange="toggleDeliveryFields()">
+                    <div class="co-option-body">
+                        <span class="co-option-icon">
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+                            </svg>
+                        </span>
+                        <div class="co-option-text">
+                            <strong>Pickup at Counter</strong>
+                            <span class="co-tag co-tag-green">Free</span>
+                        </div>
+                    </div>
+                    <span class="co-radio"></span>
+                </label>
+                <label class="co-option">
+                    <input type="radio" name="delivery_type" value="classroom" onchange="toggleDeliveryFields()">
+                    <div class="co-option-body">
+                        <span class="co-option-icon">
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                            </svg>
+                        </span>
+                        <div class="co-option-text">
+                            <strong>Deliver to Classroom</strong>
+                            <span class="co-tag">₹{{ delivery_fee }}</span>
+                        </div>
+                    </div>
+                    <span class="co-radio"></span>
+                </label>
+                <label class="co-option">
+                    <input type="radio" name="delivery_type" value="staffroom" onchange="toggleDeliveryFields()">
+                    <div class="co-option-body">
+                        <span class="co-option-icon">
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                            </svg>
+                        </span>
+                        <div class="co-option-text">
+                            <strong>Deliver to Staffroom</strong>
+                            <span class="co-tag">₹{{ delivery_fee }}</span>
+                        </div>
+                    </div>
+                    <span class="co-radio"></span>
+                </label>
+            </div>
+            <div class="co-room-group" id="roomNumberGroup">
+                <label class="co-form-label" id="roomLabel">Room Number</label>
+                <input type="text" name="delivery_location" id="roomNumber" class="co-form-input" placeholder="e.g., Room 101 or Block A-203" maxlength="50">
+                <small class="co-hint">Enter your classroom or staffroom number</small>
+            </div>
+
+            <!-- Divider -->
+            <div style="height:1px; background:#e9ecee; margin:4px 20px 0;"></div>
+
+            <!-- Scheduling Section -->
+            <div class="sw-step-header">
+                <div class="sw-step-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                </div>
+                <div class="sw-step-content">
+                    <h2 class="sw-step-title">Scheduling</h2>
+                </div>
+            </div>
+            <div class="co-options-row">
+                <label class="co-option">
+                    <input type="radio" name="order_timing" value="now" checked onchange="toggleScheduling()">
+                    <div class="co-option-body">
+                        <span class="co-option-icon">
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+                            </svg>
+                        </span>
+                        <div class="co-option-text"><strong>Order Now</strong></div>
+                    </div>
+                    <span class="co-radio"></span>
+                </label>
+                <label class="co-option">
+                    <input type="radio" name="order_timing" value="preorder" onchange="toggleScheduling()">
+                    <div class="co-option-body">
+                        <span class="co-option-icon">
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                            </svg>
+                        </span>
+                        <div class="co-option-text"><strong>Schedule Later</strong></div>
+                    </div>
+                    <span class="co-radio"></span>
+                </label>
+            </div>
+            <div id="preorderTimeGroup" style="display: none; padding: 0 20px 14px;">
+                <label class="co-form-label">Select Date & Time</label>
+                <input type="datetime-local" name="scheduled_for" id="scheduledFor" class="co-form-input">
+                <small class="co-hint">Please select a time at least 30 minutes from now.</small>
+            </div>
+
+            <!-- Divider -->
+            <div style="height:1px; background:#e9ecee; margin:4px 20px 0;"></div>
+
+            <!-- Payment Section -->
+            <div class="sw-step-header">
+                <div class="sw-step-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/>
+                    </svg>
+                </div>
+                <div class="sw-step-content">
+                    <h2 class="sw-step-title">Payment</h2>
+                </div>
+            </div>
+            <div class="co-pay-options">
+                <label class="co-pay-option">
+                    <input type="radio" name="payment_method" value="wallet">
+                    <div class="co-pay-body">
+                        <span class="co-pay-icon" style="background:#e8f5e9; color:#60b246;">
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+                        </span>
+                        <div class="co-pay-info">
+                            <strong>Wallet</strong>
+                            <span>Balance: ₹{{ user.profile.wallet_balance }}</span>
+                        </div>
+                    </div>
+                    <span class="co-pay-check"></span>
+                </label>
+                <label class="co-pay-option">
+                    <input type="radio" name="payment_method" value="online" checked>
+                    <div class="co-pay-body">
+                        <span class="co-pay-icon" style="background:#ede7f6; color:#7c4dff;">
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                        </span>
+                        <div class="co-pay-info">
+                            <strong>UPI / Card Payment</strong>
+                            <span>PhonePe, GPay, Cards & more</span>
+                        </div>
+                    </div>
+                    <span class="co-pay-check"></span>
+                </label>
+                <label class="co-pay-option">
+                    <input type="radio" name="payment_method" value="cash">
+                    <div class="co-pay-body">
+                        <span class="co-pay-icon" style="background:#fff3e0; color:#ff9800;">
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                        </span>
+                        <div class="co-pay-info">
+                            <strong>Pay at Counter</strong>
+                            <span>Pay in cash when you pick up</span>
+                        </div>
+                    </div>
+                    <span class="co-pay-check"></span>
+                </label>
+            </div>
+
+        </div>
+
+        <input type="hidden" name="subtotal" value="{{ total }}">
+        <button type="submit" class="sw-checkout-btn">Place Order →</button>
+    </div>
+
+</div>
+
+</form>
+
+<script>
+    const subtotal = parseFloat("{{ total|default:0 }}");
+    const deliveryFee = parseFloat("{{ delivery_fee|default:0 }}");
+
+    function setMinTime() {
+        const now = new Date();
+        now.setMinutes(now.getMinutes() + 30);
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        document.getElementById('scheduledFor').min = now.toISOString().slice(0, 16);
+    }
+    setMinTime();
+
+    function toggleScheduling() {
+        const v = document.querySelector('input[name="order_timing"]:checked').value;
+        const g = document.getElementById('preorderTimeGroup');
+        const f = document.getElementById('scheduledFor');
+        if (v === 'preorder') { g.style.display = 'block'; f.required = true; setMinTime(); }
+        else { g.style.display = 'none'; f.required = false; }
+    }
+
+    function toggleDeliveryFields() {
+        const dt = document.querySelector('input[name="delivery_type"]:checked').value;
+        const rg = document.getElementById('roomNumberGroup');
+        const rl = document.getElementById('roomLabel');
+        const ri = document.getElementById('roomNumber');
+        const dr = document.getElementById('deliveryFeeRow');
+        const fd = document.getElementById('freeDeliveryRow');
+        const gt = document.getElementById('grandTotal');
+
+        if (dt === 'pickup') {
+            rg.style.display = 'none'; ri.required = false;
+            dr.style.display = 'none'; fd.style.display = 'flex';
+            gt.textContent = '₹' + subtotal;
+        } else {
+            rg.style.display = 'block'; ri.required = true;
+            dr.style.display = 'flex'; fd.style.display = 'none';
+            gt.textContent = '₹' + (subtotal + deliveryFee);
+            if (dt === 'classroom') { rl.textContent = 'Classroom Number'; ri.placeholder = 'e.g., Room 101, Block A-203'; }
+            else { rl.textContent = 'Staffroom Number'; ri.placeholder = 'e.g., Staff Room 1, Admin Block'; }
+        }
+    }
+</script>
+{% endblock %}

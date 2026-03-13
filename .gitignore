@@ -1,0 +1,38 @@
+# Environment & Secrets
+.env
+.env.*
+
+# Python
+*.pyc
+__pycache__/
+venv/
+*.egg-info/
+
+# Database
+db.sqlite3
+*.sql
+
+# Logs
+*.log
+
+# Backup files
+*.bak
+data_backup*.json
+
+# Media uploads
+media/
+
+# Static collected
+staticfiles/
+
+# IDE
+.vscode/
+.idea/
+.kluster/
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Temp scripts
+fix_*.py

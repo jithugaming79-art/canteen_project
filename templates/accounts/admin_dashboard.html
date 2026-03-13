@@ -1,0 +1,484 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Admin Dashboard - CampusBites{% endblock %}
+
+{% block extra_css %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    /* Scoped overrides if needed */
+    .dashboard-page {
+        padding: 0 !important;
+    }
+
+    .container {
+        max-width: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="admin-wrapper">
+    <!-- Sidebar (Desktop) -->
+    <aside class="admin-sidebar" id="adminSidebar">
+        <!-- Brand -->
+        <div style="padding-bottom: 20px; border-bottom: 1px solid var(--border); margin-bottom: 20px;">
+            <div class="brand-title"
+                style="font-size: 20px; display: flex; align-items: center; gap: 10px; margin: 0; color: var(--primary);">
+                <span style="font-size: 24px;">👨‍💼</span> Admin Panel
+            </div>
+            <div style="font-size: 12px; color: var(--grey); margin-top: 4px;">{{ user.username }}</div>
+        </div>
+
+        <nav class="admin-nav">
+            <a onclick="switchTab('overview')" class="admin-nav-item active" id="nav-overview">
+                <span class="admin-nav-icon">📊</span> Overview
+            </a>
+            <a onclick="switchTab('orders')" class="admin-nav-item" id="nav-orders">
+                <span class="admin-nav-icon">🔔</span> Live Orders
+                {% if active_orders %}
+                <span class="badge"
+                    style="margin-left: auto; background: var(--primary); color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px;">{{
+                    active_orders|length }}</span>
+                {% endif %}
+            </a>
+            <a onclick="switchTab('menu')" class="admin-nav-item" id="nav-menu">
+                <span class="admin-nav-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
+                        <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
+                        <line x1="6" y1="1" x2="6" y2="4" />
+                        <line x1="10" y1="1" x2="10" y2="4" />
+                        <line x1="14" y1="1" x2="14" y2="4" />
+                    </svg></span> Menu Manager
+            </a>
+            <a onclick="switchTab('whatsapp')" class="admin-nav-item" id="nav-whatsapp">
+                <span class="admin-nav-icon">📱</span> WhatsApp
+            </a>
+            <div style="flex:1"></div>
+            <a href="{% url 'logout' %}" class="admin-nav-item" style="color:var(--danger); margin-top: auto;">
+                <span class="admin-nav-icon">🚪</span> Logout
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="admin-content">
+        <!-- Overview Section -->
+        <div id="section-overview" class="dashboard-section active">
+            <h2 class="section-title" style="margin-bottom: 24px;">Dashboard Overview</h2>
+
+            <!-- Metrics Grid -->
+            <div class="metrics-grid">
+                <div class="metric-card primary">
+                    <span class="metric-title">Total Revenue</span>
+                    <span class="metric-value">₹{{ total_revenue }}</span>
+                    <span class="metric-trend">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
+                            <polyline points="17 6 23 6 23 12"></polyline>
+                        </svg>
+                        Today
+                    </span>
+                </div>
+                <div class="metric-card info">
+                    <span class="metric-title">Orders Today</span>
+                    <span class="metric-value">{{ todays_count }}</span>
+                    <span class="metric-trend">
+                        {{ active_orders|length }} Active
+                    </span>
+                </div>
+                <div class="metric-card success">
+                    <span class="metric-title">Menu Items</span>
+                    <span class="metric-value">{{ menu_items.count }}</span>
+                    <span class="metric-trend">Total Available</span>
+                </div>
+            </div>
+
+            <!-- Charts -->
+            <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px;">
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h4 class="chart-title">Hourly Sales</h4>
+                    </div>
+                    <div style="height: 280px; position: relative;">
+                        <canvas id="salesChart"></canvas>
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h4 class="chart-title">Top Selling Items</h4>
+                    </div>
+                    <div style="height: 280px; position: relative;">
+                        <canvas id="itemsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Orders Section -->
+        <div id="section-orders" class="dashboard-section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <h2 class="section-title" style="margin: 0;">Live Orders</h2>
+                <div class="segmented-control" style="margin: 0; max-width: 200px;">
+                    <!-- Filter stub or refresh button -->
+                    <button class="btn btn-sm btn-outline" onclick="location.reload()">Refresh</button>
+                </div>
+            </div>
+
+            {% if active_orders %}
+            <div class="native-list">
+                {% for order in active_orders %}
+                <div class="native-item" style="flex-wrap: wrap; gap: 16px;">
+                    <!-- Token & User -->
+                    <div style="flex: 1; min-width: 120px;">
+                        <div style="font-size: 20px; font-weight: 800; color: var(--primary);">#{{ order.token_number }}
+                        </div>
+                        <div style="font-size: 13px; color: var(--grey);">{{ order.user.username }}</div>
+                        <div style="font-size: 11px; color: var(--light-grey);">{{ order.created_at|date:"h:i A" }}
+                        </div>
+                    </div>
+
+                    <!-- Items -->
+                    <div style="flex: 2; min-width: 200px;">
+                        <div class="order-status {{ order.status }}" style="display: inline-block; margin-bottom: 8px;">
+                            {{ order.get_status_display }}</div>
+                        <div style="font-size: 13px; color: var(--dark);">
+                            {% for item in order.items.all %}
+                            <span
+                                style="display: inline-block; background: var(--gray-50); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--border); margin-right: 4px; margin-bottom: 4px;">
+                                <b>{{ item.quantity }}x</b> {{ item.item_name }}
+                            </span>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <form method="POST" class="item-actions" style="margin-left: auto;">
+                        {% csrf_token %}
+                        <input type="hidden" name="order_id" value="{{ order.id }}">
+
+                        {% if order.status == 'pending' %}
+                        <button type="submit" name="status" value="confirmed"
+                            class="btn btn-primary btn-sm">Confirm</button>
+                        <button type="submit" name="status" value="cancelled" class="btn btn-outline btn-sm"
+                            style="color: var(--danger); border-color: var(--danger);">Cancel</button>
+                        {% elif order.status == 'confirmed' %}
+                        <button type="submit" name="status" value="preparing"
+                            class="btn btn-primary btn-sm">Cook</button>
+                        {% elif order.status == 'preparing' %}
+                        <button type="submit" name="status" value="ready" class="btn btn-success btn-sm">Ready</button>
+                        {% elif order.status == 'ready' %}
+                        <button type="submit" name="status" value="collected"
+                            class="btn btn-secondary btn-sm">Collect</button>
+                        {% endif %}
+                    </form>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <div class="empty-state-icon">✅</div>
+                <p>No active orders right now.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Menu Section -->
+        <div id="section-menu" class="dashboard-section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <h2 class="section-title" style="margin: 0;">Menu Manager</h2>
+                <div class="search-trigger" style="max-width: 200px; padding: 8px 12px;">
+                    <span class="search-trigger-icon">🔍</span>
+                    <input type="text" id="menuSearch" placeholder="Filter items..."
+                        style="border: none; outline: none; width: 100%; font-size: 14px;" onkeyup="filterMenu()">
+                </div>
+            </div>
+
+            <div class="native-list" id="menuList">
+                {% for item in menu_items %}
+                <form method="POST" class="native-item menu-item-row" data-name="{{ item.name|lower }}">
+                    {% csrf_token %}
+                    <input type="hidden" name="toggle_item" value="true">
+                    <input type="hidden" name="item_id" value="{{ item.id }}">
+
+                    <div style="flex: 1;">
+                        <div class="item-title">{{ item.name }}</div>
+                        <div class="item-subtitle">{{ item.category.name }} • ₹{{ item.price }}</div>
+                    </div>
+
+                    <button type="submit"
+                        class="btn btn-sm {% if item.is_available %}btn-success{% else %}btn-outline{% endif %}"
+                        style="min-width: 100px; {% if not item.is_available %}color: var(--danger); border-color: var(--danger);{% endif %}">
+                        {% if item.is_available %}In Stock{% else %}Out of Stock{% endif %}
+                    </button>
+                </form>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- WhatsApp Section -->
+        <div id="section-whatsapp" class="dashboard-section">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <h2 class="section-title" style="margin: 0;">📱 WhatsApp Notifications</h2>
+                <button class="btn btn-primary btn-sm"
+                    onclick="document.getElementById('createOfferForm').style.display = document.getElementById('createOfferForm').style.display === 'none' ? 'block' : 'none'">+
+                    New Offer</button>
+            </div>
+
+            <!-- Create Offer Form (Hidden by default) -->
+            <div id="createOfferForm" style="display: none; margin-bottom: 24px;">
+                <div class="chart-container" style="padding: 20px;">
+                    <h4 style="margin-bottom: 16px; color: var(--primary);">Create New Offer</h4>
+                    <form method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="whatsapp_action" value="create_offer">
+                        <div style="display: grid; gap: 12px;">
+                            <div>
+                                <label
+                                    style="font-size: 13px; font-weight: 600; color: var(--dark); display: block; margin-bottom: 4px;">Title
+                                    *</label>
+                                <input type="text" name="offer_title" placeholder="e.g. 50% OFF on Breakfast!" required
+                                    style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border); font-size: 14px; background: var(--gray-50);">
+                            </div>
+                            <div>
+                                <label
+                                    style="font-size: 13px; font-weight: 600; color: var(--dark); display: block; margin-bottom: 4px;">Description
+                                    *</label>
+                                <textarea name="offer_description" placeholder="Describe your offer..." required
+                                    rows="3"
+                                    style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border); font-size: 14px; background: var(--gray-50); resize: vertical;"></textarea>
+                            </div>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+                                <div>
+                                    <label
+                                        style="font-size: 13px; font-weight: 600; color: var(--dark); display: block; margin-bottom: 4px;">Discount
+                                        Code</label>
+                                    <input type="text" name="offer_code" placeholder="e.g. BREAKFAST50"
+                                        style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border); font-size: 14px; background: var(--gray-50);">
+                                </div>
+                                <div>
+                                    <label
+                                        style="font-size: 13px; font-weight: 600; color: var(--dark); display: block; margin-bottom: 4px;">Valid
+                                        Until *</label>
+                                    <input type="datetime-local" name="offer_valid_until" required
+                                        style="width: 100%; padding: 10px 14px; border-radius: 8px; border: 1px solid var(--border); font-size: 14px; background: var(--gray-50);">
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary" style="margin-top: 8px;">✅ Create
+                                Offer</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Existing Offers -->
+            {% if offers %}
+            <div class="native-list">
+                {% for offer in offers %}
+                <div class="native-item" style="flex-wrap: wrap; gap: 16px;">
+                    <div style="flex: 1; min-width: 200px;">
+                        <div style="font-size: 16px; font-weight: 700; color: var(--dark);">{{ offer.title }}</div>
+                        <div style="font-size: 13px; color: var(--grey); margin-top: 4px;">{{
+                            offer.description|truncatewords:15 }}</div>
+                        <div style="font-size: 12px; color: var(--light-grey); margin-top: 4px;">
+                            {% if offer.discount_code %}🎫 {{ offer.discount_code }} • {% endif %}
+                            ⏰ Until {{ offer.valid_until|date:"d M Y, h:i A" }}
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <span
+                            style="font-size: 12px; padding: 4px 10px; border-radius: 20px;
+                            {% if offer.is_active %}background: rgba(40,167,69,0.15); color: #28a745;{% else %}background: rgba(220,53,69,0.15); color: #dc3545;{% endif %}">
+                            {% if offer.is_active %}Active{% else %}Inactive{% endif %}
+                        </span>
+                        <form method="POST" style="margin: 0;">
+                            {% csrf_token %}
+                            <input type="hidden" name="whatsapp_action" value="send_offer">
+                            <input type="hidden" name="offer_id" value="{{ offer.id }}">
+                            <button type="submit" class="btn btn-sm btn-primary" {% if not offer.is_active %}disabled{%
+                                endif %} style="white-space: nowrap;">
+                                📱 Send WhatsApp
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <div class="empty-state-icon">📱</div>
+                <p>No offers yet. Click "+ New Offer" to create one.</p>
+            </div>
+            {% endif %}
+
+            <!-- WhatsApp Stats -->
+            <div
+                style="margin-top: 24px; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px;">
+                <div class="metric-card info" style="padding: 16px;">
+                    <span class="metric-title">Opted-in Users</span>
+                    <span class="metric-value">{{ whatsapp_opted_in_count|default:0 }}</span>
+                </div>
+                <div class="metric-card success" style="padding: 16px;">
+                    <span class="metric-title">Messages Sent</span>
+                    <span class="metric-value">{{ whatsapp_sent_count|default:0 }}</span>
+                </div>
+                <div class="metric-card primary" style="padding: 16px;">
+                    <span class="metric-title">Active Offers</span>
+                    <span class="metric-value">{{ active_offers_count|default:0 }}</span>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Bottom Nav (Mobile) -->
+    <nav class="admin-bottom-nav">
+        <a onclick="switchTab('overview')" class="bottom-nav-item active" id="bot-overview">
+            <span class="bottom-nav-icon">📊</span> Overview
+        </a>
+        <a onclick="switchTab('orders')" class="bottom-nav-item" id="bot-orders">
+            <span class="bottom-nav-icon">🔔</span> Orders
+            {% if active_orders %}<span
+                style="position: absolute; top: 6px; right: 25%; width: 8px; height: 8px; background: var(--danger); border-radius: 50%;"></span>{%
+            endif %}
+
+        </a>
+        <a onclick="switchTab('menu')" class="bottom-nav-item" id="bot-menu">
+            <span class="bottom-nav-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
+                    <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
+                    <line x1="6" y1="1" x2="6" y2="4" />
+                    <line x1="10" y1="1" x2="10" y2="4" />
+                    <line x1="14" y1="1" x2="14" y2="4" />
+                </svg></span> Menu
+        </a>
+        <a onclick="switchTab('whatsapp')" class="bottom-nav-item" id="bot-whatsapp">
+            <span class="bottom-nav-icon">📱</span> WhatsApp
+        </a>
+        <a href="{% url 'logout' %}" class="bottom-nav-item">
+            <span class="bottom-nav-icon">🚪</span> Logout
+        </a>
+    </nav>
+
+    <!-- FAB (Add Item - Placeholder) -->
+    <button class="fab-add" onclick="switchTab('menu'); document.getElementById('menuSearch').focus();"
+        title="Search Menu">
+        🔍
+    </button>
+</div>
+
+<script>
+    // === 1. Tab Switching Logic ===
+    function switchTab(tabId) {
+        // Hide all sections
+        document.querySelectorAll('.dashboard-section').forEach(el => el.classList.remove('active'));
+        document.getElementById('section-' + tabId).classList.add('active');
+
+        // Update Nav States
+        document.querySelectorAll('.admin-nav-item, .bottom-nav-item').forEach(el => el.classList.remove('active'));
+        if (document.getElementById('nav-' + tabId)) document.getElementById('nav-' + tabId).classList.add('active');
+        if (document.getElementById('bot-' + tabId)) document.getElementById('bot-' + tabId).classList.add('active');
+
+        localStorage.setItem('admin_tab', tabId);
+
+        // Resize charts if overview
+        if (tabId === 'overview' && window.myCharts) {
+            window.myCharts.forEach(c => c.resize());
+        }
+    }
+
+    // Restore Tab
+    const savedTab = localStorage.getItem('admin_tab') || 'overview';
+    switchTab(savedTab);
+
+    // === 2. Menu Filtering ===
+    function filterMenu() {
+        const query = document.getElementById('menuSearch').value.toLowerCase();
+        document.querySelectorAll('.menu-item-row').forEach(row => {
+            const name = row.dataset.name;
+            if (name.includes(query)) row.style.display = 'flex';
+            else row.style.display = 'none';
+        });
+    }
+
+    // === 3. Charts Logic ===
+    window.myCharts = [];
+
+    document.addEventListener('DOMContentLoaded', () => {
+        fetch('/kitchen/sales-summary/?range=today')
+            .then(res => res.json())
+            .then(data => {
+                initCharts(data);
+            })
+            .catch(err => console.error("Chart Error:", err));
+    });
+
+    function initCharts(data) {
+        const ctxSales = document.getElementById('salesChart').getContext('2d');
+        const ctxItems = document.getElementById('itemsChart').getContext('2d');
+
+        // Colors
+        const primaryColor = '#ff5200';
+        const primaryLight = 'rgba(252, 128, 25, 0.2)';
+
+        // 1. Sales Chart (Line)
+        const salesChart = new Chart(ctxSales, {
+            type: 'line',
+            data: {
+                labels: data.trend.map(t => t.label),
+                datasets: [{
+                    label: 'Orders',
+                    data: data.trend.map(t => t.count),
+                    borderColor: primaryColor,
+                    backgroundColor: primaryLight,
+                    borderWidth: 2,
+                    fill: true,
+                    tension: 0.4,
+                    pointRadius: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, grid: { borderDash: [5, 5] } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+
+        // 2. Top Items (Bar - Horizontal)
+        const itemsChart = new Chart(ctxItems, {
+            type: 'bar',
+            data: {
+                labels: data.top_sellers.map(i => i.name),
+                datasets: [{
+                    label: 'Sold',
+                    data: data.top_sellers.map(i => i.qty),
+                    backgroundColor: [
+                        '#ff5200', '#28a745', '#17a2b8', '#ffc107', '#dc3545'
+                    ],
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { beginAtZero: true }
+                }
+            }
+        });
+
+        window.myCharts = [salesChart, itemsChart];
+    }
+</script>
+{% endblock %}

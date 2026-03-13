@@ -1,0 +1,229 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Reactivate Account - CampusBites{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Hide Navbar & Chat FAB & Footer */
+    .navbar { display: none !important; }
+    .chat-fab-container { display: none !important; }
+    footer { display: none !important; }
+    
+    body {
+        background-color: #ff5200;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0;
+        font-family: 'Inter', 'Basis Grotesque Pro', 'Gilroy', sans-serif;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hero-decor-right {
+        position: absolute;
+        top: 0;
+        right: 0;
+        height: 100%;
+        width: auto;
+        max-width: 380px;
+        object-fit: contain;
+        object-position: right center;
+        z-index: 0;
+        pointer-events: none;
+    }
+
+    @media (max-width: 900px) {
+        .hero-decor-right {
+            max-width: 200px;
+            opacity: 0.5;
+        }
+    }
+
+    @media (max-width: 600px) {
+        .hero-decor-right {
+            max-width: 140px;
+            opacity: 0.3;
+        }
+    }
+
+    .cp-container {
+        width: 100%;
+        max-width: 460px;
+        padding: 20px;
+        box-sizing: border-box;
+        position: relative;
+        z-index: 2;
+    }
+
+    .cp-card {
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 40px 32px;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+        position: relative;
+        text-align: center;
+    }
+
+    .cp-back {
+        position: absolute;
+        top: 24px;
+        left: 24px;
+        color: #6b7280;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        transition: color 0.2s;
+    }
+
+    .cp-back:hover {
+        color: #111827;
+    }
+
+    .emoji-header {
+        font-size: 48px;
+        line-height: 1;
+        margin-bottom: 20px;
+        margin-top: 10px;
+    }
+
+    .cp-title {
+        font-size: 24px;
+        font-weight: 800;
+        color: #111827;
+        margin: 0 0 12px 0;
+        letter-spacing: -0.02em;
+    }
+
+    .cp-subtitle {
+        font-size: 14px;
+        color: #6b7280;
+        margin-bottom: 32px;
+        line-height: 1.5;
+    }
+    
+    .cp-subtitle strong {
+        color: #ff5200;
+        font-weight: 700;
+    }
+
+    /* Info Box */
+    .info-box {
+        background: #fdfdfd;
+        border: 1px solid #f3f4f6;
+        border-radius: 12px;
+        padding: 16px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        text-align: left;
+        margin-bottom: 24px;
+    }
+
+    .info-icon {
+        width: 32px;
+        height: 32px;
+        background: #dcfce7;
+        color: #16a34a;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    
+    .info-icon svg {
+        width: 18px;
+        height: 18px;
+        stroke-width: 3;
+    }
+
+    .info-text-container {
+        flex: 1;
+    }
+
+    .info-title {
+        font-size: 14px;
+        font-weight: 700;
+        color: #111827;
+        margin: 0 0 2px 0;
+    }
+
+    .info-desc {
+        font-size: 12px;
+        color: #6b7280;
+        margin: 0;
+    }
+
+    .btn-ultra {
+        width: 100%;
+        padding: 16px;
+        background: #111827 !important; /* Dark button as per image */
+        color: #ffffff !important;
+        font-size: 15px;
+        font-weight: 600;
+        border-radius: 10px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        margin-bottom: 16px;
+    }
+
+    .btn-ultra:hover {
+        background: #1f2937 !important;
+        transform: translateY(-1px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
+
+    .go-back-link {
+        display: inline-block;
+        font-size: 13px;
+        font-weight: 500;
+        color: #6b7280;
+        text-decoration: none;
+        transition: color 0.2s;
+    }
+
+    .go-back-link:hover {
+        color: #111827;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<img src="https://media-assets.swiggy.com/swiggy/image/upload/fl_lossy,f_auto,q_auto/portal/testing/seo-home/Sushi_replace.png" alt="" class="hero-decor-right" aria-hidden="true">
+
+<div class="cp-container">
+    <div class="cp-card">
+        <a href="javascript:history.back()" class="cp-back">&larr; Back</a>
+
+        <div class="emoji-header">😴</div>
+        
+        <h1 class="cp-title">Account Deactivated</h1>
+        <p class="cp-subtitle">Your account <strong>{{ request.session.reactivate_email }}</strong><br>was previously deactivated.</p>
+
+        <div class="info-box">
+            <div class="info-icon">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                </svg>
+            </div>
+            <div class="info-text-container">
+                <h4 class="info-title">Reactivate My Account</h4>
+                <p class="info-desc">Get back all your orders, favourites & wallet</p>
+            </div>
+        </div>
+
+        <form method="POST" action="{% url 'reactivate_account' %}">
+            {% csrf_token %}
+            <button type="submit" class="btn-ultra">🚀 Reactivate Account</button>
+        </form>
+        
+        <a href="{% url 'login' %}" class="go-back-link">No thanks, go back</a>
+    </div>
+</div>
+{% endblock %}

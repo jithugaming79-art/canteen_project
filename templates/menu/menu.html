@@ -1,0 +1,2011 @@
+{% extends 'base.html' %}
+
+{% block title %}Menu - College Canteen{% endblock %}
+
+{% block content %}
+{% if maintenance_mode %}
+<!-- Maintenance Mode Banner -->
+<div class="maintenance-banner">
+    <div class="maintenance-banner-inner">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <span>The canteen is currently under maintenance. Orders are temporarily paused.</span>
+    </div>
+</div>
+{% endif %}
+<section class="menu-section {% if maintenance_mode %}maintenance-active{% endif %}">
+    <div class="container">
+
+
+        <!-- Hidden form for full-page search submit -->
+        <form id="searchForm" action="{% url 'menu' %}" method="GET" style="display:none;">
+            {% if selected_category %}<input type="hidden" name="category" value="{{ selected_category }}">{% endif %}
+            {% if veg_only %}<input type="hidden" name="veg" value="true">{% endif %}
+            {% if nonveg_only %}<input type="hidden" name="nonveg" value="true">{% endif %}
+            <input type="hidden" name="q" id="searchFormQuery" value="">
+        </form>
+
+        <!-- ===== Search Overlay Modal ===== -->
+        <div class="search-overlay" id="searchOverlay">
+            <div class="search-modal">
+                <div class="search-input-area">
+                    <input type="text" id="searchInput" autocomplete="off" placeholder="Search for dishes, cuisines..."
+                        autofocus>
+                    <button class="search-clear-btn" id="searchClearBtn" title="Clear" style="display:none;"
+                        type="button">✕</button>
+                    <button class="search-close-btn" onclick="closeSearch()" title="Close (Esc)"
+                        type="button">✕</button>
+                </div>
+                <div class="search-body" id="searchBody">
+                    <div id="searchDefault">
+                        <div class="search-section-header"><span>Popular Searches</span></div>
+                        <div class="search-chips" id="trendingChips">
+                            <div class="search-chip" onclick="chipSearch('Biryani')"><span class="chip-icon">B</span>
+                                Biryani</div>
+                            <div class="search-chip" onclick="chipSearch('Burger')"><span class="chip-icon">B</span>
+                                Burger</div>
+                            <div class="search-chip" onclick="chipSearch('Pizza')"><span class="chip-icon">P</span>
+                                Pizza</div>
+                            <div class="search-chip" onclick="chipSearch('Coffee')"><span class="chip-icon">C</span>
+                                Coffee</div>
+                            <div class="search-chip" onclick="chipSearch('Sandwich')"><span class="chip-icon">S</span>
+                                Sandwich</div>
+                            <div class="search-chip" onclick="chipSearch('Juice')"><span class="chip-icon">J</span>
+                                Juice</div>
+                            <div class="search-chip" onclick="chipSearch('Noodles')"><span class="chip-icon">N</span>
+                                Noodles</div>
+                            <div class="search-chip" onclick="chipSearch('Dosa')"><span class="chip-icon">D</span> Dosa
+                            </div>
+                        </div>
+                        <div id="recentSection" style="display:none;">
+                            <div class="search-section-header">
+                                <span>Recent Searches</span>
+                                <button onclick="clearRecentSearches()">Clear All</button>
+                            </div>
+                            <div id="recentList"></div>
+                        </div>
+                    </div>
+                    <div id="searchLoading" style="display:none;">
+                        <div class="search-skeleton">
+                            <div class="skel-img"></div>
+                            <div class="skel-body">
+                                <div class="skel-line w75"></div>
+                                <div class="skel-line w50"></div>
+                            </div>
+                        </div>
+                        <div class="search-skeleton">
+                            <div class="skel-img"></div>
+                            <div class="skel-body">
+                                <div class="skel-line w75"></div>
+                                <div class="skel-line w50"></div>
+                            </div>
+                        </div>
+                        <div class="search-skeleton">
+                            <div class="skel-img"></div>
+                            <div class="skel-body">
+                                <div class="skel-line w75"></div>
+                                <div class="skel-line w30"></div>
+                            </div>
+                        </div>
+                        <div class="search-skeleton">
+                            <div class="skel-img"></div>
+                            <div class="skel-body">
+                                <div class="skel-line w75"></div>
+                                <div class="skel-line w50"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="searchResults" style="display:none;"></div>
+                    <div id="searchNoResults" class="search-no-results" style="display:none;">
+                        <div class="no-results-icon">🤷</div>
+                        <h4>No results found</h4>
+                        <p id="noResultsText">Try searching with different keywords</p>
+                    </div>
+                    <div id="searchError" class="search-error-state" style="display:none;">
+                        <div class="search-error-icon">⚠️</div>
+                        <h4>Something went wrong</h4>
+                        <p>Couldn't load results. Check your connection.</p>
+                        <button class="search-retry-btn" id="searchRetryBtn" type="button">Retry</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== SECTION 1: What's on your mind? (Category Bubbles) ===== -->
+        {% if not selected_category and not search_query %}
+        <div class="swiggy-section">
+            <h2 class="swiggy-section-title">{{ request.user.first_name|default:request.user.username|lower }}, what's
+                on your mind?</h2>
+            <div class="category-bubbles">
+                {% for cat in categories %}
+                {% if cat.name != 'Non-Veg' %}
+                <a href="{% url 'menu' %}?category={{ cat.id }}{% if veg_only %}&veg=true{% endif %}"
+                    class="category-bubble">
+                    <div class="category-bubble-img">
+                        <img class="cat-img-light" src="/static/images/categories/{{ cat.name|lower }}.png"
+                            alt="{{ cat.name }}">
+                        <img class="cat-img-dark" src="/static/images/categories/dark/{{ cat.name|lower }}.png"
+                            alt="{{ cat.name }}">
+                    </div>
+                    <span class="category-bubble-name">{{ cat.name }}</span>
+                </a>
+                {% endif %}
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="swiggy-divider"></div>
+
+        <!-- ===== SECTION 2: Popular Right Now ===== -->
+        {% if popular_items %}
+        <div class="swiggy-section">
+            <div class="swiggy-section-header">
+                <h2 class="swiggy-section-title">Popular Right Now</h2>
+                <div class="scroll-arrows" id="popularArrows">
+                    <button class="scroll-arrow disabled" id="popularPrev" aria-label="Scroll left">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M19 12H5M12 19l-7-7 7-7" />
+                        </svg>
+                    </button>
+                    <button class="scroll-arrow" id="popularNext" aria-label="Scroll right">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M5 12h14M12 5l7 7-7 7" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div class="popular-scroll" id="popularScroll">
+                {% for item in popular_items %}
+                <div class="food-card popular-card" data-item-id="{{ item.id }}">
+                    <a href="{% url 'item_detail' item.id %}" style="text-decoration: none; color: inherit;">
+                        <div class="food-card-image">
+                            {% if item.image %}
+                            <img src="{{ item.image.url }}" alt="{{ item.name }}">
+                            {% else %}
+                            <img src="https://via.placeholder.com/300x200?text={{ item.name }}" alt="{{ item.name }}">
+                            {% endif %}
+                            <span class="food-badge">ITEMS AT ₹{{ item.price|floatformat:0 }}</span>
+                            {% if item.is_vegetarian %}
+                            <span class="food-type-icon veg-icon" title="Vegetarian"></span>
+                            {% else %}
+                            <span class="food-type-icon nonveg-icon" title="Non-Vegetarian"></span>
+                            {% endif %}
+                        </div>
+                    </a>
+                    <div class="food-card-body">
+                        <h3 class="food-card-title">{{ item.name }}</h3>
+                        <div class="food-card-meta">
+                            {% if item.average_rating > 0 %}
+                            <span class="food-rating">
+                                <span class="rating-star-icon"><svg viewBox="0 0 24 24">
+                                        <path
+                                            d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                                    </svg></span>
+                                {{ item.average_rating }}
+                            </span>
+                            {% else %}
+                            <span class="food-rating food-rating-new">
+                                <span class="rating-star-icon"><svg viewBox="0 0 24 24">
+                                        <path
+                                            d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                                    </svg></span>
+                                New
+                            </span>
+                            {% endif %}
+                            <span class="food-meta-dot">•</span>
+                            <span class="food-time">{{ item.preparation_time }}-{{ item.preparation_time|add:5 }}
+                                mins</span>
+                        </div>
+                        <p class="food-card-category"><span>{{ item.category.name }}</span></p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            <!-- Swiggy-style progress bar -->
+            <div class="popular-progress-track">
+                <div class="popular-progress-thumb" id="popularProgressThumb"></div>
+            </div>
+        </div>
+
+        <div class="swiggy-divider"></div>
+        {% endif %}
+        {% endif %}
+
+        <!-- ===== SECTION 3: All Menu Items ===== -->
+
+
+
+
+
+        <h2 class="swiggy-section-title" style="margin-bottom: 20px;">{% if search_query %}Search Results{% elif
+            selected_category %}Filtered Menu{% else %}All Menu Items{% endif %}</h2>
+
+        <!-- Sort By & Filter Pills -->
+        <div class="sort-filter-bar">
+            <div class="sort-by-wrapper">
+                <button class="sort-by-btn" id="sortByBtn" onclick="toggleSortDropdown()">
+                    Sort By
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                </button>
+                <div class="sort-dropdown" id="sortDropdown">
+                    <label class="sort-option">
+                        <input type="checkbox" name="sort_relevance" checked onchange="applySort('')">
+                        <span>Relevance (Default)</span>
+                    </label>
+                    <label class="sort-option">
+                        <input type="checkbox" name="sort_rating" onchange="applySort('rating')">
+                        <span>Rating</span>
+                    </label>
+                    <label class="sort-option">
+                        <input type="checkbox" name="sort_price_low" onchange="applySort('price_low')">
+                        <span>Cost: Low to High</span>
+                    </label>
+                    <label class="sort-option">
+                        <input type="checkbox" name="sort_price_high" onchange="applySort('price_high')">
+                        <span>Cost: High to Low</span>
+                    </label>
+                    <label class="sort-option">
+                        <input type="checkbox" name="filter_veg" {% if veg_only %}checked{% endif %}
+                            onchange="toggleFilter('veg')">
+                        <span>Pure Veg</span>
+                    </label>
+                    <label class="sort-option">
+                        <input type="checkbox" name="filter_nonveg" {% if nonveg_only %}checked{% endif %}
+                            onchange="toggleFilter('nonveg')">
+                        <span>Non-Veg</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+
+
+        <!-- Menu Grid -->
+        <div class="menu-grid">
+            {% for item in items %}
+            <div class="food-card" data-item-id="{{ item.id }}">
+                <a href="{% url 'item_detail' item.id %}" style="text-decoration: none; color: inherit;">
+                    <div class="food-card-image">
+                        {% if item.image %}
+                        <img src="{{ item.image.url }}" alt="{{ item.name }}">
+                        {% else %}
+                        <img src="https://via.placeholder.com/300x200?text={{ item.name }}" alt="{{ item.name }}">
+                        {% endif %}
+
+                        {% if item.is_todays_special %}
+                        <span class="food-badge special">⭐ SPECIAL</span>
+                        {% elif not item.is_available %}
+                        <span class="food-badge unavailable">Currently Unavailable</span>
+                        {% else %}
+                        <span class="food-badge">ITEMS AT ₹{{ item.price|floatformat:0 }}</span>
+                        {% endif %}
+
+                        {% if item.is_vegetarian %}
+                        <span class="food-type-icon veg-icon" title="Vegetarian"></span>
+                        {% else %}
+                        <span class="food-type-icon nonveg-icon" title="Non-Vegetarian"></span>
+                        {% endif %}
+
+                        {% if item.is_available %}
+                        <form method="POST" action="{% url 'add_to_cart' item.id %}" style="margin: 0;"
+                            class="card-add-form">
+                            {% csrf_token %}
+                            <input type="hidden" name="quantity" value="1">
+                            <input type="hidden" name="next"
+                                value="{% url 'menu' %}{% if selected_category %}?category={{ selected_category }}{% endif %}{% if search_query %}{% if selected_category %}&{% else %}?{% endif %}q={{ search_query }}{% endif %}{% if veg_only %}{% if selected_category or search_query %}&{% else %}?{% endif %}veg=true{% endif %}">
+                            <button type="submit" class="card-add-plus-btn"
+                                onclick="event.stopPropagation();">+</button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </a>
+
+                <div class="food-card-body">
+                    <div class="food-card-title-row">
+                        <a href="{% url 'item_detail' item.id %}"
+                            style="text-decoration: none; color: inherit; flex: 1; min-width: 0;">
+                            <h3 class="food-card-title">{{ item.name }}</h3>
+                        </a>
+                    </div>
+                    <div class="food-card-meta">
+                        {% if item.average_rating > 0 %}
+                        <span class="food-rating">
+                            <span class="rating-star-icon"><svg viewBox="0 0 24 24">
+                                    <path
+                                        d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                                </svg></span>
+                            {{ item.average_rating }}
+                        </span>
+                        {% else %}
+                        <span class="food-rating food-rating-new">
+                            <span class="rating-star-icon"><svg viewBox="0 0 24 24">
+                                    <path
+                                        d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                                </svg></span>
+                            New
+                        </span>
+                        {% endif %}
+
+                        <span class="food-meta-dot">•</span>
+                        <span class="food-time">{{ item.preparation_time }}-{{ item.preparation_time|add:5 }}
+                            mins</span>
+                    </div>
+                    <p class="food-card-category"><span>{{ item.category.name }}</span>{% if item.description %}<span>,
+                            {{ item.description|truncatechars:35 }}</span>{% endif %}</p>
+                </div>
+            </div>
+            {% empty %}
+            <div class="empty-state" style="grid-column: 1 / -1;">
+                <div class="empty-state-icon">🔍</div>
+                <h3>No items found</h3>
+                <p>{% if search_query %}No items match '{{ search_query }}'{% else %}There are no items in this category
+                    yet.{% endif %}</p>
+                <a href="{% url 'menu' %}" class="btn btn-primary">View All Items</a>
+            </div>
+            {% endfor %}
+        </div>
+
+
+
+    </div>
+</section>
+{% endblock %}
+
+{% block footer %}
+<!-- Swiggy-Style Footer -->
+<footer class="swiggy-footer">
+    <div class="container">
+        <div class="swiggy-footer-grid">
+            <!-- Brand Column -->
+            <div class="swiggy-footer-brand">
+                <div class="swiggy-footer-logo">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ff5200" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
+                        <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
+                        <line x1="6" y1="1" x2="6" y2="4" />
+                        <line x1="10" y1="1" x2="10" y2="4" />
+                        <line x1="14" y1="1" x2="14" y2="4" />
+                    </svg>
+                    <span class="swiggy-footer-brand-name">CampusBites</span>
+                </div>
+                <p class="swiggy-footer-copy">&copy; 2026 CampusBites Limited</p>
+            </div>
+
+            <!-- Company Links -->
+            <div class="swiggy-footer-col">
+                <h4 class="swiggy-footer-heading">Company</h4>
+                <a href="#">About Us</a>
+                <a href="#">CampusBites Corporate</a>
+                <a href="#">Careers</a>
+                <a href="#">Team</a>
+            </div>
+
+            <!-- Contact Us -->
+            <div class="swiggy-footer-col">
+                <h4 class="swiggy-footer-heading">Contact us</h4>
+                <a href="#">Help & Support</a>
+                <a href="#">Partner With Us</a>
+                <a href="{% url 'user_feedback' %}">Feedback</a>
+
+                <h4 class="swiggy-footer-heading" style="margin-top: 24px;">Legal</h4>
+                <a href="{% url 'terms' %}">Terms & Conditions</a>
+                <a href="#">Cookie Policy</a>
+                <a href="#">Privacy Policy</a>
+            </div>
+
+            <!-- Available In -->
+            <div class="swiggy-footer-col">
+                <h4 class="swiggy-footer-heading">Available in</h4>
+                <a href="#">Main Campus</a>
+                <a href="#">North Block</a>
+                <a href="#">South Block</a>
+                <a href="#">Engineering Wing</a>
+                <a href="#">Library Cafe</a>
+            </div>
+
+            <!-- Life at CampusBites -->
+            <div class="swiggy-footer-col">
+                <h4 class="swiggy-footer-heading">Life at CampusBites</h4>
+                <a href="{% url 'menu' %}">Explore Menu</a>
+                <a href="#">CampusBites News</a>
+                <a href="#">Snackables</a>
+
+                <h4 class="swiggy-footer-heading" style="margin-top: 24px;">Social Links</h4>
+                <div class="swiggy-footer-socials">
+                    <a href="#" class="swiggy-social-icon" aria-label="LinkedIn">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6z" />
+                            <rect x="2" y="9" width="4" height="12" />
+                            <circle cx="4" cy="4" r="2" />
+                        </svg>
+                    </a>
+                    <a href="#" class="swiggy-social-icon" aria-label="Instagram">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+                            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+                        </svg>
+                    </a>
+                    <a href="#" class="swiggy-social-icon" aria-label="Facebook">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3V2z" />
+                        </svg>
+                    </a>
+                    <a href="#" class="swiggy-social-icon" aria-label="Pinterest">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                            <path
+                                d="M12 0C5.373 0 0 5.373 0 12c0 5.084 3.163 9.426 7.627 11.174-.105-.949-.2-2.405.042-3.441.218-.937 1.407-5.965 1.407-5.965s-.359-.719-.359-1.782c0-1.668.967-2.914 2.171-2.914 1.023 0 1.518.769 1.518 1.69 0 1.029-.655 2.568-.994 3.995-.283 1.194.599 2.169 1.777 2.169 2.133 0 3.772-2.249 3.772-5.495 0-2.873-2.064-4.882-5.012-4.882-3.414 0-5.418 2.561-5.418 5.207 0 1.031.397 2.138.893 2.738.098.119.112.224.083.345l-.333 1.36c-.053.22-.174.267-.402.161-1.499-.698-2.436-2.889-2.436-4.649 0-3.785 2.75-7.262 7.929-7.262 4.163 0 7.398 2.967 7.398 6.931 0 4.136-2.607 7.464-6.227 7.464-1.216 0-2.359-.632-2.75-1.378l-.748 2.853c-.271 1.043-1.002 2.35-1.492 3.146C9.57 23.812 10.763 24 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0z" />
+                        </svg>
+                    </a>
+                    <a href="#" class="swiggy-social-icon" aria-label="Twitter">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                            <path
+                                d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z" />
+                        </svg>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom Divider -->
+        <div class="swiggy-footer-divider"></div>
+
+        <!-- Bottom Bar -->
+        <div class="swiggy-footer-bottom">
+            <p>For better experience, order from CampusBites today</p>
+            <div class="swiggy-footer-badges">
+                <a href="#" class="swiggy-store-badge">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="5" y="2" width="14" height="20" rx="2" ry="2" />
+                        <line x1="12" y1="18" x2="12.01" y2="18" />
+                    </svg>
+                    <div>
+                        <span class="badge-label">Download on the</span>
+                        <span class="badge-store">App Store</span>
+                    </div>
+                </a>
+                <a href="#" class="swiggy-store-badge">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="5 3 19 12 5 21 5 3" />
+                    </svg>
+                    <div>
+                        <span class="badge-label">GET IT ON</span>
+                        <span class="badge-store">Google Play</span>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+</footer>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* ===== MAINTENANCE MODE STYLES ===== */
+    .maintenance-banner {
+        background: #1b1e24;
+        color: #fff;
+        padding: 14px 20px;
+        text-align: center;
+        position: sticky;
+        top: 70px;
+        z-index: 100;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+    .maintenance-banner-inner {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 10px;
+        font-size: 14px;
+        font-weight: 600;
+        letter-spacing: 0.2px;
+    }
+    .maintenance-banner svg {
+        color: #ff5200;
+        flex-shrink: 0;
+    }
+    .maintenance-active .food-card-image img {
+        filter: grayscale(100%);
+        opacity: 0.7;
+        transition: filter 0.3s, opacity 0.3s;
+    }
+    .maintenance-active .food-card-image .card-add-form {
+        display: none !important;
+    }
+    .maintenance-active .food-card-image .food-badge {
+        background: rgba(0,0,0,0.6) !important;
+        color: #ccc !important;
+    }
+    .maintenance-active .popular-card .food-card-image img {
+        filter: grayscale(100%);
+        opacity: 0.7;
+    }
+    .maintenance-active .category-bubble-img img {
+        filter: grayscale(100%);
+        opacity: 0.6;
+    }
+
+    /* ---- Swiggy Veg Toggle ---- */
+    .menu-top-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+    }
+
+    .veg-mode-toggle-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 10px 7px;
+        background: var(--white, #fff);
+        border: 1.5px solid var(--border, #e9e9eb);
+        border-radius: 10px;
+        cursor: pointer;
+        user-select: none;
+        transition: border-color 0.2s ease;
+    }
+
+    body.dark-mode .veg-mode-toggle-wrapper {
+        background: #1e1e2e;
+        border-color: #2a2a3e;
+    }
+
+    .veg-mode-toggle-wrapper:hover {
+        border-color: #0f8a65;
+    }
+
+    .veg-mode-label {
+        font-size: 11px;
+        font-weight: 700;
+        color: #3d4152;
+        letter-spacing: 0.04em;
+        line-height: 1;
+    }
+
+    body.dark-mode .veg-mode-label {
+        color: #e0e0e0;
+    }
+
+    .veg-toggle-row {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        cursor: pointer;
+    }
+
+    .veg-toggle-row input {
+        position: absolute;
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+
+    .veg-pill {
+        position: relative;
+        width: 26px;
+        height: 7px;
+        background: #ccc;
+        border-radius: 34px;
+        transition: background 0.4s ease;
+        flex-shrink: 0;
+    }
+
+    body.dark-mode .veg-pill {
+        background: #3a3a4a;
+    }
+
+    .veg-pill::after {
+        content: '';
+        position: absolute;
+        height: 14px;
+        width: 14px;
+        left: 0;
+        bottom: -3px;
+        background: #fff;
+        background-image: radial-gradient(circle at center, #0f8a65 3px, transparent 3.5px);
+        background-repeat: no-repeat;
+        background-position: center;
+        border: 1.5px solid #0f8a65;
+        box-sizing: border-box;
+        border-radius: 30%;
+        transition: transform 0.4s ease;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25);
+    }
+
+    .veg-toggle-row input:checked~.veg-pill {
+        background: #06a606;
+    }
+
+    .veg-toggle-row input:checked~.veg-pill::after {
+        transform: translateX(14px);
+    }
+
+    .veg-toggle-row input:focus-visible~.veg-pill {
+        outline: 2px solid #0f8a65;
+        outline-offset: 2px;
+    }
+
+    /* ---- Food Type Icons ---- */
+    .food-type-icon {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        width: 14px;
+        height: 14px;
+        border-radius: 30%;
+        z-index: 2;
+        box-sizing: border-box;
+    }
+
+    .food-type-icon::after {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+    }
+
+    .veg-icon {
+        border: 1.5px solid #0f8a65;
+        background: transparent;
+    }
+
+    .veg-icon::after {
+        background: #0f8a65;
+    }
+
+    .nonveg-icon {
+        border: 1.5px solid #e43b4f;
+        background: transparent;
+    }
+
+    .nonveg-icon::after {
+        background: transparent;
+        border-radius: 0;
+        width: 0;
+        height: 0;
+        border-left: 3.5px solid transparent;
+        border-right: 3.5px solid transparent;
+        border-bottom: 6px solid #e43b4f;
+    }
+
+    /* + Add to Cart button on card image */
+    .card-add-form {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        z-index: 5;
+    }
+
+    .card-add-plus-btn {
+        width: 28px;
+        height: 28px;
+        border-radius: 0;
+        border: none;
+        background: transparent;
+        color: #fff;
+        font-size: 26px;
+        font-weight: 400;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        padding: 0;
+        box-shadow: none;
+        transition: none;
+    }
+
+    .card-add-plus-btn:hover {
+        opacity: 0.8;
+    }
+
+    /* Food card animation */
+    .food-card {
+        transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s ease;
+    }
+
+    .food-card.veg-hidden {
+        opacity: 0;
+        transform: scale(0.92) !important;
+        pointer-events: none;
+        position: absolute;
+        visibility: hidden;
+    }
+
+    .food-card.veg-visible {
+        opacity: 1;
+    }
+
+    body:not(.dark-mode) .veg-mode-toggle-wrapper {
+        background: #f8f9fa;
+        border-color: #e0e0e0;
+    }
+
+    body:not(.dark-mode) .veg-mode-toggle-wrapper:hover {
+        border-color: #22c55e;
+    }
+
+    body:not(.dark-mode) .veg-mode-label {
+        color: #1a1a1a;
+    }
+
+    .veg-mode-toggle-wrapper.active {
+        border-color: #22c55e;
+        box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.2);
+    }
+
+    /* ===== Swiggy Section Styles ===== */
+    .swiggy-section {
+        margin-bottom: 10px;
+    }
+
+    .swiggy-section-title {
+        font-family: 'Gilroy', sans-serif;
+        font-size: 24px;
+        font-weight: 800;
+        color: #02060c;
+        margin-bottom: 20px;
+        letter-spacing: -0.3px;
+    }
+
+    body.dark-mode .swiggy-section-title {
+        color: #e8e8e8;
+    }
+
+    .swiggy-section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 16px;
+    }
+
+    .swiggy-section-header .swiggy-section-title {
+        margin-bottom: 0;
+    }
+
+    .swiggy-divider {
+        height: 2px;
+        background: #e9e9eb;
+        margin: 40px 0;
+        border: none;
+    }
+
+    body.dark-mode .swiggy-divider {
+        background: rgba(255, 255, 255, 0.1);
+    }
+
+    /* ===== Category Bubbles ===== */
+    .category-bubbles {
+        display: flex;
+        gap: 32px;
+        justify-content: flex-start;
+        flex-wrap: nowrap;
+        overflow-x: auto;
+        padding: 0 10px 10px;
+        scroll-snap-type: x mandatory;
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+    }
+
+    .category-bubbles::-webkit-scrollbar {
+        display: none;
+    }
+
+    .category-bubble {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        text-decoration: none;
+        transition: transform 0.2s ease;
+        flex-shrink: 0;
+        scroll-snap-align: start;
+    }
+
+    .category-bubble:hover {
+        transform: none;
+    }
+
+    .category-bubble-img {
+        width: 150px;
+        height: 150px;
+    }
+
+    body.dark-mode .category-bubble-img {
+        background: transparent;
+    }
+
+    .category-bubble-img img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    /* Light/Dark category image toggle */
+    .category-bubble-img .cat-img-dark {
+        display: none !important;
+    }
+
+    body.dark-mode .category-bubble-img .cat-img-light {
+        display: none !important;
+    }
+
+    body.dark-mode .category-bubble-img .cat-img-dark {
+        display: block !important;
+        object-fit: contain;
+    }
+
+    .category-bubble-name {
+        font-family: 'Basis Grotesque Pro', 'Gilroy', sans-serif;
+        font-size: 16px;
+        font-weight: 600;
+        color: rgba(2, 6, 12, 0.75);
+        text-align: center;
+        letter-spacing: -0.1px;
+    }
+
+    body.dark-mode .category-bubble-name {
+        color: #e8e8e8;
+    }
+
+    /* ===== Scroll Arrows ===== */
+    .scroll-arrows {
+        display: flex;
+        gap: 12px;
+    }
+
+    .scroll-arrow {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        border: none;
+        background: #e2e2e7;
+        color: #02060c;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.15s, transform 0.1s;
+    }
+
+    .scroll-arrow:active {
+        transform: scale(0.95);
+    }
+
+    .scroll-arrow:hover:not(.disabled) {
+        background: #d4d4d9;
+    }
+
+    .scroll-arrow.disabled {
+        opacity: 0.3;
+        cursor: default;
+        pointer-events: none;
+    }
+
+    body.dark-mode .scroll-arrow {
+        background: #2a2a3e;
+        color: #e8e8e8;
+    }
+
+    body.dark-mode .scroll-arrow.disabled {
+        opacity: 0.25;
+    }
+
+    /* ===== Swiggy Progress Bar ===== */
+    .popular-progress-track {
+        width: 60px;
+        height: 4px;
+        background: #e2e2e7;
+        border-radius: 4px;
+        margin: 20px auto 0;
+        overflow: hidden;
+        position: relative;
+    }
+
+    body.dark-mode .popular-progress-track {
+        background: #2a2a3e;
+    }
+
+    .popular-progress-thumb {
+        height: 100%;
+        background: #ff5200;
+        border-radius: 4px;
+        transition: width 0.3s ease, left 0.3s ease;
+        position: absolute;
+        left: 0;
+        top: 0;
+        min-width: 15px;
+    }
+
+    /* ===== Popular Scroll ===== */
+    .popular-scroll {
+        display: flex;
+        gap: 20px;
+        overflow-x: auto;
+        padding-top: 10px;
+        padding-bottom: 10px;
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+        scroll-snap-type: x mandatory;
+    }
+
+    .popular-scroll::-webkit-scrollbar {
+        display: none;
+    }
+
+    .popular-scroll .popular-card {
+        min-width: calc((100% - 80px) / 5);
+        max-width: calc((100% - 80px) / 5);
+        flex-shrink: 0;
+        will-change: transform;
+        transition: transform 0.2s ease;
+        scroll-snap-align: start;
+    }
+
+    .popular-scroll .popular-card:hover {
+        transform: scale(0.96);
+    }
+
+    /* ---- Favorite Heart Button ---- */
+    .fav-heart-btn {
+        position: absolute;
+        bottom: 10px;
+        right: 10px;
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        border: none;
+        background: rgba(0, 0, 0, 0.45);
+        backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 5;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        padding: 0;
+        color: #fff;
+    }
+
+    .fav-heart-btn:hover {
+        background: rgba(0, 0, 0, 0.6);
+        transform: scale(1.1);
+    }
+
+    .fav-heart-btn:active {
+        transform: scale(0.9);
+    }
+
+    .fav-heart-btn svg {
+        width: 18px;
+        height: 18px;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .fav-heart-btn .heart-filled {
+        display: none;
+        color: #ef4444;
+    }
+
+    .fav-heart-btn .heart-outline {
+        display: block;
+    }
+
+    .fav-heart-btn.active .heart-filled {
+        display: block;
+    }
+
+    .fav-heart-btn.active .heart-outline {
+        display: none;
+    }
+
+    .fav-heart-btn.active {
+        background: rgba(255, 255, 255, 0.9);
+        color: #ef4444;
+    }
+
+    body.dark-mode .fav-heart-btn.active {
+        background: rgba(30, 30, 30, 0.9);
+    }
+
+    @keyframes heartPop {
+        0% {
+            transform: scale(1)
+        }
+
+        30% {
+            transform: scale(1.3)
+        }
+
+        60% {
+            transform: scale(0.95)
+        }
+
+        100% {
+            transform: scale(1)
+        }
+    }
+
+    .fav-heart-btn.pop {
+        animation: heartPop 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    /* ===== Sort By & Filter Bar ===== */
+    .sort-filter-bar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+    }
+
+    .sort-by-wrapper {
+        position: relative;
+    }
+
+    .sort-by-btn {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 14px;
+        border: 1px solid #e2e2e7;
+        border-radius: 18px;
+        background: #fff;
+        color: #3d4152;
+        font-family: 'Basis Grotesque Pro', 'Gilroy', sans-serif;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        white-space: nowrap;
+    }
+
+    .sort-by-btn:hover {
+        border-color: #93959f;
+    }
+
+    body.dark-mode .sort-by-btn {
+        background: #1e1e2e;
+        border-color: #2a2a3e;
+        color: #e0e0e0;
+    }
+
+    .sort-dropdown {
+        display: none;
+        position: absolute;
+        top: calc(100% + 6px);
+        left: 0;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        padding: 12px 0;
+        min-width: 200px;
+        z-index: 100;
+        font-family: 'Basis Grotesque Pro', 'Gilroy', sans-serif;
+    }
+
+    .sort-dropdown.open {
+        display: block;
+    }
+
+    body.dark-mode .sort-dropdown {
+        background: #1e1e2e;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .sort-option {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 18px;
+        cursor: pointer;
+        font-family: 'Basis Grotesque Pro', 'Gilroy', sans-serif;
+        font-size: 14px;
+        color: #3d4152;
+        transition: background 0.1s;
+    }
+
+    .sort-option:hover {
+        background: #f2f2f5;
+    }
+
+    body.dark-mode .sort-option {
+        color: #e0e0e0;
+    }
+
+    body.dark-mode .sort-option:hover {
+        background: #2a2a3e;
+    }
+
+    .sort-option input[type="radio"] {
+        accent-color: #ff5200;
+        width: 16px;
+        height: 16px;
+    }
+
+    .sort-option input[type="checkbox"] {
+        accent-color: #ff5200;
+        width: 16px;
+        height: 16px;
+    }
+
+    .sort-divider {
+        height: 1px;
+        background: #e2e2e7;
+        margin: 8px 0;
+    }
+
+    body.dark-mode .sort-divider {
+        background: #2a2a3e;
+    }
+
+    .filter-pill {
+        padding: 8px 14px;
+        border: 1px solid #e2e2e7;
+        border-radius: 18px;
+        background: #fff;
+        color: #3d4152;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.15s ease;
+        white-space: nowrap;
+    }
+
+    .filter-pill:hover {
+        border-color: #93959f;
+    }
+
+    .filter-pill.active {
+        background: #3d4152;
+        color: #fff;
+        border-color: #3d4152;
+    }
+
+    body.dark-mode .filter-pill {
+        background: #1e1e2e;
+        border-color: #2a2a3e;
+        color: #e0e0e0;
+    }
+
+    body.dark-mode .filter-pill.active {
+        background: #fc8019;
+        border-color: #fc8019;
+        color: #fff;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .category-bubbles {
+            gap: 16px;
+            justify-content: flex-start;
+            overflow-x: auto;
+            flex-wrap: nowrap;
+            padding-bottom: 8px;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        .category-bubbles::-webkit-scrollbar {
+            display: none;
+        }
+
+        .category-bubble-img {
+            width: 80px;
+            height: 80px;
+        }
+
+        .category-bubble-name {
+            font-size: 12px;
+        }
+
+        .swiggy-section-title {
+            font-size: 18px;
+        }
+
+        .popular-scroll .popular-card {
+            min-width: 200px;
+            max-width: 200px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // === Clean history after order flow ===
+    // When arriving from the order detail page (via back button),
+    // replace the stale payment/checkout entries with home → menu.
+    (function () {
+        if (sessionStorage.getItem('orderFlowComplete')) {
+            sessionStorage.removeItem('orderFlowComplete');
+            // Replace current entry (which may be a stale checkout/payment) with home
+            history.replaceState(null, '', '/');
+            // Push /menu/ on top so user stays on menu
+            history.pushState(null, '', '/menu/');
+            // Now: [..., /, /menu/]  — Back from menu → home ✓
+        }
+    })();
+
+    // Force unregister old service worker to prevent cached pages
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(registrations => {
+            registrations.forEach(reg => {
+                reg.unregister();
+                console.log('🧹 Unregistered old service worker');
+            });
+        });
+    }
+
+    // ===== Production-Level Search: Overlay Modal =====
+    const overlay = document.getElementById('searchOverlay');
+    const searchInput = document.getElementById('searchInput');
+    const searchDefault = document.getElementById('searchDefault');
+    const searchLoading = document.getElementById('searchLoading');
+    const searchResults = document.getElementById('searchResults');
+    const searchNoResults = document.getElementById('searchNoResults');
+    const searchError = document.getElementById('searchError');
+    const noResultsText = document.getElementById('noResultsText');
+    const recentSection = document.getElementById('recentSection');
+    const recentList = document.getElementById('recentList');
+    const searchFormQuery = document.getElementById('searchFormQuery');
+    const searchClearBtn = document.getElementById('searchClearBtn');
+    const searchRetryBtn = document.getElementById('searchRetryBtn');
+
+    let debounceTimer;
+    let selectedIndex = -1;
+    let currentResults = [];
+    let isSearchOpen = false;
+    let lastQuery = '';
+
+    // ---- Open / Close ----
+    window.openSearch = function () {
+        requestAnimationFrame(() => {
+            overlay.classList.add('active');
+        });
+        isSearchOpen = true;
+        document.body.style.overflow = 'hidden';
+        setTimeout(() => {
+            searchInput.focus();
+            renderDefaultView();
+        }, 100);
+    };
+
+    window.closeSearch = function () {
+        clearTimeout(debounceTimer);
+        overlay.classList.remove('active');
+        isSearchOpen = false;
+        document.body.style.overflow = '';
+        searchInput.value = '';
+        updateClearBtn();
+        resetSearchUI();
+    };
+
+    // Close on backdrop click
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) closeSearch();
+    });
+
+    // Global keyboard shortcuts
+    document.addEventListener('keydown', (e) => {
+        if (e.key === '/' && !isSearchOpen && !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) {
+            e.preventDefault();
+            openSearch();
+        }
+        if (e.key === 'Escape' && isSearchOpen) {
+            closeSearch();
+        }
+    });
+
+    // ---- Clear Button ----
+    function updateClearBtn() {
+        searchClearBtn.style.display = searchInput.value.length > 0 ? '' : 'none';
+    }
+
+    searchClearBtn.addEventListener('click', () => {
+        searchInput.value = '';
+        updateClearBtn();
+        renderDefaultView();
+        searchInput.focus();
+    });
+
+    // ---- Retry Button ----
+    searchRetryBtn.addEventListener('click', () => {
+        if (searchInput.value.trim()) {
+            handleInput();
+        }
+    });
+
+    // ---- Recent Searches (localStorage) ----
+    function getRecentSearches() {
+        try { return JSON.parse(localStorage.getItem('recentSearches') || '[]'); }
+        catch (e) { return []; }
+    }
+
+    function saveRecentSearch(item) {
+        let recent = getRecentSearches();
+        recent = recent.filter(r => r.id !== item.id);
+        recent.unshift({
+            id: item.id,
+            name: item.name,
+            category: item.category,
+            image_url: item.image_url,
+            is_veg: item.is_veg,
+            price: item.price
+        });
+        localStorage.setItem('recentSearches', JSON.stringify(recent.slice(0, 6)));
+    }
+
+    window.clearRecentSearches = function () {
+        localStorage.removeItem('recentSearches');
+        recentSection.style.display = 'none';
+    };
+
+    // ---- Default View (trending + recent) ----
+    function renderDefaultView() {
+        searchDefault.style.display = '';
+        searchLoading.style.display = 'none';
+        searchResults.style.display = 'none';
+        searchNoResults.style.display = 'none';
+        searchError.style.display = 'none';
+        renderRecent();
+    }
+
+    function renderRecent() {
+        const recent = getRecentSearches();
+        if (recent.length === 0) {
+            recentSection.style.display = 'none';
+            return;
+        }
+        recentSection.style.display = '';
+        recentList.innerHTML = recent.map(item => `
+            <div class="search-recent-item" data-id="${item.id}">
+                <div class="recent-icon">
+                    ${item.image_url ? `<img src="${item.image_url}" alt="">` : '🍲'}
+                </div>
+                <div class="recent-info">
+                    <div class="recent-name">${escapeHtml(item.name)}</div>
+                    <div class="recent-meta">${escapeHtml(item.category || '')}${item.price ? ' • ₹' + item.price : ''}</div>
+                </div>
+                <span class="recent-arrow">↗</span>
+            </div>
+        `).join('');
+
+        recentList.querySelectorAll('.search-recent-item').forEach(el => {
+            el.addEventListener('click', () => {
+                const id = el.dataset.id;
+                const item = recent.find(r => String(r.id) === String(id));
+                if (item) selectItem(item);
+            });
+        });
+    }
+
+    // ---- Chip Click ----
+    window.chipSearch = function (term) {
+        searchInput.value = term;
+        updateClearBtn();
+        handleInput();
+        searchInput.focus();
+    };
+
+    // ---- Live Search Input ----
+    searchInput.addEventListener('input', () => {
+        updateClearBtn();
+        handleInput();
+    });
+
+    function handleInput() {
+        const query = searchInput.value.trim();
+        selectedIndex = -1;
+        lastQuery = query;
+
+        if (!query) {
+            renderDefaultView();
+            return;
+        }
+
+        // Show loading
+        searchDefault.style.display = 'none';
+        searchNoResults.style.display = 'none';
+        searchResults.style.display = 'none';
+        searchError.style.display = 'none';
+        searchLoading.style.display = '';
+
+        clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            fetch(`/api/search/?q=${encodeURIComponent(query)}`)
+                .then(r => {
+                    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+                    return r.json();
+                })
+                .then(data => {
+                    if (!isSearchOpen || searchInput.value.trim() !== query) return;
+
+                    searchLoading.style.display = 'none';
+                    currentResults = data.results;
+
+                    if (currentResults.length === 0) {
+                        searchNoResults.style.display = '';
+                        noResultsText.textContent = `No match for "${query}". Try something else.`;
+                        searchResults.style.display = 'none';
+                    } else {
+                        renderResults(currentResults, query);
+                    }
+                })
+                .catch(err => {
+                    console.error('Search error:', err);
+                    if (!isSearchOpen || searchInput.value.trim() !== query) return;
+                    searchLoading.style.display = 'none';
+                    searchError.style.display = '';
+                });
+        }, 250);
+    }
+
+    // ---- Render Results ----
+    function renderResults(results, query) {
+        let html = results.map((item, idx) => `
+            <div class="search-result-item" data-index="${idx}" style="animation-delay:${idx * 30}ms">
+                <div class="result-image">
+                    ${item.image_url
+                ? `<img src="${escapeHtml(item.image_url)}" alt="">`
+                : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:1rem;color:var(--gray-300);">🍽️</div>'}
+                    ${!item.is_available ? '<div class="sold-out-badge">SOLD</div>' : ''}
+                </div>
+                <div class="result-info">
+                    <div class="result-name"><span class="veg-dot ${item.is_veg ? 'veg' : 'nonveg'}"></span>${highlightMatch(escapeHtml(item.name), query)}</div>
+                    <div class="result-meta">${escapeHtml(item.category)}${item.rating > 0 ? ' · ★' + item.rating : ''}</div>
+                </div>
+                <span class="result-price ${!item.is_available ? 'unavailable' : ''}">₹${item.price}</span>
+            </div>
+        `).join('');
+
+        html += `
+            <div class="search-view-all" id="searchViewAll" data-index="${results.length}">
+                🔍 View all results for "${escapeHtml(query)}"
+            </div>
+        `;
+
+        searchResults.innerHTML = html;
+        searchResults.style.display = '';
+
+        searchResults.querySelectorAll('.search-result-item').forEach(el => {
+            el.addEventListener('click', () => {
+                const idx = parseInt(el.dataset.index, 10);
+                if (currentResults[idx]) selectItem(currentResults[idx]);
+            });
+        });
+
+        document.getElementById('searchViewAll')?.addEventListener('click', () => {
+            submitFullSearch(query);
+        });
+    }
+
+    // ---- Highlight + Escape ----
+    function highlightMatch(text, query) {
+        if (!query) return text;
+        const words = query.split(/\s+/).filter(w => w.length > 0);
+        let highlighted = text;
+        words.forEach(w => {
+            const escaped = w.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+            const regex = new RegExp(`(${escaped})`, 'gi');
+            highlighted = highlighted.replace(regex, '<span class="highlight">$1</span>');
+        });
+        return highlighted;
+    }
+
+    function escapeHtml(str) {
+        if (!str) return '';
+        return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    // ---- Selection ----
+    function selectItem(item) {
+        saveRecentSearch(item);
+        closeSearch();
+        window.location.href = `/menu/${item.id}/`;
+    }
+
+    function submitFullSearch(query) {
+        searchFormQuery.value = query;
+        document.getElementById('searchForm').submit();
+    }
+
+    // ---- Keyboard Navigation ----
+    searchInput.addEventListener('keydown', (e) => {
+        const resultItems = searchResults.querySelectorAll('.search-result-item');
+        const viewAll = document.getElementById('searchViewAll');
+        const totalNav = resultItems.length + (viewAll ? 1 : 0);
+
+        if (e.key === 'ArrowDown') {
+            if (!totalNav) return;
+            e.preventDefault();
+            selectedIndex = (selectedIndex + 1) % totalNav;
+            updateNavHighlight(resultItems, viewAll);
+        } else if (e.key === 'ArrowUp') {
+            if (!totalNav) return;
+            e.preventDefault();
+            selectedIndex = (selectedIndex - 1 + totalNav) % totalNav;
+            updateNavHighlight(resultItems, viewAll);
+        } else if (e.key === 'Enter') {
+            e.preventDefault();
+            if (selectedIndex >= 0 && selectedIndex < resultItems.length && resultItems[selectedIndex]) {
+                resultItems[selectedIndex].click();
+            } else if (selectedIndex === resultItems.length && viewAll) {
+                viewAll.click();
+            } else if (searchInput.value.trim()) {
+                submitFullSearch(searchInput.value.trim());
+            } else {
+                closeSearch();
+            }
+        }
+    });
+
+    function updateNavHighlight(resultItems, viewAll) {
+        resultItems.forEach((item, idx) => {
+            item.classList.toggle('active', idx === selectedIndex);
+        });
+        if (viewAll) {
+            viewAll.classList.toggle('active', selectedIndex === resultItems.length);
+        }
+        const activeEl = selectedIndex < resultItems.length
+            ? resultItems[selectedIndex]
+            : viewAll;
+        if (activeEl) activeEl.scrollIntoView({ block: 'nearest' });
+    }
+
+    // ---- Reset UI ----
+    function resetSearchUI() {
+        searchDefault.style.display = '';
+        searchLoading.style.display = 'none';
+        searchResults.style.display = 'none';
+        searchNoResults.style.display = 'none';
+        searchError.style.display = 'none';
+        selectedIndex = -1;
+        currentResults = [];
+    }
+
+    // ===== Real-time Menu Availability =====
+    const knownAvailability = {};
+    document.querySelectorAll('.food-card[data-item-id]').forEach(card => {
+        const itemId = card.dataset.itemId;
+        const badge = card.querySelector('.food-badge');
+        const isAvailable = badge ? !badge.textContent.includes('Out of Stock') : true;
+        knownAvailability[itemId] = isAvailable;
+    });
+
+    function pollAvailability() {
+        fetch('/api/menu-availability/', {
+            credentials: 'same-origin',
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+            .then(response => {
+                if (response.redirected || !response.ok) throw new Error('Auth or network error: ' + response.status);
+                return response.json();
+            })
+            .then(data => {
+                const availability = data.availability;
+                for (const [itemId, isAvailable] of Object.entries(availability)) {
+                    if (knownAvailability.hasOwnProperty(itemId) && knownAvailability[itemId] !== isAvailable) {
+                        console.log(`🔄 Menu item ${itemId} changed: ${knownAvailability[itemId]} → ${isAvailable}`);
+                        knownAvailability[itemId] = isAvailable;
+                        updateMenuItem(itemId, isAvailable);
+                        showUpdateToast(itemId, isAvailable);
+                    }
+                }
+            })
+            .catch(err => {
+                console.error('❌ Availability poll failed:', err.message);
+            });
+    }
+
+    function showUpdateToast(itemId, isAvailable) {
+        const card = document.querySelector(`.food-card[data-item-id="${itemId}"]`);
+        const itemName = card ? card.querySelector('.food-card-title')?.textContent || `Item #${itemId}` : `Item #${itemId}`;
+        const msg = isAvailable ? `✅ ${itemName} is now available!` : `❌ ${itemName} has been removed from menu`;
+        const toast = document.createElement('div');
+        toast.style.cssText = `position:fixed;top:20px;right:20px;z-index:99999;padding:12px 20px;border-radius:8px;color:white;font-weight:bold;font-size:14px;box-shadow:0 4px 12px rgba(0,0,0,0.3);transition:opacity 0.5s;background:${isAvailable ? '#22c55e' : '#ef4444'}`;
+        toast.textContent = msg;
+        document.body.appendChild(toast);
+        setTimeout(() => { toast.style.opacity = '0'; setTimeout(() => toast.remove(), 500); }, 3000);
+    }
+
+    // ===== Favorite Heart Toggle (AJAX) =====
+    function toggleFav(btn, itemId) {
+        fetch(`/menu/${itemId}/favorite/`, {
+            method: 'GET',
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            credentials: 'same-origin',
+        })
+            .then(r => r.json())
+            .then(data => {
+                if (data.status === 'ok') {
+                    btn.classList.toggle('active', data.is_favorited);
+                    btn.classList.add('pop');
+                    setTimeout(() => btn.classList.remove('pop'), 400);
+                    if (typeof showToast === 'function') {
+                        showToast(data.message, 'success');
+                    }
+                }
+            })
+            .catch(err => {
+                console.error('Favorite toggle failed:', err);
+                if (typeof showToast === 'function') {
+                    showToast('Failed to update favorites', 'error');
+                }
+            });
+    }
+
+    console.log('🟢 Menu real-time polling started. Tracked items:', Object.keys(knownAvailability).length);
+    pollAvailability();
+    setInterval(pollAvailability, 3000);
+
+    try {
+        const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+        const wsUrl = protocol + window.location.host + '/ws/menu/';
+        let socket;
+
+        function wsConnect() {
+            socket = new WebSocket(wsUrl);
+            socket.onopen = () => console.log('Menu WebSocket connected');
+            socket.onmessage = (e) => {
+                const data = JSON.parse(e.data);
+                if (data.type === 'menu_update') {
+                    const itemId = String(data.item_id);
+                    knownAvailability[itemId] = data.is_available;
+                    updateMenuItem(itemId, data.is_available);
+                }
+            };
+            socket.onclose = () => setTimeout(wsConnect, 5000);
+            socket.onerror = () => { };
+        }
+        wsConnect();
+    } catch (e) {
+        console.log('WebSocket not available, using polling only');
+    }
+
+    function updateMenuItem(itemId, isAvailable) {
+        const cards = document.querySelectorAll(`.food-card[data-item-id="${itemId}"]`);
+
+        cards.forEach(card => {
+            if (!isAvailable) {
+                card.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+                card.style.opacity = '0';
+                card.style.transform = 'scale(0.95)';
+                setTimeout(() => {
+                    card.style.display = 'none';
+                }, 400);
+            } else {
+                card.style.display = '';
+                card.style.opacity = '0';
+                card.style.transform = 'scale(0.95)';
+                void card.offsetHeight;
+                card.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+                card.style.opacity = '1';
+                card.style.transform = 'scale(1)';
+
+                const badge = card.querySelector('.food-badge:not(.special)');
+                const footer = card.querySelector('.food-card-footer');
+
+                if (badge) {
+                    badge.textContent = 'Available';
+                    badge.style.background = '';
+                }
+
+                if (footer) {
+                    let form = footer.querySelector('form');
+                    if (!form) {
+                        const csrfToken = getCookie('csrftoken');
+                        const priceEl = footer.querySelector('.food-price');
+                        const priceText = priceEl ? priceEl.textContent : '';
+                        footer.innerHTML = `<span class="food-price">${priceText}</span>
+                            <form method="POST" action="/cart/add/${itemId}/" style="margin: 0;">
+                                <input type="hidden" name="csrfmiddlewaretoken" value="${csrfToken}">
+                                <input type="hidden" name="quantity" value="1">
+                                <input type="hidden" name="next" value="${window.location.pathname + window.location.search}">
+                                <button type="submit" class="add-to-cart-btn">ADD +</button>
+                            </form>`;
+                    }
+                }
+            }
+        });
+    }
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    // ===== Veg Mode Toggle =====
+    const vegToggle = document.getElementById('vegModeToggle');
+    const vegWrapper = document.querySelector('.veg-mode-toggle-wrapper');
+
+    if (vegToggle && vegWrapper) {
+        if (vegToggle.checked) {
+            vegWrapper.classList.add('active');
+        }
+
+        function toggleVegMode(isVeg) {
+            if (isVeg) {
+                vegWrapper.classList.add('active');
+            } else {
+                vegWrapper.classList.remove('active');
+            }
+
+            const url = new URL(window.location.href);
+            if (isVeg) {
+                url.searchParams.set('veg', 'true');
+                url.searchParams.delete('nonveg');
+            } else {
+                url.searchParams.delete('veg');
+            }
+            url.searchParams.delete('page');
+
+            const cards = document.querySelectorAll('.food-card[data-item-id]');
+            cards.forEach((card, i) => {
+                card.style.transition = `opacity 0.2s ease ${i * 15}ms, transform 0.2s ease ${i * 15}ms`;
+                card.style.opacity = '0';
+                card.style.transform = 'scale(0.95)';
+            });
+
+            setTimeout(() => {
+                window.location.href = url.toString();
+            }, Math.min(cards.length * 15 + 200, 350));
+        }
+
+        vegToggle.addEventListener('change', function () {
+            toggleVegMode(this.checked);
+        });
+
+        vegWrapper.addEventListener('click', function (e) {
+            if (e.target.closest('label') || e.target === vegToggle) {
+                return;
+            }
+            vegToggle.checked = !vegToggle.checked;
+            vegToggle.dispatchEvent(new Event('change'));
+        });
+    }
+
+    // ===== Swiggy-Style Popular Scroll Controller =====
+    (function () {
+        const scroll = document.getElementById('popularScroll');
+        const prevBtn = document.getElementById('popularPrev');
+        const nextBtn = document.getElementById('popularNext');
+        const thumb = document.getElementById('popularProgressThumb');
+        if (!scroll || !prevBtn || !nextBtn) return;
+
+        function updateArrows() {
+            const sl = Math.round(scroll.scrollLeft);
+            const maxScroll = scroll.scrollWidth - scroll.clientWidth;
+
+            if (sl <= 1) {
+                prevBtn.classList.add('disabled');
+            } else {
+                prevBtn.classList.remove('disabled');
+            }
+
+            if (sl >= maxScroll - 1) {
+                nextBtn.classList.add('disabled');
+            } else {
+                nextBtn.classList.remove('disabled');
+            }
+        }
+
+        function updateProgress() {
+            if (!thumb) return;
+            const maxScroll = scroll.scrollWidth - scroll.clientWidth;
+            if (maxScroll <= 0) {
+                thumb.style.width = '100%';
+                thumb.style.left = '0';
+                return;
+            }
+            const ratio = scroll.clientWidth / scroll.scrollWidth;
+            const thumbWidth = Math.max(ratio * 100, 25);
+            const scrollRatio = scroll.scrollLeft / maxScroll;
+            const maxLeft = 100 - thumbWidth;
+            thumb.style.width = thumbWidth + '%';
+            thumb.style.left = (scrollRatio * maxLeft) + '%';
+        }
+
+        function scrollByPage(direction) {
+            // Scroll by approximately the visible width (like Swiggy ~3 cards)
+            const scrollAmount = scroll.clientWidth * 0.85;
+            scroll.scrollBy({
+                left: direction * scrollAmount,
+                behavior: 'smooth'
+            });
+        }
+
+        prevBtn.addEventListener('click', function () {
+            scrollByPage(-1);
+        });
+
+        nextBtn.addEventListener('click', function () {
+            scrollByPage(1);
+        });
+
+        scroll.addEventListener('scroll', function () {
+            requestAnimationFrame(function () {
+                updateArrows();
+                updateProgress();
+            });
+        });
+
+        // Initial state
+        updateArrows();
+        updateProgress();
+    })();
+
+</script>
+
+<script>
+    // Sort By dropdown
+    function toggleSortDropdown() {
+        document.getElementById('sortDropdown').classList.toggle('open');
+    }
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', function (e) {
+        var wrapper = document.querySelector('.sort-by-wrapper');
+        if (wrapper && !wrapper.contains(e.target)) {
+            document.getElementById('sortDropdown').classList.remove('open');
+        }
+    });
+
+    function applySort(value) {
+        // Uncheck all sort checkboxes first
+        var sortBoxes = document.querySelectorAll('#sortDropdown input[name^="sort_"]');
+        sortBoxes.forEach(function (cb) { cb.checked = false; });
+
+        var url = new URL(window.location.href);
+        if (value) {
+            url.searchParams.set('sort', value);
+        } else {
+            url.searchParams.delete('sort');
+        }
+        url.searchParams.delete('page');
+        window.location.href = url.toString();
+    }
+
+    function toggleFilter(type) {
+        var url = new URL(window.location.href);
+        if (type === 'veg') {
+            if (url.searchParams.get('veg') === 'true') {
+                url.searchParams.delete('veg');
+            } else {
+                url.searchParams.set('veg', 'true');
+                url.searchParams.delete('nonveg');
+            }
+        } else if (type === 'nonveg') {
+            if (url.searchParams.get('nonveg') === 'true') {
+                url.searchParams.delete('nonveg');
+            } else {
+                url.searchParams.set('nonveg', 'true');
+                url.searchParams.delete('veg');
+            }
+        } else if (type === 'rating') {
+            if (url.searchParams.get('rating') === '4') {
+                url.searchParams.delete('rating');
+            } else {
+                url.searchParams.set('rating', '4');
+            }
+        }
+        url.searchParams.delete('page');
+        window.location.href = url.toString();
+    }
+
+    // Set active state for sort/filter on page load
+    (function () {
+        var params = new URLSearchParams(window.location.search);
+        var sort = params.get('sort');
+        // Uncheck all sort checkboxes, then check the right one
+        var allSortCbs = document.querySelectorAll('#sortDropdown input[name^="sort_"]');
+        allSortCbs.forEach(function (cb) { cb.checked = false; });
+        if (sort) {
+            var cb = document.querySelector('input[name="sort_' + sort + '"]');
+            if (cb) cb.checked = true;
+        } else {
+            var defCb = document.querySelector('input[name="sort_relevance"]');
+            if (defCb) defCb.checked = true;
+        }
+        if (params.get('rating') === '4') {
+            var rCb = document.getElementById('ratingCheckbox');
+            if (rCb) rCb.checked = true;
+        }
+    })();
+
+
+    // ===== AJAX Add to Cart =====
+    document.querySelectorAll('.card-add-form').forEach(function (form) {
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+            var url = form.action;
+            var formData = new FormData(form);
+
+            fetch(url, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+                .then(function (res) { return res.json(); })
+                .then(function (data) {
+                    if (data.success) {
+                        // Update cart count
+                        var countEl = document.querySelector('.swiggy-cart-count');
+                        if (countEl) countEl.textContent = data.cart_count;
+
+                        // Update cart icon color
+                        var cartLink = document.querySelector('.nav-cart-swiggy');
+                        if (cartLink) {
+                            cartLink.classList.remove('cart-veg', 'cart-nonveg', 'cart-mixed');
+                            if (data.cart_type) cartLink.classList.add('cart-' + data.cart_type);
+                        }
+
+                        // Update cart dropdown
+                        var dropdown = document.getElementById('cartDropdownMenu');
+                        if (dropdown) {
+                            var html = '<div class="cart-dropdown-arrow"></div>';
+                            if (data.cart_items && data.cart_items.length > 0) {
+                                html += '<div class="cart-dd-header"><div class="cart-dd-header-left"><div class="cart-dd-title">Your Cart</div></div></div>';
+                                html += '<div class="cart-dd-items">';
+                                data.cart_items.forEach(function (item) {
+                                    html += '<div class="cart-dd-item">';
+                                    html += '<span class="cart-dd-veg-icon ' + (item.is_veg ? 'veg' : 'nonveg') + '"></span>';
+                                    html += '<span class="cart-dd-item-name">' + item.name + ' x ' + item.qty + '</span>';
+                                    html += '<span class="cart-dd-item-price">\u20b9' + item.total + '</span>';
+                                    html += '</div>';
+                                });
+                                html += '</div>';
+                                html += '<div class="cart-dd-footer">';
+                                html += '<div class="cart-dd-subtotal"><span>Sub total</span><span>\u20b9' + data.cart_subtotal + '</span></div>';
+                                html += '<div class="cart-dd-extra">Extra charges may apply</div>';
+                                html += '<a href="/cart/" class="cart-dd-checkout-btn">CHECKOUT</a>';
+                                html += '</div>';
+                            } else {
+                                html += '<div class="cart-dd-empty"><h3 class="cart-dd-empty-title">Cart Empty</h3>';
+                                html += '<p class="cart-dd-empty-text">Good food is always home food!<br>Go ahead, order some yummy items from the menu.</p></div>';
+                            }
+                            dropdown.innerHTML = html;
+                        }
+                    }
+                })
+                .catch(function (err) { console.error('Add to cart error:', err); });
+        });
+    });
+
+</script>
+{% endblock %}

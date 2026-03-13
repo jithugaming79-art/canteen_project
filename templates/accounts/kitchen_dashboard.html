@@ -1,0 +1,807 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kitchen — Campus Bites</title>
+    <link rel="stylesheet" href="{% static 'css/admin.css' %}?v=6.1">
+    <link rel="stylesheet" href="{% static 'css/kitchen.css' %}?v=7.1">
+    <style>
+        @keyframes livePulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.4;
+                transform: scale(0.8);
+            }
+        }
+
+        /* Forced layout for Menu Items */
+        .kds-menu-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 10px;
+        }
+
+        .kds-menu-item {
+            display: flex !important;
+            align-items: center !important;
+            gap: 20px !important;
+            padding: 16px 20px !important;
+            background: #fff;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.04) !important;
+            border-radius: 12px;
+        }
+
+        .kds-menu-info {
+            flex: 1;
+        }
+
+        .kds-status-wrap {
+            display: flex !important;
+            align-items: center !important;
+            gap: 12px !important;
+            padding-left: 15px;
+            border-left: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        /* Robust Toggle Switch */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #e2e8f0;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
+
+        input:checked+.toggle-slider {
+            background-color: #00b894;
+        }
+
+        input:checked+.toggle-slider:before {
+            transform: translateX(20px);
+        }
+
+        /* Forced Order Action Buttons */
+        .kds-order-action {
+            display: flex !important;
+            width: 100% !important;
+            padding: 12px !important;
+            border-radius: 10px !important;
+            font-size: 11px !important;
+            font-weight: 800 !important;
+            text-transform: uppercase !important;
+            letter-spacing: 1px !important;
+            align-items: center !important;
+            justify-content: center !important;
+            border: none !important;
+            cursor: pointer !important;
+            margin-top: 8px !important;
+            color: #ffffff !important;
+            min-height: 42px !important;
+        }
+
+        .action-start {
+            background-color: #e8590c !important;
+        }
+
+        .action-ready {
+            background-color: #d97706 !important;
+        }
+
+        .action-collect {
+            background-color: #00b894 !important;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar overlay (mobile) -->
+        <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+        <!-- SIDEBAR -->
+        <aside class="admin-sidebar" id="adminSidebar">
+            <div class="sidebar-brand">
+                <div class="sidebar-brand-icon">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2" />
+                        <path d="M7 2v20" />
+                        <path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7" />
+                    </svg>
+                </div>
+                <div class="sidebar-brand-text">Campus Bites</div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <span class="sidebar-nav-label">Kitchen</span>
+
+                <a href="#" class="sidebar-nav-item active" id="sideOrders"
+                    onclick="switchView('orders'); return false;">
+                    <span class="sidebar-nav-icon">
+                        <svg viewBox="0 0 24 24">
+                            <rect x="3" y="3" width="7" height="7" rx="1" />
+                            <rect x="14" y="3" width="7" height="4" rx="1" />
+                            <rect x="14" y="10" width="7" height="11" rx="1" />
+                            <rect x="3" y="13" width="7" height="8" rx="1" />
+                        </svg>
+                    </span>
+                    Orders
+                    {% if pending_count %}
+                    <span class="sidebar-nav-badge">
+                        {{ pending_count }}
+                    </span>
+                    {% endif %}
+                </a>
+
+                <a href="#" class="sidebar-nav-item" id="sideMenu" onclick="switchView('menu'); return false;">
+                    <span class="sidebar-nav-icon">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
+                            <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
+                            <line x1="6" y1="1" x2="6" y2="4" />
+                            <line x1="10" y1="1" x2="10" y2="4" />
+                            <line x1="14" y1="1" x2="14" y2="4" />
+                        </svg>
+                    </span>
+                    Menu Items
+                </a>
+
+                <a href="#" class="sidebar-nav-item" id="sideScan" onclick="switchView('scan'); return false;">
+                    <span class="sidebar-nav-icon">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="7" height="7" rx="1" />
+                            <rect x="14" y="3" width="7" height="7" rx="1" />
+                            <rect x="14" y="14" width="7" height="7" rx="1" />
+                            <rect x="3" y="14" width="7" height="7" rx="1" />
+                            <path d="M5 5h2v2H5z" />
+                            <path d="M16 5h2v2h-2z" />
+                            <path d="M5 16h2v2H5z" />
+                            <path d="M16 16h2v2h-2z" />
+                        </svg>
+                    </span>
+                    Scan QR
+                </a>
+            </nav>
+
+            <a href="{% url 'logout' %}" class="sidebar-nav-item"
+                style="margin: 4px 12px; color: rgba(255,255,255,0.35);">
+                <span class="sidebar-nav-icon">
+                    <svg viewBox="0 0 24 24">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                        <polyline points="16 17 21 12 16 7" />
+                        <line x1="21" y1="12" x2="9" y2="12" />
+                    </svg>
+                </span>
+                Logout
+            </a>
+
+            <div class="sidebar-user">
+                <div class="sidebar-user-avatar">K</div>
+                <div class="sidebar-user-info">
+                    <div class="sidebar-user-name">Kitchen Staff</div>
+                    <div class="sidebar-user-role">Kitchen</div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN -->
+        <main class="admin-main">
+            <header class="admin-topbar">
+                <div style="display:flex;align-items:center;gap:16px;">
+                    <button class="mobile-menu-btn" onclick="toggleSidebar()">☰</button>
+                    <div class="topbar-breadcrumb"
+                        style="font-size:12px; font-weight:700; color:var(--admin-text-muted); text-transform:uppercase; letter-spacing:0.5px;">
+                        Kitchen <span style="margin:0 4px; opacity:0.5;">/</span> <span style="color:var(--admin-text);"
+                            id="activeBreadcrumb">Orders</span>
+                    </div>
+                </div>
+                <div class="topbar-actions">
+                </div>
+            </header>
+
+            <section class="admin-content">
+                <!-- ORDERS VIEW -->
+                <div id="panelOrders">
+                    <div class="kds-page-header">
+                        <div>
+                            <div class="kds-page-title">Orders</div>
+                        </div>
+                        <div class="kds-live-dot" style="box-shadow: 0 0 20px rgba(0, 184, 148, 0.15);">LIVE
+                        </div>
+                    </div>
+
+                    <!-- Stat cards -->
+                    <div class="kds-stats-row">
+                        <div class="kds-stat-card stat-pending">
+                            <div>
+                                <div class="kds-stat-label">Pending Orders</div>
+                                <div class="kds-stat-value">
+                                    {{ pending_count }}
+                                </div>
+                                <div class="kds-stat-sub">awaiting prep</div>
+                            </div>
+                            <div class="kds-stat-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                </svg>
+                            </div>
+                        </div>
+
+                        <div class="kds-stat-card stat-cooking">
+                            <div>
+                                <div class="kds-stat-label">Preparing</div>
+                                <div class="kds-stat-value">
+                                    {{ preparing_count }}
+                                </div>
+                                <div class="kds-stat-sub">being cooked</div>
+                            </div>
+                            <div class="kds-stat-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <path
+                                        d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z">
+                                    </path>
+                                </svg>
+                            </div>
+                        </div>
+
+                        <div class="kds-stat-card stat-ready">
+                            <div>
+                                <div class="kds-stat-label">Ready</div>
+                                <div class="kds-stat-value">
+                                    {{ ready_count }}
+                                </div>
+                                <div class="kds-stat-sub">for pickup</div>
+                            </div>
+                            <div class="kds-stat-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                </svg>
+                            </div>
+                        </div>
+
+                        <div class="kds-stat-card stat-completed">
+                            <div>
+                                <div class="kds-stat-label">Completed Today</div>
+                                <div class="kds-stat-value">
+                                    {{ completed_today }}
+                                </div>
+                                <div class="kds-stat-sub">orders done</div>
+                            </div>
+                            <div class="kds-stat-icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path>
+                                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                                    <path d="M16 10a4 4 0 0 1-8 0"></path>
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Kanban Board -->
+                    <div id="boardContainer">
+                        {% include "includes/kitchen_order_grid.html" %}
+                    </div>
+                </div>
+
+                <!-- MENU VIEW -->
+                <div id="panelMenu" style="display:none;">
+                    <div class="kds-page-header"
+                        style="justify-content:space-between; align-items:center; flex-direction:row;">
+                        <div class="kds-page-title">Menu Items</div>
+                        <div style="position:relative;">
+                            <span
+                                style="position:absolute; left:12px; top:50%; transform:translateY(-50%); opacity:0.4;">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                    <circle cx="11" cy="11" r="8"></circle>
+                                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                </svg>
+                            </span>
+                            <input type="text" id="menuSearch" placeholder="Search menu items..."
+                                style="background:#f1f5f9; border:1px solid rgba(0,0,0,0.05); color:var(--admin-text); width:280px; padding:10px 14px 10px 36px; border-radius:10px; font-size:13px; font-weight:500; transition:all 0.2s ease; outline:none;"
+                                onfocus="this.style.background='#fff'; this.style.borderColor='var(--admin-accent)'; this.style.boxShadow='0 0 0 3px var(--admin-accent-light)';"
+                                onblur="this.style.background='#f1f5f9'; this.style.borderColor='rgba(0,0,0,0.05)'; this.style.boxShadow='none';"
+                                onkeyup="filterMenu()">
+                        </div>
+                    </div>
+
+                    <div class="kds-menu-card">
+                        <div class="kds-menu-list">
+                            {% for item in menu_items %}
+                            <div class="kds-menu-item"
+                                style="display:flex !important; align-items:center !important; gap:20px !important; padding:16px 20px !important; border-bottom:1px solid rgba(0,0,0,0.04) !important;">
+                                {% if item.image %}
+                                <img src="{{ item.image.url }}" alt="{{ item.name }}" class="kds-menu-img"
+                                    style="width:48px; height:48px; border-radius:12px; object-fit:cover; background:#f1f5f9;">
+                                {% else %}
+                                <div class="kds-menu-img"
+                                    style="width:48px; height:48px; border-radius:12px; background:#f1f5f9;"></div>
+                                {% endif %}
+                                <div class="kds-menu-info" style="flex:1;">
+                                    <div class="kds-menu-name"
+                                        style="font-size:15px; font-weight:700; color:var(--admin-text); margin-bottom:2px;">
+                                        {{ item.name }}</div>
+                                    <div class="kds-menu-time"
+                                        style="font-size:12px; color:var(--admin-text-muted); font-weight:500;">
+                                        {% if item.created_at %}
+                                        {{ item.created_at|timesince }} ago
+                                        {% else %}
+                                        Added recently
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="kds-menu-price"
+                                    style="font-weight:700; color:var(--admin-text); font-size:15px; width:80px; text-align:right;">
+                                    ₹{{ item.price|floatformat:0 }}
+                                </div>
+                                <div class="kds-status-wrap"
+                                    style="display:flex !important; align-items:center !important; gap:16px !important; padding-left:20px; border-left:1px solid rgba(0,0,0,0.05);">
+                                    {% if item.is_available %}
+                                    <span class="item-status-text live"
+                                        style="background:rgba(0,184,148,0.1); color:#00b894; font-size:11px; font-weight:800; padding:4px 10px; border-radius:6px; min-width:48px; text-align:center; text-transform:uppercase;">Live</span>
+                                    {% else %}
+                                    <span class="item-status-text off"
+                                        style="background:#f1f5f9; color:#64748b; font-size:11px; font-weight:800; padding:4px 10px; border-radius:6px; min-width:48px; text-align:center; text-transform:uppercase;">Off</span>
+                                    {% endif %}
+
+                                    <form method="POST" action="{% url 'kitchen_dashboard' %}" style="margin:0;">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="toggle_item" value="1">
+                                        <input type="hidden" name="item_id" value="{{ item.id }}">
+
+                                        <label class="toggle-switch" title="Toggle availability">
+                                            <input type="checkbox" {% if item.is_available %}checked{% endif %}
+                                                onchange="this.form.submit()">
+                                            <span class="toggle-slider"></span>
+                                        </label>
+                                    </form>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SCAN QR VIEW -->
+                <div id="panelScan" style="display:none;">
+                    <div class="kds-page-header">
+                        <div class="kds-page-title">Scan QR Code</div>
+                    </div>
+                    
+                    <div class="kds-menu-card" style="display:flex; flex-direction:column; align-items:center; justify-content:center; padding: 40px 20px; background: #fff; border-radius: 16px; margin-top:20px;">
+                        <div id="qr-reader" style="width: 100%; max-width: 400px; background: #0b0f19; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.1); display:flex; align-items:center; justify-content:center; min-height:300px;">
+                            <div style="color:#64748b; font-size:14px; text-align:center;">
+                                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="margin-bottom:12px; opacity:0.5;">
+                                    <path d="M4 4h4v4H4z"></path>
+                                    <path d="M4 16h4v4H4z"></path>
+                                    <path d="M16 4h4v4h-4z"></path>
+                                    <path d="M16 16v4h4"></path>
+                                    <path d="M20 16h-4"></path>
+                                </svg><br>
+                                Tap "Start Scanner" to activate camera
+                            </div>
+                        </div>
+                        <div id="qr-reader-results" style="margin-top: 20px; font-weight: 600; font-size: 15px; color: var(--admin-text); text-align: center; min-height: 24px;"></div>
+                        
+                        <button id="btnStartScan" class="kds-order-action action-collect" style="max-width: 400px; margin-top: 24px; font-size: 14px !important; padding: 16px !important;" onclick="startScanner()">
+                            ▶ START SCANNER
+                        </button>
+                    </div>
+                </div>
+
+            </section>
+        </main>
+    </div>
+
+    <script>
+        // Sidebar toggle (mobile)
+        function toggleSidebar() {
+            document.getElementById('adminSidebar').classList.toggle('open');
+            document.getElementById('sidebarOverlay').classList.toggle('active');
+        }
+        function closeSidebar() {
+            document.getElementById('adminSidebar').classList.remove('open');
+            document.getElementById('sidebarOverlay').classList.remove('active');
+        }
+
+        // View switching
+        function switchView(v) {
+            document.getElementById('sideOrders').classList.toggle('active', v === 'orders');
+            document.getElementById('sideMenu').classList.toggle('active', v === 'menu');
+            
+            const sideScan = document.getElementById('sideScan');
+            if(sideScan) sideScan.classList.toggle('active', v === 'scan');
+            
+            document.getElementById('panelOrders').style.display = v === 'orders' ? 'block' : 'none';
+            document.getElementById('panelMenu').style.display = v === 'menu' ? 'block' : 'none';
+            
+            const panelScan = document.getElementById('panelScan');
+            if(panelScan) panelScan.style.display = v === 'scan' ? 'block' : 'none';
+            
+            document.getElementById('activeBreadcrumb').textContent = v === 'orders' ? 'Orders' : (v === 'menu' ? 'Menu Items' : 'Scan QR');
+            
+            // Stop scanner if switching away from scan view
+            if (v !== 'scan' && window.html5QrcodeScanner) {
+                try {
+                    window.html5QrcodeScanner.stop().then(ignore => {
+                        document.getElementById('btnStartScan').style.display = 'flex';
+                        document.getElementById('qr-reader-results').innerHTML = '';
+                    }).catch(err => {
+                        console.log("Scanner stop error", err);
+                    });
+                } catch(e) {}
+            }
+        }
+
+        // Filter Menu items
+        function filterMenu() {
+            const query = document.getElementById('menuSearch').value.toLowerCase();
+            const items = document.querySelectorAll('.kds-menu-item');
+
+            items.forEach(item => {
+                const name = item.querySelector('.kds-menu-name').textContent.toLowerCase();
+                if (name.includes(query)) {
+                    item.style.setProperty('display', 'flex', 'important');
+                } else {
+                    item.style.setProperty('display', 'none', 'important');
+                }
+            });
+        }
+
+        // Auto-refresh Time Text removed
+
+        function updateOrderCounts() {
+            function count(id, lid) {
+                var el = document.getElementById(id);
+                var lane = document.getElementById(lid);
+                if (el && lane) {
+                    var n = lane.querySelectorAll('.kds-order').length;
+                    el.textContent = n;
+                }
+            }
+            count('cntNew', 'laneNew');
+            count('cntPrep', 'lanePrep');
+            count('cntReady', 'laneReady');
+
+            var newLane = document.getElementById('laneNew');
+            var emptyNew = document.getElementById('emptyNew');
+            if (newLane && emptyNew) {
+                if (newLane.querySelectorAll('.kds-order').length === 0) {
+                    emptyNew.style.display = 'flex';
+                } else {
+                    emptyNew.style.display = 'none';
+                }
+            }
+        }
+
+        function fetchBoardData() {
+            var url = new URL(location.href);
+            url.searchParams.set('partial', 'true');
+
+            fetch(url).then(function (r) { return r.json(); }).then(function (d) {
+                if (d.html) {
+                    document.getElementById('boardContainer').innerHTML = d.html;
+                    updateOrderCounts();
+                }
+            }).catch(function (err) {
+                console.error("Board refresh error:", err);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', updateOrderCounts);
+
+        // --- WebSocket Integration ---
+        function connectWebSocket() {
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            const wsUrl = protocol + '//' + window.location.host + '/ws/kitchen/';
+            const socket = new WebSocket(wsUrl);
+
+            socket.onopen = function (e) {
+                console.log("KDS WebSocket connected!");
+                document.querySelector('.kds-live-dot').style.display = 'block';
+            };
+
+            socket.onmessage = function (e) {
+                const data = JSON.parse(e.data);
+                console.log("KDS WebSocket message:", data);
+
+                if (data.type === 'order_update') {
+                    // Refresh the board when an order updates
+                    fetchBoardData();
+                } else if (data.type === 'menu_update') {
+                    // Dynamically toggle menu item presence without refresh
+                    const itemRow = document.querySelector(`input[name="item_id"][value="${data.item_id}"]`)?.closest('.kds-menu-item');
+                    if (itemRow) {
+                        const toggleInput = itemRow.querySelector('input[type="checkbox"]');
+                        if (toggleInput) {
+                            toggleInput.checked = data.is_available;
+                        }
+
+                        const statusWrap = itemRow.querySelector('.kds-status-wrap');
+                        const oldStatus = statusWrap.querySelector('.item-status-text');
+                        if (oldStatus) {
+                            oldStatus.remove();
+                        }
+
+                        // Insert new live/off badge
+                        const newBadge = document.createElement('span');
+                        newBadge.className = data.is_available ? 'item-status-text live' : 'item-status-text off';
+                        if (data.is_available) {
+                            newBadge.style.cssText = "background:rgba(0,184,148,0.1); color:#00b894; font-size:11px; font-weight:800; padding:4px 10px; border-radius:6px; min-width:48px; text-align:center; text-transform:uppercase;";
+                            newBadge.textContent = "Live";
+                        } else {
+                            newBadge.style.cssText = "background:#f1f5f9; color:#64748b; font-size:11px; font-weight:800; padding:4px 10px; border-radius:6px; min-width:48px; text-align:center; text-transform:uppercase;";
+                            newBadge.textContent = "Off";
+                        }
+                        statusWrap.insertBefore(newBadge, statusWrap.firstChild);
+                    }
+                }
+            };
+
+            socket.onclose = function (e) {
+                console.log("KDS WebSocket disconnected. Reconnecting in 5s...");
+                document.querySelector('.kds-live-dot').style.display = 'none';
+                setTimeout(connectWebSocket, 5000);
+            };
+        }
+
+        connectWebSocket();
+
+        // --- AJAX Form Handling for Orders ---
+        document.addEventListener('submit', function (e) {
+            var f = e.target;
+
+            // Order Action Forms
+            if (f.classList.contains('kds-action-form') && f.querySelector('[name="status"]')) {
+                e.preventDefault();
+                if (f.dataset.submitting) return;
+
+                var c = f.closest('.kds-order');
+                if (c) {
+                    c.classList.add('fade-exit-active');
+                }
+
+                f.dataset.submitting = '1';
+
+                const formData = new FormData(f);
+                fetch(f.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                }).then(() => {
+                    // WebSocket will trigger a board refetch across all clients.
+                    // For immediate visual feedback on *this* client, we can remove the card
+                    if (c) c.remove();
+                    updateOrderCounts();
+                    f.dataset.submitting = '';
+                }).catch(err => {
+                    console.error(err);
+                    f.dataset.submitting = '';
+                    if (c) c.classList.remove('fade-exit-active');
+                });
+            }
+
+            // Menu Toggle Forms
+            if (f.querySelector('[name="toggle_item"]')) {
+                e.preventDefault();
+                const formData = new FormData(f);
+                fetch(f.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                }).catch(err => console.error(err));
+            }
+        });
+
+        // --- Drag and Drop Kanban ---
+        let draggedOrder = null;
+
+        document.addEventListener('dragstart', function (e) {
+            const card = e.target.closest('.kds-order');
+            if (card) {
+                draggedOrder = card;
+                setTimeout(() => card.style.opacity = '0.5', 0);
+                e.dataTransfer.effectAllowed = 'move';
+                e.dataTransfer.setData('text/plain', card.dataset.orderId);
+            }
+        });
+
+        document.addEventListener('dragend', function (e) {
+            const card = e.target.closest('.kds-order');
+            if (card) {
+                card.style.opacity = '1';
+                draggedOrder = null;
+                document.querySelectorAll('.kds-lane-body').forEach(l => l.style.backgroundColor = '');
+            }
+        });
+
+        document.addEventListener('dragover', function (e) {
+            e.preventDefault();
+            const lane = e.target.closest('.kds-lane-body');
+            if (lane) {
+                e.dataTransfer.dropEffect = 'move';
+                lane.style.backgroundColor = 'rgba(0,0,0,0.02)';
+            }
+        });
+
+        document.addEventListener('dragleave', function (e) {
+            const lane = e.target.closest('.kds-lane-body');
+            if (lane) {
+                lane.style.backgroundColor = '';
+            }
+        });
+
+        document.addEventListener('drop', function (e) {
+            e.preventDefault();
+            const lane = e.target.closest('.kds-lane-body');
+            if (lane && draggedOrder) {
+                lane.style.backgroundColor = '';
+
+                let targetStatus = null;
+                if (lane.id === 'lanePrep') targetStatus = 'preparing';
+                else if (lane.id === 'laneReady') targetStatus = 'ready';
+                // If dropped back in New, we might ideally set it to confirmed, but usually we just allow forward movement.
+                else if (lane.id === 'laneNew') targetStatus = 'confirmed';
+
+                if (targetStatus) {
+                    const form = draggedOrder.querySelector('.kds-action-form');
+                    if (form) {
+                        const currentStatus = form.querySelector('[name="status"]').value;
+                        // Determine if it actually moved to a new logical lane
+                        // A simple check: if the target button's next status is different
+                        // Or we just always submit because the server handles it.
+                        // Actually, the button itself has the NEXT status, so we ignore the button's value and force our targetStatus
+
+                        const formData = new FormData(form);
+                        formData.set('status', targetStatus);
+
+                        draggedOrder.classList.add('fade-exit-active');
+
+                        fetch(form.action, {
+                            method: 'POST',
+                            body: formData,
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        }).then(() => {
+                            draggedOrder.remove();
+                            updateOrderCounts();
+                            // WebSockets will broadcast the full board update
+                        }).catch(err => {
+                            console.error(err);
+                            draggedOrder.classList.remove('fade-exit-active');
+                        });
+                    }
+                }
+            }
+        });
+        
+        // --- QR Scanner Logic ---
+        function startScanner() {
+            const btn = document.getElementById('btnStartScan');
+            btn.style.display = 'none';
+            
+            const resultContainer = document.getElementById('qr-reader-results');
+            resultContainer.innerHTML = '<span style="color: #64748b;">Initializing camera...</span>';
+            
+            window.html5QrcodeScanner = new Html5Qrcode("qr-reader");
+            
+            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+            
+            window.html5QrcodeScanner.start(
+                { facingMode: "environment" },
+                config,
+                function(decodedText, decodedResult) {
+                    // Success callback
+                    if (window.html5QrcodeScanner.getState() === Html5QrcodeScannerState.SCANNING) {
+                        window.html5QrcodeScanner.pause(); // Pause to prevent duplicate scans
+                        
+                        resultContainer.innerHTML = '<span style="color: #d97706;">Processing code...</span>';
+                        
+                        // Send to backend via AJAX
+                        const formData = new FormData();
+                        formData.append('qr_data', decodedText);
+                        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+                        
+                        fetch("{% url 'kitchen_scan_qr_api' %}", {
+                            method: 'POST',
+                            body: formData,
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                resultContainer.innerHTML = '<span style="color: #00b894;">' + data.message + ' ✅</span>';
+                                // Success beep
+                                try {
+                                    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                                    const oscillator = audioCtx.createOscillator();
+                                    oscillator.connect(audioCtx.destination);
+                                    oscillator.frequency.value = 800;
+                                    oscillator.start();
+                                    setTimeout(() => oscillator.stop(), 150);
+                                } catch(e) {}
+                            } else {
+                                resultContainer.innerHTML = '<span style="color: #e8590c;">' + data.message + ' ❌</span>';
+                            }
+                            
+                            // Resume scanning after 3 seconds
+                            setTimeout(() => {
+                                resultContainer.innerHTML = '<span style="color: #64748b;">Ready for next scan</span>';
+                                window.html5QrcodeScanner.resume();
+                            }, 3000);
+                        })
+                        .catch(err => {
+                            console.error(err);
+                            resultContainer.innerHTML = '<span style="color: #e8590c;">Error communicating with server. Retrying... ❌</span>';
+                            setTimeout(() => window.html5QrcodeScanner.resume(), 3000);
+                        });
+                    }
+                },
+                function(errorMessage) {
+                    // Parse errors occasionally happen, we can ignore them as it just means no QR found yet
+                }
+            ).catch((err) => {
+                console.error("Error starting scanner", err);
+                resultContainer.innerHTML = '<span style="color: #e8590c;">Failed to start camera. Please check permissions or try HTTPS.</span>';
+                btn.style.display = 'flex';
+                btn.innerHTML = '↻ RETRY SCANNER';
+            });
+        }
+    </script>
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+</body>
+
+</html>

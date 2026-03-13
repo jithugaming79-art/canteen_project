@@ -1,0 +1,136 @@
+<div class="kds-board">
+    <!-- Lane: New Orders -->
+    <div class="kds-lane">
+        <div class="kds-lane-head lane-new">
+            <div class="kds-lane-label">
+                <span class="kds-lane-dot"></span>
+                New Orders
+            </div>
+            <span class="kds-lane-count" id="cntNew">0</span>
+        </div>
+        <div class="kds-lane-body" id="laneNew">
+            {% for order in orders %}
+            {% if order.status == 'pending' or order.status == 'confirmed' %}
+            <div class="kds-order" style="animation-delay:{{ forloop.counter0 }}00ms" draggable="true"
+                data-order-id="{{ order.id }}">
+                <div class="kds-order-top">
+                    <span class="kds-order-token">#{{ order.token_number }}</span>
+                    <span class="kds-order-badge badge-new">New</span>
+                </div>
+                <div class="kds-order-items">
+                    {{ order.items.first.item_name }}
+                    {% if order.items.count > 1 %}
+                    +{{ order.items.count|add:"-1" }} more
+                    {% endif %}
+                </div>
+                <div class="kds-order-meta">
+                    <span class="kds-order-time">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="opacity:0.6;">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                        {{ order.created_at|timesince }} ago
+                    </span>
+                    <span class="kds-order-customer">{{ order.user.username }}</span>
+                </div>
+                <form method="POST" action="{% url 'kitchen_dashboard' %}" class="kds-action-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="order_id" value="{{ order.id }}">
+                    <input type="hidden" name="status" value="preparing">
+                    <button type="submit" class="kds-order-action action-start"
+                        style="display:flex !important; width:100% !important; padding:12px !important; border-radius:12px !important; font-size:11px !important; font-weight:800 !important; text-transform:uppercase !important; letter-spacing:1px !important; align-items:center !important; justify-content:center !important; border:none !important; cursor:pointer !important; margin-top:8px !important; color:#ffffff !important; min-height:42px !important; background-color:#e8590c !important;">Start
+                        Preparing</button>
+                </form>
+            </div>
+            {% endif %}
+            {% endfor %}
+            <div class="kds-empty" id="emptyNew" style="display:none;">
+                No new orders
+            </div>
+        </div>
+    </div>
+
+    <!-- Lane: Preparing -->
+    <div class="kds-lane">
+        <div class="kds-lane-head lane-cooking">
+            <div class="kds-lane-label">
+                <span class="kds-lane-dot"></span>
+                Preparing
+            </div>
+            <span class="kds-lane-count" id="cntPrep">0</span>
+        </div>
+        <div class="kds-lane-body" id="lanePrep">
+            {% for order in orders %}
+            {% if order.status == 'preparing' %}
+            <div class="kds-order" style="animation-delay:{{ forloop.counter0 }}00ms" draggable="true"
+                data-order-id="{{ order.id }}">
+                <div class="kds-order-top">
+                    <span class="kds-order-token">#{{ order.token_number }}</span>
+                    <span class="kds-order-badge badge-cooking">Cooking</span>
+                </div>
+                <div class="kds-order-items">
+                    {{ order.items.first.item_name }}
+                    {% if order.items.count > 1 %}
+                    +{{ order.items.count|add:"-1" }} more
+                    {% endif %}
+                </div>
+                <div class="kds-order-meta">
+                    <span class="kds-order-time">{{ order.updated_at|timesince }} ago</span>
+                    <span class="kds-order-customer">{{ order.user.username }}</span>
+                </div>
+                <form method="POST" action="{% url 'kitchen_dashboard' %}" class="kds-action-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="order_id" value="{{ order.id }}">
+                    <input type="hidden" name="status" value="ready">
+                    <button type="submit" class="kds-order-action action-ready"
+                        style="display:flex !important; width:100% !important; padding:12px !important; border-radius:12px !important; font-size:11px !important; font-weight:800 !important; text-transform:uppercase !important; letter-spacing:1px !important; align-items:center !important; justify-content:center !important; border:none !important; cursor:pointer !important; margin-top:8px !important; color:#ffffff !important; min-height:42px !important; background-color:#d97706 !important;">Mark
+                        Ready</button>
+                </form>
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Lane: Ready -->
+    <div class="kds-lane">
+        <div class="kds-lane-head lane-ready">
+            <div class="kds-lane-label">
+                <span class="kds-lane-dot"></span>
+                Ready for Pickup
+            </div>
+            <span class="kds-lane-count" id="cntReady">0</span>
+        </div>
+        <div class="kds-lane-body" id="laneReady">
+            {% for order in orders %}
+            {% if order.status == 'ready' %}
+            <div class="kds-order" style="animation-delay:{{ forloop.counter0 }}00ms" draggable="true"
+                data-order-id="{{ order.id }}">
+                <div class="kds-order-top">
+                    <span class="kds-order-token">#{{ order.token_number }}</span>
+                    <span class="kds-order-badge badge-ready">Ready</span>
+                </div>
+                <div class="kds-order-items">
+                    {{ order.items.first.item_name }}
+                    {% if order.items.count > 1 %}
+                    +{{ order.items.count|add:"-1" }} more
+                    {% endif %}
+                </div>
+                <div class="kds-order-meta">
+                    <span class="kds-order-time">{{ order.updated_at|timesince }} ago</span>
+                    <span class="kds-order-customer">{{ order.user.username }}</span>
+                </div>
+                <form method="POST" action="{% url 'kitchen_dashboard' %}" class="kds-action-form">
+                    {% csrf_token %}
+                    <input type="hidden" name="order_id" value="{{ order.id }}">
+                    <input type="hidden" name="status" value="collected">
+                    <button type="submit" class="kds-order-action action-collect"
+                        style="display:flex !important; width:100% !important; padding:12px !important; border-radius:12px !important; font-size:11px !important; font-weight:800 !important; text-transform:uppercase !important; letter-spacing:1px !important; align-items:center !important; justify-content:center !important; border:none !important; cursor:pointer !important; margin-top:8px !important; color:#ffffff !important; min-height:42px !important; background-color:#00b894 !important;">Collected</button>
+                </form>
+            </div>
+            {% endif %}
+            {% endfor %}
+        </div>
+    </div>
+</div>

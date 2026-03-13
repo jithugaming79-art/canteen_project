@@ -1,0 +1,190 @@
+{% extends 'base.html' %}
+
+
+{% block title %}Sign Up - CampusBites{% endblock %}
+
+{% block navbar %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block content %}
+<div class="auth-body">
+    <div class="auth-container">
+        <!-- Visual Side (Left) -->
+        <div class="auth-visual">
+            <div class="quote-container animate-enter delay-2">
+                <div class="quote-text">Fuel your<br>ambition.</div>
+                <div class="quote-sub">Healthy meals for bright minds.</div>
+            </div>
+        </div>
+
+        <!-- Content Side (Right) -->
+        <div class="auth-content">
+            <a href="{% url 'home' %}" class="brand-title"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                    stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                    style="vertical-align: -4px; margin-right: 4px;">
+                    <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
+                    <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
+                    <line x1="6" y1="1" x2="6" y2="4" />
+                    <line x1="10" y1="1" x2="10" y2="4" />
+                    <line x1="14" y1="1" x2="14" y2="4" />
+                </svg>CampusBites</a>
+
+            <div class="animate-enter delay-1">
+                <h2 class="page-title">Create account</h2>
+                <p class="page-subtitle">Start your culinary journey today.</p>
+            </div>
+
+            <form method="POST" class="animate-enter delay-2" id="registrationForm">
+                {% csrf_token %}
+
+                <!-- Anti-bot measures -->
+                <input type="text" name="website" style="position: absolute; left: -9999px; top: -9999px;" tabindex="-1"
+                    autocomplete="off">
+                <input type="hidden" name="form_load_time" id="form_load_time" value="">
+
+                <!-- Segmented Control -->
+                <div class="segmented-control">
+                    <label class="segment-option">
+                        <input type="radio" name="role" value="student" checked onchange="updateRoleFields(this)">
+                        <span class="segment-label">Student</span>
+                    </label>
+                    <label class="segment-option">
+                        <input type="radio" name="role" value="teacher" onchange="updateRoleFields(this)">
+                        <span class="segment-label">Faculty / Staff</span>
+                    </label>
+                </div>
+
+                <div class="registration-grid">
+                    <div class="form-group-modern">
+                        <label class="modern-label">Username</label>
+                        <input type="text" name="username" class="modern-input" maxlength="30" required
+                            title="3-30 characters, alphanumeric and underscores only">
+                    </div>
+                    <div class="form-group-modern">
+                        <label class="modern-label">Email</label>
+                        <input type="email" name="email" class="modern-input" maxlength="254" required>
+                    </div>
+
+                    <div class="form-group-modern col-span-full">
+                        <label class="modern-label">Full Name</label>
+                        <input type="text" name="full_name" class="modern-input" maxlength="100" required>
+                    </div>
+
+                    <div class="form-group-modern">
+                        <label class="modern-label">Phone</label>
+                        <input type="tel" name="phone" id="phone" class="modern-input" maxlength="10"
+                            placeholder="10-digit mobile number" required>
+                    </div>
+
+                    <!-- Collapsible ID Field -->
+                    <div class="form-group-modern" id="idFieldContainer">
+                        <label class="modern-label" id="idFieldLabel">Reg. Number</label>
+                        <input type="text" name="college_id" id="college_id" class="modern-input"
+                            placeholder="e.g. 03SU23..." required>
+                    </div>
+
+                    <div class="form-group-modern">
+                        <label class="modern-label">Password</label>
+                        <div style="position: relative;">
+                            <input type="password" name="password1" id="password" class="modern-input" required
+                                style="padding-right: 48px;">
+                            <button type="button" class="password-toggle" onclick="togglePassword('password', this)"
+                                title="Show password">
+                                <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M2.036 12.322a1.012 1.012 0 010-.644C3.399 8.049 7.21 5 12 5c4.789 0 8.601 3.049 9.964 6.678.057.152.057.342 0 .494C20.601 15.951 16.79 19 12 19c-4.789 0-8.601-3.049-9.964-6.678z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                            </button>
+                        </div>
+
+                    </div>
+                    <div class="form-group-modern">
+                        <label class="modern-label">Confirm</label>
+                        <div style="position: relative;">
+                            <input type="password" name="password2" id="confirm_password" class="modern-input" required
+                                style="padding-right: 48px;">
+                            <button type="button" class="password-toggle"
+                                onclick="togglePassword('confirm_password', this)" title="Show password">
+                                <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M2.036 12.322a1.012 1.012 0 010-.644C3.399 8.049 7.21 5 12 5c4.789 0 8.601 3.049 9.964 6.678.057.152.057.342 0 .494C20.601 15.951 16.79 19 12 19c-4.789 0-8.601-3.049-9.964-6.678z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-ultra">Create Account</button>
+            </form>
+
+            <div class="animate-enter delay-3" style="text-align: center; margin-top: 32px;">
+
+                <a href="{% url 'login' %}"
+                    style="display: inline-block; color: #111827; font-weight: 600; text-decoration: none;">
+                    Already have an account? <span style="color: #ff5200;">Log in</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function togglePassword(inputId, btn) {
+        const input = document.getElementById(inputId);
+        const isPassword = input.type === 'password';
+
+        input.type = isPassword ? 'text' : 'password';
+        btn.title = isPassword ? 'Hide password' : 'Show password';
+
+        if (isPassword) {
+            btn.innerHTML = `
+                <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
+                </svg>
+            `;
+        } else {
+            btn.innerHTML = `
+                <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.644C3.399 8.049 7.21 5 12 5c4.789 0 8.601 3.049 9.964 6.678.057.152.057.342 0 .494C20.601 15.951 16.79 19 12 19c-4.789 0-8.601-3.049-9.964-6.678z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+            `;
+        }
+    }
+
+    function updateRoleFields(radio) {
+        const idFieldLabel = document.getElementById('idFieldLabel');
+        const input = document.getElementById('college_id');
+
+        if (radio.value === 'student') {
+            idFieldLabel.textContent = 'Reg. Number';
+            input.placeholder = 'e.g. 03SU23...';
+            input.setAttribute('required', 'required');
+        } else if (radio.value === 'teacher') {
+            idFieldLabel.textContent = 'Staff / Faculty ID';
+            input.placeholder = 'e.g. 03SU26SI001';
+            input.setAttribute('required', 'required');
+        } else {
+            // For future roles if any
+            input.removeAttribute('required');
+            input.value = '';
+        }
+    }
+
+    // Set load time for timing-based bot protection
+    document.getElementById('form_load_time').value = new Date().getTime() / 1000;
+
+
+    // Indian Phone validation restriction on input
+    const phoneInput = document.getElementById('phone');
+    phoneInput.addEventListener('input', function (e) {
+        this.value = this.value.replace(/[^0-9]/g, ''); // Allow only numbers
+    });
+</script>
+{% endblock %}

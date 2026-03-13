@@ -1,0 +1,291 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Complete Your Profile - CampusBites{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Hide Navbar & Chat FAB */
+    .navbar { display: none !important; }
+    .chat-fab-container { display: none !important; }
+    footer { display: none !important; }
+    
+    body {
+        background-color: #ff5200;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0;
+        font-family: 'Basis Grotesque Pro', 'Gilroy', sans-serif;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hero-decor-right {
+        position: absolute;
+        top: 0;
+        right: 0;
+        height: 100%;
+        width: auto;
+        max-width: 380px;
+        object-fit: contain;
+        object-position: right center;
+        z-index: 0;
+        pointer-events: none;
+    }
+
+    @media (max-width: 900px) {
+        .hero-decor-right {
+            max-width: 200px;
+            opacity: 0.5;
+        }
+    }
+
+    @media (max-width: 600px) {
+        .hero-decor-right {
+            max-width: 140px;
+            opacity: 0.3;
+        }
+    }
+
+    .cp-container {
+        width: 100%;
+        max-width: 440px;
+        padding: 20px;
+        box-sizing: border-box;
+        position: relative;
+        z-index: 2;
+    }
+
+    .cp-card {
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 40px;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        position: relative;
+    }
+
+    .cp-back {
+        position: absolute;
+        top: 24px;
+        left: 24px;
+        color: #6b7280;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        transition: color 0.2s;
+    }
+
+    .cp-back:hover {
+        color: #1b1e24;
+    }
+
+    .cp-close {
+        position: absolute;
+        top: 24px;
+        right: 24px;
+        color: #6b7280;
+        text-decoration: none;
+        font-size: 20px;
+        line-height: 1;
+        transition: color 0.2s;
+    }
+
+    .cp-close:hover {
+        color: #1b1e24;
+    }
+
+    .cp-title {
+        font-size: 24px;
+        font-weight: 800;
+        color: #1b1e24;
+        margin: 40px 0 8px 0;
+        line-height: 1.2;
+    }
+
+    .cp-subtitle {
+        font-size: 14px;
+        color: #6b7280;
+        margin-bottom: 24px;
+    }
+
+    .cp-form-group {
+        margin-bottom: 20px;
+    }
+
+    .cp-label {
+        display: block;
+        font-size: 12px;
+        font-weight: 700;
+        color: #374151;
+        margin-bottom: 8px;
+    }
+
+    .cp-input-wrap {
+        position: relative;
+        display: flex;
+    }
+
+    .cp-input {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1.5px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 15px;
+        color: #1b1e24;
+        transition: border-color 0.2s;
+        box-sizing: border-box;
+    }
+    
+    .cp-input::placeholder {
+        color: #9ca3af;
+    }
+
+    .cp-input:focus {
+        outline: none;
+        border-color: #1b1e24;
+    }
+
+    .cp-helper {
+        display: block;
+        font-size: 11px;
+        color: #9ca3af;
+        margin-top: 6px;
+    }
+
+    .cp-phone-prefix {
+        background: #f3f4f6;
+        border: 1.5px solid #e5e7eb;
+        border-right: none;
+        border-radius: 8px 0 0 8px;
+        padding: 12px 14px;
+        color: #4b5563;
+        font-weight: 600;
+        font-size: 15px;
+        display: flex;
+        align-items: center;
+    }
+
+    .cp-phone-input {
+        border-radius: 0 8px 8px 0;
+        flex: 1;
+    }
+
+    .cp-btn {
+        width: 100%;
+        background: #1b1e24;
+        color: #ffffff;
+        border: none;
+        padding: 14px;
+        font-size: 15px;
+        font-weight: 700;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background 0.2s;
+        margin-top: 8px;
+        font-family: inherit;
+    }
+
+    .cp-btn:hover {
+        background: #2d3138;
+    }
+
+    .cp-signout {
+        display: block;
+        text-align: center;
+        margin-top: 24px;
+        color: #ff5200;
+        text-decoration: none;
+        font-weight: 700;
+        font-size: 14px;
+        transition: color 0.2s;
+    }
+
+    .cp-signout:hover {
+        color: #cc4200;
+    }
+
+    /* Error Messages */
+    .cp-messages {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 20px 0;
+    }
+    
+    .cp-messages li {
+        padding: 10px 14px;
+        border-radius: 8px;
+        font-size: 13px;
+        margin-bottom: 8px;
+        font-weight: 500;
+    }
+    
+    .cp-messages .error {
+        background: #fee2e2;
+        color: #991b1b;
+        border: 1px solid #f87171;
+    }
+    
+    .cp-messages .success {
+        background: #d1fae5;
+        color: #065f46;
+        border: 1px solid #34d399;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<img src="https://media-assets.swiggy.com/swiggy/image/upload/fl_lossy,f_auto,q_auto/portal/testing/seo-home/Sushi_replace.png" alt="" class="hero-decor-right" aria-hidden="true">
+
+<div class="cp-container">
+    <div class="cp-card">
+        <!-- Close / Back placeholders as per design -->
+        <a href="javascript:history.back()" class="cp-back">&larr; Back</a>
+        <a href="{% url 'logout' %}" class="cp-close">&times;</a>
+
+        <h1 class="cp-title">Complete your profile</h1>
+        <p class="cp-subtitle">We need a few more details to set up your account.</p>
+
+        {% if messages %}
+        <ul class="cp-messages">
+            {% for message in messages %}
+            <li class="{% if message.tags %}{{ message.tags }}{% endif %}">{{ message }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        <form method="POST" action="{% url 'complete_profile' %}">
+            {% csrf_token %}
+            
+            <div class="cp-form-group">
+                <label class="cp-label">Register Number / Staff ID</label>
+                <div class="cp-input-wrap">
+                    <input type="text" name="college_id" class="cp-input" 
+                           placeholder="{% if role == 'teacher' %}e.g. 03SU26...{% else %}e.g. 03SU23FC071{% endif %}" 
+                           value="{{ college_id|default:'' }}" required>
+                </div>
+                <span class="cp-helper">Enter your college register number or staff ID</span>
+            </div>
+
+            <div class="cp-form-group">
+                <label class="cp-label">Phone Number</label>
+                <div class="cp-input-wrap">
+                    <div class="cp-phone-prefix">+91</div>
+                    <input type="tel" name="phone" class="cp-input cp-phone-input" 
+                           placeholder="Enter 10-digit number" maxlength="10"
+                           value="{{ phone|default:'' }}" required
+                           oninput="this.value = this.value.replace(/[^0-9]/g, '')">
+                </div>
+            </div>
+
+            <button type="submit" class="cp-btn">Complete Profile</button>
+        </form>
+
+        <a href="{% url 'logout' %}" class="cp-signout">Sign out and use a different account</a>
+    </div>
+</div>
+{% endblock %}

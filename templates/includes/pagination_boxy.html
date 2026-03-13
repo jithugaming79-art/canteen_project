@@ -1,0 +1,163 @@
+{% load menu_extras %}
+{% if items.has_other_pages %}
+<nav class="pagination-wrapper">
+    <div class="pagination-controls">
+        <!-- Previous -->
+        {% if items.has_previous %}
+        <a href="?{% url_replace page=items.previous_page_number %}" class="page-btn page-nav" title="Previous">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+        </a>
+        {% else %}
+        <span class="page-btn page-nav disabled">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="15 18 9 12 15 6"></polyline>
+            </svg>
+        </span>
+        {% endif %}
+
+        <!-- Page Numbers -->
+        <div class="page-numbers">
+            {% for num in items.paginator.page_range %}
+            {% if items.number == num %}
+            <span class="page-btn active">{{ num }}</span>
+            {% elif num > items.number|add:'-3' and num < items.number|add:'3' %} <a href="?{% url_replace page=num %}"
+                class="page-btn">{{ num }}</a>
+                {% elif num == 1 or num == items.paginator.num_pages %}
+                <a href="?{% url_replace page=num %}" class="page-btn">{{ num }}</a>
+                {% elif num == items.number|add:'-3' or num == items.number|add:'3' %}
+                <span class="page-dots">...</span>
+                {% endif %}
+                {% endfor %}
+        </div>
+
+        <!-- Next -->
+        {% if items.has_next %}
+        <a href="?{% url_replace page=items.next_page_number %}" class="page-btn page-nav" title="Next">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+        </a>
+        {% else %}
+        <span class="page-btn page-nav disabled">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+        </span>
+        {% endif %}
+    </div>
+</nav>
+
+<style>
+    .pagination-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 16px;
+        margin: 40px 0;
+        padding: 0;
+    }
+
+    .pagination-controls {
+        display: inline-flex;
+        align-items: center;
+        gap: 2px;
+        /* Minimal gap for segmented look */
+        padding: 4px;
+        background: var(--gray-100);
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        /* Outer container radius */
+    }
+
+    .page-numbers {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+        margin: 0;
+    }
+
+    .page-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 36px;
+        height: 36px;
+        padding: 0 12px;
+        background: transparent;
+        border: 1px solid transparent;
+        /* Reserve space */
+        border-radius: 8px;
+        /* Inner radius */
+        color: var(--grey);
+        font-size: 14px;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        user-select: none;
+    }
+
+    /* Hover: Light highlight */
+    .page-btn:hover:not(.disabled):not(.active) {
+        background: rgba(255, 255, 255, 0.6);
+        color: var(--dark);
+    }
+
+    /* Active: "Card" look (White, Shadow) */
+    .page-btn.active {
+        background: var(--white);
+        color: var(--primary);
+        font-weight: 700;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        border-color: transparent;
+    }
+
+    .page-btn.active::after {
+        content: none;
+    }
+
+    /* Arrows */
+    .page-btn.page-nav {
+        color: var(--grey);
+        padding: 0;
+        min-width: 36px;
+    }
+
+    .page-btn.page-nav:hover {
+        background: rgba(255, 255, 255, 0.8);
+        color: var(--primary);
+    }
+
+    .page-btn.disabled {
+        opacity: 0.3;
+        cursor: not-allowed;
+        background: transparent !important;
+    }
+
+    .page-dots {
+        color: var(--light-grey);
+        padding: 0 6px;
+        font-weight: 600;
+    }
+
+    /* Adjust SVG size */
+    .page-btn svg {
+        width: 18px;
+        height: 18px;
+    }
+
+    @media (max-width: 600px) {
+        .page-btn {
+            min-width: 32px;
+            height: 32px;
+            font-size: 13px;
+        }
+    }
+</style>
+{% endif %}

@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+
+{% block title %}Help &amp; Support - CampusBites{% endblock %}
+
+{% block content %}
+<div class="sg-profile-header">
+    <div class="sg-profile-header-inner">
+        <div class="sg-profile-header-info">
+            <h1 class="sg-profile-header-name">Help &amp; Support</h1>
+            <p class="sg-profile-header-meta">We're here to help you with any questions or concerns</p>
+        </div>
+    </div>
+</div>
+<div class="sg-profile-body">
+    <div class="sg-profile-container">
+        <div class="sg-sidebar">
+            <a href="javascript:void(0)" class="sg-sidebar-item active" onclick="switchHelpTab('submit', this)"><span class="sg-sidebar-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm-2 12H6v-2h12v2zm0-3H6V9h12v2zm0-3H6V6h12v2z"/></svg></span> Submit Feedback</a>
+            <a href="javascript:void(0)" class="sg-sidebar-item" onclick="switchHelpTab('history', this)"><span class="sg-sidebar-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/></svg></span> My Feedback History</a>
+            <a href="javascript:void(0)" class="sg-sidebar-item" onclick="switchHelpTab('faq', this)"><span class="sg-sidebar-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H8c0-2.21 1.79-4 4-4s4 1.79 4 4c0 .88-.36 1.68-.93 2.25z"/></svg></span> FAQs</a>
+            <a href="javascript:void(0)" class="sg-sidebar-item" onclick="switchHelpTab('contact', this)"><span class="sg-sidebar-icon"><svg width="18" height="18" viewBox="0 0 24 24" fill="#fff"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg></span> Contact Us</a>
+        </div>
+        <div class="sg-main">
+            <div id="help-tab-submit" class="sg-tab-content">
+                <h2 class="sg-section-title">Submit Feedback</h2>
+                <p style="color:#93959f;font-size:14px;margin:-12px 0 24px;">We value your suggestions, complaints, and feedback.</p>
+                <div class="sg-order-card" style="border-left:4px solid #ff5200;">
+                    <div style="padding:24px;">
+                        <form action="{% url 'user_feedback' %}" method="post">
+                            {% csrf_token %}
+                            <div class="sg-form-group"><label class="sg-form-label">SUBJECT</label><input type="text" name="subject" class="sg-form-input" required placeholder="e.g. App suggestion, Food quality..."></div>
+                            <div class="sg-form-group"><label class="sg-form-label">RATE OUR SERVICE</label><div class="help-star-rating" id="feedbackStars" style="display:flex;gap:6px;">{% for i in "12345" %}<span class="help-star" data-rating="{{ forloop.counter }}" onclick="setFeedbackRating({{ forloop.counter }})" style="font-size:28px;cursor:pointer;color:#d4d5d9;transition:all 0.2s;">&#9733;</span>{% endfor %}</div><input type="hidden" name="rating" id="feedbackRatingInput" value="0"></div>
+                            <div class="sg-form-group"><label class="sg-form-label">MESSAGE</label><textarea name="message" rows="5" class="sg-form-input" required placeholder="Tell us more details..." style="resize:vertical;font-family:inherit;"></textarea></div>
+                            <button type="submit" class="sg-save-btn" style="width:100%;padding:14px;font-size:13px;">SUBMIT FEEDBACK</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div id="help-tab-history" class="sg-tab-content" style="display:none">
+                <h2 class="sg-section-title">My Feedback History</h2>
+                {% if feedbacks %}{% for fb in feedbacks %}
+                <div class="sg-order-card{% if not forloop.first %} sg-fb-hidden{% endif %}" {% if not forloop.first %}style="display:none"{% endif %}>
+                    <div class="sg-order-top" style="padding:20px 24px;">
+                        <div style="width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;{% if fb.status == 'resolved' %}background:#e8f5e9{% elif fb.status == 'in_progress' %}background:#fff8e1{% else %}background:#f0f0f5{% endif %}">{% if fb.status == 'resolved' %}<svg width="20" height="20" viewBox="0 0 24 24" fill="#2e7d32"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>{% elif fb.status == 'in_progress' %}<svg width="20" height="20" viewBox="0 0 24 24" fill="#f57f17"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>{% else %}<svg width="20" height="20" viewBox="0 0 24 24" fill="#93959f"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>{% endif %}</div>
+                        <div class="sg-order-details" style="flex:1">
+                            <div class="sg-order-name" style="font-size:15px;">{{ fb.subject }}</div>
+                            <div class="sg-order-meta">{{ fb.created_at|date:"D, M d, Y, h:i A" }}</div>
+                            {% if fb.rating > 0 %}<div style="color:#f57c00;font-size:13px;margin-top:2px;">{% for i in "12345" %}{% if forloop.counter <= fb.rating %}&#9733;{% else %}&#9734;{% endif %}{% endfor %} <span style="color:#93959f;margin-left:4px;">({{ fb.rating }}/5)</span></div>{% endif %}
+                        </div>
+                        <div class="sg-order-right"><span style="font-size:11px;font-weight:700;letter-spacing:0.5px;padding:4px 12px;border-radius:2px;text-transform:uppercase;{% if fb.status == 'resolved' %}background:#e8f5e9;color:#2e7d32;{% elif fb.status == 'in_progress' %}background:#fff8e1;color:#f57f17;{% else %}background:#f0f0f5;color:#93959f;{% endif %}">{{ fb.get_status_display }}</span></div>
+                    </div>
+                    <div class="sg-order-dotted-divider"></div>
+                    <div style="padding:16px 24px;"><p style="color:#282c3f;font-size:14px;line-height:1.6;margin:0;">{{ fb.message }}</p></div>
+                    {% if fb.admin_response %}<div style="margin:0 24px 16px;padding:16px;background:#f0f7ff;border-radius:8px;border-left:3px solid #3b82f6;"><div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><div style="width:24px;height:24px;background:#ff5200;border-radius:50%;display:flex;align-items:center;justify-content:center;color:white;font-size:10px;font-weight:700;">CB</div><span style="font-weight:700;font-size:13px;color:#282c3f;">Admin Response</span></div><p style="margin:0;color:#3d4152;font-size:14px;line-height:1.5;">{{ fb.admin_response }}</p></div>{% endif %}
+                </div>
+                {% endfor %}
+                <button type="button" class="sg-show-more-btn" onclick="document.querySelectorAll('.sg-fb-hidden').forEach(function(el){el.style.display='block'});this.style.display='none'">SHOW ALL FEEDBACK</button>
+                {% else %}
+                <div class="sg-empty-orders"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#93959f" stroke-width="1.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg><p>No feedback submitted yet</p><button onclick="switchHelpTab('submit', document.querySelector('.sg-sidebar-item'))" class="sg-browse-menu-btn">SUBMIT FEEDBACK</button></div>
+                {% endif %}
+            </div>
+            <div id="help-tab-faq" class="sg-tab-content" style="display:none">
+                <h2 class="sg-section-title">Frequently Asked Questions</h2>
+                <div class="help-faq-item sg-order-card"><div class="help-faq-question" onclick="toggleFaq(this)"><span>How do I place an order?</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#93959f" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></div><div class="help-faq-answer"><p>Browse the menu, add items to your cart, and proceed to checkout. You can pay using your wallet balance or other available payment methods.</p></div></div>
+                <div class="help-faq-item sg-order-card"><div class="help-faq-question" onclick="toggleFaq(this)"><span>How do I add money to my wallet?</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#93959f" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></div><div class="help-faq-answer"><p>Go to your Profile, then Wallet section. You can add money using any available payment method. The balance will be reflected instantly.</p></div></div>
+                <div class="help-faq-item sg-order-card"><div class="help-faq-question" onclick="toggleFaq(this)"><span>Can I cancel my order?</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#93959f" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></div><div class="help-faq-answer"><p>Orders can be cancelled before they start being prepared. Once the kitchen begins preparing your food, cancellation may not be possible.</p></div></div>
+                <div class="help-faq-item sg-order-card"><div class="help-faq-question" onclick="toggleFaq(this)"><span>What are the canteen timings?</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#93959f" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></div><div class="help-faq-answer"><p>The canteen operates Monday to Friday from 8AM to 6PM, and Saturday from 9AM to 3PM. Closed on Sundays and public holidays.</p></div></div>
+                <div class="help-faq-item sg-order-card"><div class="help-faq-question" onclick="toggleFaq(this)"><span>How do I track my order?</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#93959f" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></div><div class="help-faq-answer"><p>After placing an order, track its status in real-time from the Orders page. Statuses include Pending, Preparing, Ready for Pickup, and Collected.</p></div></div>
+                <div class="help-faq-item sg-order-card"><div class="help-faq-question" onclick="toggleFaq(this)"><span>How do I get a refund?</span><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#93959f" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></div><div class="help-faq-answer"><p>Refunds are automatically processed to your wallet within 24 hours for cancelled or rejected orders. For any issues, submit feedback.</p></div></div>
+            </div>
+            <div id="help-tab-contact" class="sg-tab-content" style="display:none">
+                <h2 class="sg-section-title">Contact Us</h2>
+                <p style="color:#93959f;font-size:14px;margin:-12px 0 24px;">Reach out to us through any of the following channels.</p>
+                <div class="sg-order-card"><div class="sg-order-top" style="padding:20px 24px;"><div style="width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#fff3e0;flex-shrink:0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="#ff5200"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/></svg></div><div class="sg-order-details" style="flex:1"><div class="sg-order-name" style="font-size:15px;">Email Support</div><div class="sg-order-meta">support@campusbites.com</div><div class="sg-order-meta" style="color:#93959f;">We typically respond within 24 hours</div></div></div></div>
+                <div class="sg-order-card"><div class="sg-order-top" style="padding:20px 24px;"><div style="width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#e8f5e9;flex-shrink:0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="#2e7d32"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg></div><div class="sg-order-details" style="flex:1"><div class="sg-order-name" style="font-size:15px;">Phone Support</div><div class="sg-order-meta">+91 1234 567 890</div><div class="sg-order-meta" style="color:#93959f;">Mon-Fri, 9AM - 6PM</div></div></div></div>
+                <div class="sg-order-card"><div class="sg-order-top" style="padding:20px 24px;"><div style="width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:#fce4ec;flex-shrink:0;"><svg width="22" height="22" viewBox="0 0 24 24" fill="#c62828"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg></div><div class="sg-order-details" style="flex:1"><div class="sg-order-name" style="font-size:15px;">Visit Us</div><div class="sg-order-meta">Campus Canteen, Main Building</div><div class="sg-order-meta" style="color:#93959f;">Ground Floor, Near Auditorium</div></div></div></div>
+            </div>
+        </div>
+    </div>
+</div>
+<style>
+.sg-profile-header{background:#282c3f;padding:28px 0;font-family:'Basis Grotesque Pro','Gilroy',sans-serif}
+.sg-profile-header-inner{max-width:1100px;margin:0 auto;padding:0 24px;display:flex;justify-content:space-between;align-items:center}
+.sg-profile-header-name{font-size:26px;font-weight:700;color:#fff;margin:0 0 4px 0;font-family:'Basis Grotesque Pro','Gilroy',sans-serif}
+.sg-profile-header-meta{font-size:14px;color:rgba(255,255,255,0.65);margin:0}
+.sg-profile-body{background:#e9ecee;min-height:calc(100vh - 180px);padding:30px 0 60px}
+.sg-profile-container{max-width:1100px;margin:0 auto;padding:0 24px;display:grid;grid-template-columns:260px 1fr;gap:0;align-items:stretch;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,0.08);min-height:calc(100vh - 220px)}
+.sg-sidebar{padding:16px 0;position:sticky;top:80px;border-right:1px solid #e9ecee}
+.sg-sidebar-item{display:flex;align-items:center;gap:16px;padding:18px 28px;font-size:15px;font-family:'Basis Grotesque Pro','Gilroy',sans-serif;font-weight:600;color:#282c3f;text-decoration:none;cursor:pointer;border:none;background:none;width:100%;text-align:left}
+.sg-sidebar-item:hover{background:#f2f2f5}
+.sg-sidebar-item.active{font-weight:800}
+.sg-sidebar-icon{display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:#3d4152;flex-shrink:0}
+.sg-sidebar-item.active .sg-sidebar-icon{background:#282c3f}
+.sg-sidebar-item:not(.active) .sg-sidebar-icon{background:#93959f}
+.sg-main{min-width:0;padding:28px 32px;font-family:'Basis Grotesque Pro','Gilroy',sans-serif}
+.sg-section-title{font-size:20px;font-weight:800;color:#282c3f;margin:0 0 20px 0;font-family:'Basis Grotesque Pro','Gilroy',sans-serif}
+.sg-form-group{margin-bottom:20px}
+.sg-form-label{display:block;font-size:11px;font-weight:700;color:#93959f;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px}
+.sg-form-input{width:100%;padding:14px 16px;border:1px solid #d4d5d9;font-size:15px;font-family:inherit;color:#282c3f;background:#fff;box-sizing:border-box}
+.sg-form-input:focus{border-color:#ff5200;outline:none}
+.sg-save-btn{padding:12px 28px;background:#ff5200;color:#fff;border:none;font-family:inherit;font-size:12px;font-weight:700;letter-spacing:1px;cursor:pointer;text-transform:uppercase}
+.sg-save-btn:hover{background:#e04800}
+.sg-order-card{border:1px solid #e8e8e8;margin-bottom:20px;background:#fff}
+.sg-order-top{display:flex;align-items:flex-start;padding:20px 24px;gap:16px}
+.sg-order-details{flex:1;min-width:0}
+.sg-order-name{font-size:16px;font-weight:700;color:#282c3f;margin-bottom:4px}
+.sg-order-meta{font-size:12px;color:#93959f;margin-bottom:8px}
+.sg-order-right{flex-shrink:0;text-align:right}
+.sg-order-dotted-divider{border-bottom:2px dotted #d4d5d9;margin:0 24px}
+.sg-show-more-btn{display:block;width:100%;text-align:center;padding:16px;border:1px solid #e9ecee;font-size:13px;font-weight:800;color:#282c3f;background:#fff;cursor:pointer;font-family:inherit;letter-spacing:0.5px}
+.sg-show-more-btn:hover{background:#f7f7f9}
+.sg-empty-orders{text-align:center;padding:60px 20px;color:#93959f}
+.sg-empty-orders p{font-size:16px;margin:16px 0;font-weight:600;color:#686b78}
+.sg-browse-menu-btn{display:inline-block;padding:10px 24px;background:#ff5200;color:#fff;text-decoration:none;font-size:12px;font-weight:700;letter-spacing:0.8px;border:none;cursor:pointer;font-family:inherit}
+.help-star.active{color:#ff5200 !important;transform:scale(1.15)}
+.help-star:hover{transform:scale(1.2);color:#ff5200 !important}
+.help-faq-question{display:flex;justify-content:space-between;align-items:center;padding:18px 24px;cursor:pointer;font-size:15px;font-weight:600;color:#282c3f;transition:background 0.2s}
+.help-faq-question:hover{background:#fafafa}
+.help-faq-question svg{transition:transform 0.3s ease;flex-shrink:0}
+.help-faq-item.open .help-faq-question svg{transform:rotate(180deg)}
+.help-faq-answer{max-height:0;overflow:hidden;transition:max-height 0.3s ease}
+.help-faq-item.open .help-faq-answer{max-height:300px}
+.help-faq-answer p{padding:0 24px 18px;margin:0;color:#686b78;font-size:14px;line-height:1.7}
+</style>
+<script>
+function switchHelpTab(t,e){document.querySelectorAll('.sg-tab-content').forEach(function(x){x.style.display='none'});var tab=document.getElementById('help-tab-'+t);if(tab)tab.style.display='block';document.querySelectorAll('.sg-sidebar-item').forEach(function(s){s.classList.remove('active')});if(e)e.classList.add('active')}
+function setFeedbackRating(r){document.getElementById('feedbackRatingInput').value=r;document.querySelectorAll('#feedbackStars .help-star').forEach(function(s,i){if(i<r)s.classList.add('active');else s.classList.remove('active')})}
+function toggleFaq(e){e.closest('.help-faq-item').classList.toggle('open')}
+</script>
+{% endblock %}

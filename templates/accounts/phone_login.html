@@ -1,0 +1,470 @@
+{% extends 'base.html' %}
+
+{% block title %}Phone Login - CampusBites{% endblock %}
+
+{% block navbar %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block content %}
+<div class="auth-body">
+    <div class="auth-container">
+        <!-- Visual Side (Left) -->
+        <div class="auth-visual">
+            <div class="quote-container animate-enter delay-2">
+                <div class="quote-text">Quick<br>access.</div>
+                <div class="quote-sub">Login with your phone in seconds.</div>
+            </div>
+        </div>
+
+        <!-- Content Side (Right) -->
+        <div class="auth-content">
+            <a href="{% url 'home' %}" class="brand-title">🍔 CampusBites</a>
+
+            <div class="animate-enter delay-1">
+                <h2 class="page-title">Login with Phone</h2>
+                <p class="page-subtitle">We'll send you a one-time verification code.</p>
+            </div>
+
+            <!-- Step 1: Phone Number Input -->
+            <div id="phone-step" class="animate-enter delay-2">
+                <div class="form-group-modern">
+                    <label class="modern-label">Phone Number</label>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <div
+                            style="background: #f3f4f6; border: 1.5px solid #e5e7eb; border-radius: 12px; padding: 12px 16px; font-weight: 600; color: #374151; font-size: 15px; white-space: nowrap;">
+                            🇮🇳 +91
+                        </div>
+                        <input type="tel" id="phoneInput" class="modern-input" maxlength="10"
+                            placeholder="Enter 10-digit mobile"
+                            style="flex: 1; font-size: 18px; letter-spacing: 2px; font-weight: 600;"
+                            oninput="this.value = this.value.replace(/[^0-9]/g, ''); validatePhone();">
+                    </div>
+                    <div id="phoneError" style="color: #ef4444; font-size: 12px; margin-top: 6px; display: none;"></div>
+                </div>
+
+                <!-- reCAPTCHA container (Firebase invisible reCAPTCHA renders here) -->
+                <div id="recaptcha-container"></div>
+
+                <button type="button" id="sendOtpBtn" class="btn-ultra" style="margin-top: 16px;" onclick="sendOTP()"
+                    disabled>
+                    <span id="sendOtpText">Get OTP</span>
+                    <span id="sendOtpLoader" style="display: none;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" style="animation: spin 1s linear infinite;">
+                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none"
+                                stroke-dasharray="30 70" />
+                        </svg>
+                        Sending...
+                    </span>
+                </button>
+
+                <div id="otpTimer"
+                    style="text-align: center; margin-top: 12px; font-size: 13px; color: #6b7280; display: none;">
+                    Resend OTP in <span id="timerCount" style="font-weight: 700; color: #ff5200;">30</span>s
+                </div>
+            </div>
+
+            <!-- Step 2: OTP Verification -->
+            <div id="otp-step" style="display: none;" class="animate-enter">
+                <div style="text-align: center; margin-bottom: 24px;">
+                    <div style="font-size: 48px; margin-bottom: 12px;">📱</div>
+                    <p style="color: #374151; font-size: 14px;">
+                        OTP sent to <strong id="displayPhone" style="color: #ff5200;">+91 XXXXXXXXXX</strong>
+                    </p>
+                    <a href="#" onclick="editPhone(); return false;"
+                        style="color: #ff5200; font-size: 13px; text-decoration: underline;">Edit number</a>
+                </div>
+
+                <div class="form-group-modern">
+                    <label class="modern-label">Enter 6-Digit OTP</label>
+                    <div id="otpBoxes" style="display: flex; gap: 8px; justify-content: center;">
+                        <input type="text" maxlength="1" class="otp-box" data-index="0" oninput="otpInput(this)"
+                            onkeydown="otpKeyDown(event, this)" inputmode="numeric">
+                        <input type="text" maxlength="1" class="otp-box" data-index="1" oninput="otpInput(this)"
+                            onkeydown="otpKeyDown(event, this)" inputmode="numeric">
+                        <input type="text" maxlength="1" class="otp-box" data-index="2" oninput="otpInput(this)"
+                            onkeydown="otpKeyDown(event, this)" inputmode="numeric">
+                        <input type="text" maxlength="1" class="otp-box" data-index="3" oninput="otpInput(this)"
+                            onkeydown="otpKeyDown(event, this)" inputmode="numeric">
+                        <input type="text" maxlength="1" class="otp-box" data-index="4" oninput="otpInput(this)"
+                            onkeydown="otpKeyDown(event, this)" inputmode="numeric">
+                        <input type="text" maxlength="1" class="otp-box" data-index="5" oninput="otpInput(this)"
+                            onkeydown="otpKeyDown(event, this)" inputmode="numeric">
+                    </div>
+                    <div id="otpError"
+                        style="color: #ef4444; font-size: 12px; margin-top: 8px; text-align: center; display: none;">
+                    </div>
+                </div>
+
+                <button type="button" id="verifyOtpBtn" class="btn-ultra" style="margin-top: 16px;"
+                    onclick="verifyOTP()" disabled>
+                    <span id="verifyText">Verify & Login</span>
+                    <span id="verifyLoader" style="display: none;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" style="animation: spin 1s linear infinite;">
+                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="3" fill="none"
+                                stroke-dasharray="30 70" />
+                        </svg>
+                        Verifying...
+                    </span>
+                </button>
+
+                <div id="resendSection" style="text-align: center; margin-top: 16px;">
+                    <span id="resendTimer" style="font-size: 13px; color: #6b7280;">
+                        Resend OTP in <span id="resendCount" style="font-weight: 700; color: #ff5200;">30</span>s
+                    </span>
+                    <button type="button" id="resendBtn" onclick="resendOTP()"
+                        style="display: none; background: none; border: none; color: #ff5200; font-weight: 600; cursor: pointer; font-size: 14px; text-decoration: underline;">
+                        Resend OTP
+                    </button>
+                </div>
+            </div>
+
+            <!-- Divider -->
+            <div style="display: flex; align-items: center; margin: 28px 0; opacity: 0.5;">
+                <div style="flex: 1; height: 1px; background: #d1d5db;"></div>
+                <span style="padding: 0 16px; color: #9ca3af; font-size: 13px;">or</span>
+                <div style="flex: 1; height: 1px; background: #d1d5db;"></div>
+            </div>
+
+            <div class="animate-enter delay-3" style="text-align: center;">
+                <a href="{% url 'login' %}"
+                    style="display: inline-block; color: #111827; font-weight: 600; text-decoration: none;">
+                    Login with <span style="color: #ff5200;">Email / Password</span>
+                </a>
+                <br><br>
+                <a href="{% url 'register' %}" style="color: #6b7280; font-size: 14px; text-decoration: none;">
+                    Don't have an account? <span style="color: #ff5200; font-weight: 600;">Sign up</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .otp-box {
+        width: 48px;
+        height: 56px;
+        text-align: center;
+        font-size: 24px;
+        font-weight: 700;
+        border: 2px solid #e5e7eb;
+        border-radius: 12px;
+        outline: none;
+        transition: all 0.2s ease;
+        color: #111827;
+        background: #fff;
+    }
+
+    .otp-box:focus {
+        border-color: #ff5200;
+        box-shadow: 0 0 0 3px rgba(252, 128, 25, 0.15);
+    }
+
+    .otp-box.filled {
+        border-color: #10b981;
+        background: #f0fdf4;
+    }
+
+    .otp-box.error {
+        border-color: #ef4444;
+        background: #fef2f2;
+        animation: shake 0.3s ease;
+    }
+
+    @keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    @keyframes shake {
+
+        0%,
+        100% {
+            transform: translateX(0);
+        }
+
+        25% {
+            transform: translateX(-4px);
+        }
+
+        75% {
+            transform: translateX(4px);
+        }
+    }
+</style>
+
+<!-- Firebase SDK (compat mode for reCAPTCHA verifier) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+
+<script>
+    // Firebase Configuration
+    const firebaseConfig = {
+        apiKey: "{{ firebase_config.apiKey }}",
+        authDomain: "{{ firebase_config.authDomain }}",
+        projectId: "{{ firebase_config.projectId }}",
+        storageBucket: "{{ firebase_config.storageBucket }}",
+        messagingSenderId: "{{ firebase_config.messagingSenderId }}",
+        appId: "{{ firebase_config.appId }}"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    let confirmationResult = null;
+    let resendTimerInterval = null;
+    let isVerifying = false;
+
+    // Setup invisible reCAPTCHA
+    window.addEventListener('DOMContentLoaded', () => {
+        window.recaptchaVerifier = new firebase.auth.RecaptchaVerifier('recaptcha-container', {
+            'size': 'invisible',
+            'callback': (response) => { /* reCAPTCHA solved */ }
+        });
+        recaptchaVerifier.render();
+        document.getElementById('phoneInput').focus();
+    });
+
+    function validatePhone() {
+        const phone = document.getElementById('phoneInput').value;
+        const btn = document.getElementById('sendOtpBtn');
+        const error = document.getElementById('phoneError');
+
+        if (phone.length === 10 && /^[6-9]\d{9}$/.test(phone)) {
+            btn.disabled = false;
+            error.style.display = 'none';
+        } else {
+            btn.disabled = true;
+            if (phone.length > 0 && phone.length < 10) {
+                error.textContent = '';
+                error.style.display = 'none';
+            } else if (phone.length === 10) {
+                error.textContent = 'Invalid phone number. Must start with 6-9.';
+                error.style.display = 'block';
+            }
+        }
+    }
+
+    function sendOTP() {
+        const phone = document.getElementById('phoneInput').value;
+        const fullPhone = '+91' + phone;
+
+        // UI: Loading state
+        document.getElementById('sendOtpBtn').disabled = true;
+        document.getElementById('sendOtpText').style.display = 'none';
+        document.getElementById('sendOtpLoader').style.display = 'inline-flex';
+
+        auth.signInWithPhoneNumber(fullPhone, window.recaptchaVerifier)
+            .then((result) => {
+                confirmationResult = result;
+
+                // Show OTP step
+                document.getElementById('phone-step').style.display = 'none';
+                document.getElementById('otp-step').style.display = 'block';
+                document.getElementById('displayPhone').textContent = '+91 ' + phone.replace(/(\d{5})(\d{5})/, '$1 $2');
+
+                // Focus first OTP box
+                document.querySelector('.otp-box[data-index="0"]').focus();
+
+                // Start resend timer
+                startResendTimer();
+            })
+            .catch((error) => {
+                console.error('OTP Error:', error);
+                const errorEl = document.getElementById('phoneError');
+
+                if (error.code === 'auth/too-many-requests') {
+                    errorEl.textContent = 'Too many OTP requests. Please wait a few minutes.';
+                } else if (error.code === 'auth/invalid-phone-number') {
+                    errorEl.textContent = 'Invalid phone number. Please check and try again.';
+                } else if (error.code === 'auth/quota-exceeded') {
+                    errorEl.textContent = 'SMS quota exceeded. Please try again later.';
+                } else {
+                    errorEl.textContent = 'Failed to send OTP. Please try again.';
+                }
+                errorEl.style.display = 'block';
+
+                // Reset button
+                document.getElementById('sendOtpBtn').disabled = false;
+                document.getElementById('sendOtpText').style.display = 'inline';
+                document.getElementById('sendOtpLoader').style.display = 'none';
+
+                // Reset reCAPTCHA
+                if (window.recaptchaVerifier) {
+                    window.recaptchaVerifier.render().then(widgetId => {
+                        grecaptcha.reset(widgetId);
+                    });
+                }
+            });
+    }
+
+    function startResendTimer() {
+        let seconds = 30;
+        const timerEl = document.getElementById('resendCount');
+        const timerSection = document.getElementById('resendTimer');
+        const resendBtn = document.getElementById('resendBtn');
+
+        timerSection.style.display = 'inline';
+        resendBtn.style.display = 'none';
+
+        if (resendTimerInterval) clearInterval(resendTimerInterval);
+
+        resendTimerInterval = setInterval(() => {
+            seconds--;
+            timerEl.textContent = seconds;
+            if (seconds <= 0) {
+                clearInterval(resendTimerInterval);
+                timerSection.style.display = 'none';
+                resendBtn.style.display = 'inline';
+            }
+        }, 1000);
+    }
+
+    function resendOTP() {
+        // Reset to phone step temporarily for reCAPTCHA
+        const phone = document.getElementById('phoneInput').value;
+        const fullPhone = '+91' + phone;
+
+        document.getElementById('resendBtn').style.display = 'none';
+        document.getElementById('resendTimer').style.display = 'inline';
+        document.getElementById('resendCount').textContent = '30';
+
+        auth.signInWithPhoneNumber(fullPhone, window.recaptchaVerifier)
+            .then((result) => {
+                confirmationResult = result;
+                startResendTimer();
+                // Clear OTP boxes
+                document.querySelectorAll('.otp-box').forEach(box => { box.value = ''; box.classList.remove('filled', 'error'); });
+                document.querySelector('.otp-box[data-index="0"]').focus();
+            })
+            .catch((error) => {
+                const errorEl = document.getElementById('otpError');
+                errorEl.textContent = 'Failed to resend OTP. Please try again.';
+                errorEl.style.display = 'block';
+                startResendTimer();
+            });
+    }
+
+    function editPhone() {
+        document.getElementById('otp-step').style.display = 'none';
+        document.getElementById('phone-step').style.display = 'block';
+
+        // Reset
+        document.getElementById('sendOtpBtn').disabled = false;
+        document.getElementById('sendOtpText').style.display = 'inline';
+        document.getElementById('sendOtpLoader').style.display = 'none';
+        document.getElementById('phoneInput').focus();
+
+        if (resendTimerInterval) clearInterval(resendTimerInterval);
+        isVerifying = false;
+    }
+
+    // OTP Input Handling (auto-advance, Swiggy-style)
+    function otpInput(el) {
+        el.value = el.value.replace(/[^0-9]/g, '');
+        const idx = parseInt(el.dataset.index);
+
+        if (el.value) {
+            el.classList.add('filled');
+            el.classList.remove('error');
+            // Auto-advance to next box
+            if (idx < 5) {
+                document.querySelector(`.otp-box[data-index="${idx + 1}"]`).focus();
+            }
+        } else {
+            el.classList.remove('filled');
+        }
+
+        // Check if all filled
+        const allFilled = [...document.querySelectorAll('.otp-box')].every(b => b.value.length === 1);
+        document.getElementById('verifyOtpBtn').disabled = !allFilled;
+
+        // Auto-submit on last digit
+        if (allFilled && !isVerifying) {
+            setTimeout(() => {
+                if (!isVerifying) verifyOTP();
+            }, 300);
+        }
+    }
+
+    function otpKeyDown(e, el) {
+        const idx = parseInt(el.dataset.index);
+        if (e.key === 'Backspace' && !el.value && idx > 0) {
+            const prev = document.querySelector(`.otp-box[data-index="${idx - 1}"]`);
+            prev.value = '';
+            prev.classList.remove('filled');
+            prev.focus();
+        }
+    }
+
+    function verifyOTP() {
+        if (isVerifying) return;
+        const otp = [...document.querySelectorAll('.otp-box')].map(b => b.value).join('');
+        if (otp.length !== 6 || !confirmationResult) return;
+
+        isVerifying = true;
+        // UI: Loading
+        document.getElementById('verifyOtpBtn').disabled = true;
+        document.getElementById('verifyText').style.display = 'none';
+        document.getElementById('verifyLoader').style.display = 'inline-flex';
+        document.getElementById('otpError').style.display = 'none';
+
+        confirmationResult.confirm(otp)
+            .then((result) => {
+                // Get Firebase ID token and send to backend
+                result.user.getIdToken().then((idToken) => {
+                    // Send token to Django backend for verification
+                    fetch('{% url "phone_verify" %}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': '{{ csrf_token }}'
+                        },
+                        body: JSON.stringify({
+                            id_token: idToken,
+                            phone: document.getElementById('phoneInput').value
+                        })
+                    })
+                        .then(res => res.json())
+                        .then(data => {
+                            if (data.success) {
+                                window.location.href = data.redirect || '/home/';
+                            } else {
+                                showOtpError(data.error || 'Login failed. Please try again.');
+                            }
+                        })
+                        .catch(() => {
+                            showOtpError('Server error. Please try again.');
+                        });
+                });
+            })
+            .catch((error) => {
+                console.error('Verify error:', error);
+                if (error.code === 'auth/invalid-verification-code') {
+                    showOtpError('Invalid OTP. Please check and try again.');
+                } else if (error.code === 'auth/code-expired') {
+                    showOtpError('OTP expired. Please request a new one.');
+                } else {
+                    showOtpError('Verification failed. Please try again.');
+                }
+
+                // Shake animation on boxes
+                document.querySelectorAll('.otp-box').forEach(b => {
+                    b.classList.add('error');
+                    setTimeout(() => b.classList.remove('error'), 500);
+                });
+            });
+    }
+
+    function showOtpError(msg) {
+        isVerifying = false;
+        const el = document.getElementById('otpError');
+        el.textContent = msg;
+        el.style.display = 'block';
+        document.getElementById('verifyOtpBtn').disabled = false;
+        document.getElementById('verifyText').style.display = 'inline';
+        document.getElementById('verifyLoader').style.display = 'none';
+    }
+</script>
+{% endblock %}

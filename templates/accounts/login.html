@@ -1,0 +1,125 @@
+{% extends 'base.html' %}
+
+
+{% block title %}Login - CampusBites{% endblock %}
+
+{% block navbar %}{% endblock %}
+{% block footer %}{% endblock %}
+
+{% block content %}
+<div class="auth-body">
+    <div class="auth-container">
+        <!-- Visual Side (Left) -->
+        <div class="auth-visual">
+            <div class="quote-container animate-enter delay-2">
+                <div class="quote-text">Cravings,<br>satisfied.</div>
+                <div class="quote-sub">Skip the line. Eat fresh.</div>
+            </div>
+        </div>
+
+        <!-- Content Side (Right) -->
+        <div class="auth-content">
+            <a href="{% url 'home' %}" class="brand-title"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                    stroke="var(--primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                    style="vertical-align: -4px; margin-right: 4px;">
+                    <path d="M18 8h1a4 4 0 0 1 0 8h-1" />
+                    <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z" />
+                    <line x1="6" y1="1" x2="6" y2="4" />
+                    <line x1="10" y1="1" x2="10" y2="4" />
+                    <line x1="14" y1="1" x2="14" y2="4" />
+                </svg>CampusBites</a>
+
+            <div class="animate-enter delay-1">
+                <h2 class="page-title">Welcome back</h2>
+                <p class="page-subtitle">Enter your details to access your account.</p>
+            </div>
+
+
+
+            <form method="POST" class="animate-enter delay-3">
+                {% csrf_token %}
+
+                <div class="form-group-modern">
+                    <label class="modern-label">Username</label>
+                    <input type="text" name="username" class="modern-input" maxlength="30" required>
+                </div>
+
+                <div class="form-group-modern">
+                    <label class="modern-label">Password</label>
+                    <div style="position: relative;">
+                        <input type="password" name="password" id="loginPassword" class="modern-input" maxlength="128"
+                            required style="padding-right: 48px;">
+                        <button type="button" class="password-toggle" onclick="togglePassword('loginPassword', this)"
+                            title="Show password">
+                            <svg class="eye-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M2.036 12.322a1.012 1.012 0 010-.644C3.399 8.049 7.21 5 12 5c4.789 0 8.601 3.049 9.964 6.678.057.152.057.342 0 .494C20.601 15.951 16.79 19 12 19c-4.789 0-8.601-3.049-9.964-6.678z" />
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px;">
+                    <label
+                        style="display: flex; align-items: center; gap: 8px; font-size: 14px; color: #6b7280; cursor: pointer;">
+                        <input type="checkbox" name="remember_me" value="1" style="accent-color: #111827;"> Remember me
+                    </label>
+                    <a href="{% url 'forgot_password' %}" id="forgotPasswordLink"
+                        style="font-size: 14px; color: #ff5200; font-weight: 600; text-decoration: none;"
+                        onclick="return forgotPassword(event)">Forgot
+                        password?</a>
+                </div>
+
+                <button type="submit" class="btn-ultra">Sign In</button>
+            </form>
+
+            <div class="animate-enter delay-3" style="text-align: center; margin-top: 32px;">
+                <p style="color: #6b7280; font-size: 14px;">
+                    Don't have an account?
+                    <a href="{% url 'register' %}"
+                        style="color: #111827; font-weight: 700; text-decoration: none;">Create one</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function forgotPassword(event) {
+        event.preventDefault();
+        const username = document.querySelector('input[name="username"]').value.trim();
+        let url = document.getElementById('forgotPasswordLink').getAttribute('href');
+        if (username) {
+            url += '?username=' + encodeURIComponent(username);
+        }
+        window.location.href = url;
+        return false;
+    }
+
+    function togglePassword(inputId, btn) {
+        const input = document.getElementById(inputId);
+        const isPassword = input.type === 'password';
+
+        input.type = isPassword ? 'text' : 'password';
+        btn.title = isPassword ? 'Hide password' : 'Show password';
+
+        if (isPassword) {
+            btn.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" />
+                </svg>
+            `;
+        } else {
+            btn.innerHTML = `
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.644C3.399 8.049 7.21 5 12 5c4.789 0 8.601 3.049 9.964 6.678.057.152.057.342 0 .494C20.601 15.951 16.79 19 12 19c-4.789 0-8.601-3.049-9.964-6.678z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+            `;
+        }
+    }
+</script>
+{% endblock %}
