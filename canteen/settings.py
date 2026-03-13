@@ -1,5 +1,8 @@
 """Django settings for canteen project."""
 
+import pymysql
+pymysql.install_as_MySQLdb()
+
 from pathlib import Path
 from decouple import config, Csv
 
@@ -44,6 +47,7 @@ SITE_ID = 1
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -114,6 +118,7 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Logging configuration
 LOGGING = {
@@ -324,6 +329,7 @@ CSRF_TRUSTED_ORIGINS = [
     'https://*.trycloudflare.com',
     'http://localhost:8000',
     'http://127.0.0.1:8000',
+    'https://*.vercel.app',
 ]
 
 # Production settings (applied if DEBUG=False)
