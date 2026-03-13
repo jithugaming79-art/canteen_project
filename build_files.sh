@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Mark that we're in the build phase (so settings.py uses SQLite instead of MySQL)
+export BUILD_PHASE=1
+
 # Install dependencies (--break-system-packages needed for Vercel's uv-managed Python)
 pip install --break-system-packages -r requirements.txt
 
