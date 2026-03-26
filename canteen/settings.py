@@ -1,10 +1,6 @@
 """Django settings for canteen project."""
 
-import pymysql
-pymysql.install_as_MySQLdb()
-import MySQLdb
-MySQLdb.version_info = (2, 2, 1, 'final', 0)
-
+import dj_database_url
 from pathlib import Path
 from decouple import config, Csv
 
@@ -100,19 +96,14 @@ if os.environ.get('BUILD_PHASE'):
         }
     }
 else:
-    # MySQL Database (production / local dev)
+    # Neon PostgreSQL Database (production / local dev)
     DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.mysql',
-            'NAME': config('DB_NAME', default='canteen_db'),
-            'USER': config('DB_USER', default='root'),
-            'PASSWORD': config('DB_PASSWORD', default=''),
-            'HOST': config('DB_HOST', default='localhost'),
-            'PORT': config('DB_PORT', default='3306'),
-            'OPTIONS': {
-                'charset': 'utf8mb4',
-            }
-        }
+        'default': dj_database_url.config(
+            default=config('DATABASE_URL', default=''),
+            conn_max_age=600,
+            conn_health_checks=True,
+            ssl_require=True,
+        )
     }
 
 AUTH_PASSWORD_VALIDATORS = [
