@@ -887,11 +887,14 @@ def admin_whatsapp(request):
         if action == 'create_offer':
             title = request.POST.get('offer_title', '').strip()
             description = request.POST.get('offer_description', '').strip()
-            code = request.POST.get('offer_code', '').strip()
+            code = request.POST.get('offer_code', '').strip().upper()
             valid_until = request.POST.get('offer_valid_until', '')
+            discount_type = request.POST.get('discount_type', 'percent')
+            discount_value = request.POST.get('discount_value', '').strip()
+            single_item_only = request.POST.get('single_item_only') == 'on'
 
             if title and description and valid_until:
-                Offer.objects.create(
+                offer = Offer.objects.create(
                     title=title,
                     description=description,
                     discount_code=code,
@@ -899,6 +902,28 @@ def admin_whatsapp(request):
                     valid_until=valid_until,
                     is_active=True,
                 )
+
+                # Auto-create a matching Coupon so the code works at checkout
+                if code and discount_value:
+                    from orders.models import Coupon
+                    from decimal import Decimal, InvalidOperation
+                    try:
+                        val = Decimal(discount_value)
+                        Coupon.objects.update_or_create(
+                            code=code,
+                            defaults={
+                                'description': title,
+                                'discount_type': discount_type,
+                                'discount_value': val,
+                                'valid_from': timezone.now(),
+                                'valid_until': valid_until,
+                                'is_active': True,
+                                'single_item_only': single_item_only,
+                            },
+                        )
+                    except (InvalidOperation, ValueError):
+                        pass  # Skip coupon creation if value is invalid
+
                 messages.success(request, f'Offer "{title}" created!')
             else:
                 messages.error(request, 'Please fill in all required fields.')
@@ -920,6 +945,17 @@ def admin_whatsapp(request):
                 failed = results.get('failed', 0)
                 skipped = results.get('skipped', 0)
                 messages.success(request, f'WhatsApp: {sent} sent, {failed} failed, {skipped} skipped')
+            except Offer.DoesNotExist:
+                messages.error(request, 'Offer not found.')
+            return redirect('custom_admin_whatsapp')
+
+        elif action == 'delete_offer':
+            offer_id = request.POST.get('offer_id')
+            try:
+                offer = Offer.objects.get(id=offer_id)
+                title = offer.title
+                offer.delete()
+                messages.success(request, f'Offer "{title}" deleted!')
             except Offer.DoesNotExist:
                 messages.error(request, 'Offer not found.')
             return redirect('custom_admin_whatsapp')

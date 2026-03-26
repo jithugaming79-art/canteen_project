@@ -2,24 +2,32 @@
 {% load static %}
 {% block title %}WhatsApp Notifications
 <!-- User Selection Modal -->
-<div id="userSelectorModal" style="display:none;position:fixed;inset:0;z-index:5000;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);align-items:center;justify-content:center;">
-    <div style="background:var(--admin-card);border-radius:16px;padding:32px;width:90%;max-width:600px;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+<div id="userSelectorModal"
+    style="display:none;position:fixed;inset:0;z-index:5000;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);align-items:center;justify-content:center;">
+    <div
+        style="background:var(--admin-card);border-radius:16px;padding:32px;width:90%;max-width:600px;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
             <div>
                 <h3 style="font-size:20px;font-weight:800;margin:0;" id="userModalTitle">Send Offer</h3>
-                <p style="font-size:13px;color:var(--admin-text-muted);margin:4px 0 0;" id="userModalSubtitle">Select users to receive this offer</p>
+                <p style="font-size:13px;color:var(--admin-text-muted);margin:4px 0 0;" id="userModalSubtitle">Select
+                    users to receive this offer</p>
             </div>
-            <button onclick="document.getElementById('userSelectorModal').style.display='none'" style="background:none;border:none;font-size:24px;cursor:pointer;color:var(--admin-text-muted);">X</button>
+            <button onclick="document.getElementById('userSelectorModal').style.display='none'"
+                style="background:none;border:none;font-size:24px;cursor:pointer;color:var(--admin-text-muted);">X</button>
         </div>
 
         <!-- Search & Controls -->
         <div style="display:flex;gap:10px;margin-bottom:12px;align-items:center;">
-            <input type="text" id="userSearchInput" placeholder="Search users..." oninput="filterUsers(this.value)" style="flex:1;padding:8px 14px;border-radius:10px;border:1.5px solid var(--admin-border);font-size:13px;background:var(--admin-bg);color:var(--admin-text);">
-            <button type="button" onclick="toggleAllUsers(true)" style="padding:6px 12px;border-radius:8px;border:1.5px solid var(--admin-border);background:var(--admin-bg);color:var(--admin-text);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;">All</button>
-            <button type="button" onclick="toggleAllUsers(false)" style="padding:6px 12px;border-radius:8px;border:1.5px solid var(--admin-border);background:var(--admin-bg);color:var(--admin-text);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;">None</button>
+            <input type="text" id="userSearchInput" placeholder="Search users..." oninput="filterUsers(this.value)"
+                style="flex:1;padding:8px 14px;border-radius:10px;border:1.5px solid var(--admin-border);font-size:13px;background:var(--admin-bg);color:var(--admin-text);">
+            <button type="button" onclick="toggleAllUsers(true)"
+                style="padding:6px 12px;border-radius:8px;border:1.5px solid var(--admin-border);background:var(--admin-bg);color:var(--admin-text);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;">All</button>
+            <button type="button" onclick="toggleAllUsers(false)"
+                style="padding:6px 12px;border-radius:8px;border:1.5px solid var(--admin-border);background:var(--admin-bg);color:var(--admin-text);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;">None</button>
         </div>
 
-        <div style="font-size:12px;color:var(--admin-text-muted);margin-bottom:8px;"><span id="selectedCount">0</span> users selected</div>
+        <div style="font-size:12px;color:var(--admin-text-muted);margin-bottom:8px;"><span id="selectedCount">0</span>
+            users selected</div>
 
         <!-- User List -->
         <form method="POST" id="sendOfferForm">
@@ -27,72 +35,88 @@
             <input type="hidden" name="whatsapp_action" value="send_offer">
             <input type="hidden" name="offer_id" id="modalOfferId" value="">
 
-            <div id="userListContainer" style="overflow-y:auto;max-height:45vh;border:1px solid var(--admin-border);border-radius:10px;">
+            <div id="userListContainer"
+                style="overflow-y:auto;max-height:45vh;border:1px solid var(--admin-border);border-radius:10px;">
                 {% for u in opted_in_users %}
-                <label class="user-select-row" data-username="{{ u.user.username|lower }}" data-phone="{{ u.phone }}" data-name="{{ u.full_name|lower }}" style="display:flex;align-items:center;gap:12px;padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--admin-border);transition:background 0.15s;">
-                    <input type="checkbox" name="user_ids" value="{{ u.user.id }}" class="user-checkbox" onchange="updateSelectedCount()" style="width:18px;height:18px;accent-color:#ff5200;cursor:pointer;">
-                    <div style="width:32px;height:32px;border-radius:50%;background:hsl({{ u.user.id|add:100 }},50%,60%);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;flex-shrink:0;">{{ u.user.username|first|upper }}</div>
+                <label class="user-select-row" data-username="{{ u.user.username|lower }}" data-phone="{{ u.phone }}"
+                    data-name="{{ u.full_name|lower }}"
+                    style="display:flex;align-items:center;gap:12px;padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--admin-border);transition:background 0.15s;">
+                    <input type="checkbox" name="user_ids" value="{{ u.user.id }}" class="user-checkbox"
+                        onchange="updateSelectedCount()"
+                        style="width:18px;height:18px;accent-color:#ff5200;cursor:pointer;">
+                    <div
+                        style="width:32px;height:32px;border-radius:50%;background:hsl({{ u.user.id|add:100 }},50%,60%);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;flex-shrink:0;">
+                        {{ u.user.username|first|upper }}</div>
                     <div style="flex:1;min-width:0;">
                         <div style="font-weight:600;font-size:13px;color:var(--admin-text);">{{ u.user.username }}</div>
-                        <div style="font-size:11px;color:var(--admin-text-muted);">{{ u.phone }}{% if u.full_name %} &middot; {{ u.full_name }}{% endif %}</div>
+                        <div style="font-size:11px;color:var(--admin-text-muted);">{{ u.phone }}{% if u.full_name %}
+                            &middot; {{ u.full_name }}{% endif %}</div>
                     </div>
                 </label>
                 {% empty %}
-                <div style="padding:30px;text-align:center;color:var(--admin-text-muted);">No opted-in users found.</div>
+                <div style="padding:30px;text-align:center;color:var(--admin-text-muted);">No opted-in users found.
+                </div>
                 {% endfor %}
             </div>
 
             <div style="display:flex;gap:10px;margin-top:16px;">
-                <button type="button" onclick="document.getElementById('userSelectorModal').style.display='none'" style="flex:1;padding:12px;border-radius:10px;border:1.5px solid var(--admin-border);background:var(--admin-bg);color:var(--admin-text);font-size:14px;font-weight:600;cursor:pointer;">Cancel</button>
-                <button type="submit" class="btn-admin-primary" style="flex:2;padding:12px;font-size:14px;border-radius:10px;" id="sendBtn">Send to 0 users</button>
+                <button type="button" onclick="document.getElementById('userSelectorModal').style.display='none'"
+                    style="flex:1;padding:12px;border-radius:10px;border:1.5px solid var(--admin-border);background:var(--admin-bg);color:var(--admin-text);font-size:14px;font-weight:600;cursor:pointer;">Cancel</button>
+                <button type="submit" class="btn-admin-primary"
+                    style="flex:2;padding:12px;font-size:14px;border-radius:10px;" id="sendBtn">Send to 0 users</button>
             </div>
         </form>
     </div>
 </div>
 
 <style>
-.user-select-row:hover { background: rgba(255,82,0,0.05); }
-.user-select-row:last-child { border-bottom: none; }
+    .user-select-row:hover {
+        background: rgba(255, 82, 0, 0.05);
+    }
+
+    .user-select-row:last-child {
+        border-bottom: none;
+    }
 </style>
 
 <script>
-function openUserSelector(offerId, offerTitle) {
-    document.getElementById('modalOfferId').value = offerId;
-    document.getElementById('userModalTitle').textContent = 'Send: ' + offerTitle;
-    document.getElementById('userSelectorModal').style.display = 'flex';
-    // Reset
-    document.querySelectorAll('.user-checkbox').forEach(cb => { cb.checked = false; });
-    document.getElementById('userSearchInput').value = '';
-    filterUsers('');
-    updateSelectedCount();
-}
+    function openUserSelector(offerId, offerTitle) {
+        document.getElementById('modalOfferId').value = offerId;
+        document.getElementById('userModalTitle').textContent = 'Send: ' + offerTitle;
+        document.getElementById('userSelectorModal').style.display = 'flex';
+        // Reset
+        document.querySelectorAll('.user-checkbox').forEach(cb => { cb.checked = false; });
+        document.getElementById('userSearchInput').value = '';
+        filterUsers('');
+        updateSelectedCount();
+    }
 
-function filterUsers(query) {
-    const q = query.toLowerCase();
-    document.querySelectorAll('.user-select-row').forEach(row => {
-        const name = row.dataset.username || '';
-        const phone = row.dataset.phone || '';
-        const fullname = row.dataset.name || '';
-        row.style.display = (name.includes(q) || phone.includes(q) || fullname.includes(q)) ? 'flex' : 'none';
-    });
-}
+    function filterUsers(query) {
+        const q = query.toLowerCase();
+        document.querySelectorAll('.user-select-row').forEach(row => {
+            const name = row.dataset.username || '';
+            const phone = row.dataset.phone || '';
+            const fullname = row.dataset.name || '';
+            row.style.display = (name.includes(q) || phone.includes(q) || fullname.includes(q)) ? 'flex' : 'none';
+        });
+    }
 
-function toggleAllUsers(selectAll) {
-    document.querySelectorAll('.user-select-row').forEach(row => {
-        if (row.style.display !== 'none') {
-            row.querySelector('.user-checkbox').checked = selectAll;
-        }
-    });
-    updateSelectedCount();
-}
+    function toggleAllUsers(selectAll) {
+        document.querySelectorAll('.user-select-row').forEach(row => {
+            if (row.style.display !== 'none') {
+                row.querySelector('.user-checkbox').checked = selectAll;
+            }
+        });
+        updateSelectedCount();
+    }
 
-function updateSelectedCount() {
-    const count = document.querySelectorAll('.user-checkbox:checked').length;
-    document.getElementById('selectedCount').textContent = count;
-    document.getElementById('sendBtn').textContent = 'Send to ' + count + ' user' + (count !== 1 ? 's' : '');
-    document.getElementById('sendBtn').disabled = count === 0;
-    document.getElementById('sendBtn').style.opacity = count === 0 ? '0.5' : '1';
-}
+    function updateSelectedCount() {
+        const count = document.querySelectorAll('.user-checkbox:checked').length;
+        document.getElementById('selectedCount').textContent = count;
+        document.getElementById('sendBtn').textContent = 'Send to ' + count + ' user' + (count !== 1 ? 's' : '');
+        document.getElementById('sendBtn').disabled = count === 0;
+        document.getElementById('sendBtn').style.opacity = count === 0 ? '0.5' : '1';
+    }
 </script>
 
 {% endblock %}
@@ -185,11 +209,14 @@ function updateSelectedCount() {
             <tr>
                 <td>
                     <div style="font-weight:700;">{{ offer.title }}</div>
-                    <div style="font-size:12px;color:var(--admin-text-muted);margin-top:2px;">{{ offer.description|truncatewords:8 }}</div>
+                    <div style="font-size:12px;color:var(--admin-text-muted);margin-top:2px;">{{
+                        offer.description|truncatewords:8 }}</div>
                 </td>
                 <td>
                     {% if offer.discount_code %}
-                    <span style="background:rgba(255,82,0,0.1);color:#ff5200;padding:3px 8px;border-radius:6px;font-size:12px;font-weight:600;">{{ offer.discount_code }}</span>
+                    <span
+                        style="background:rgba(255,82,0,0.1);color:#ff5200;padding:3px 8px;border-radius:6px;font-size:12px;font-weight:600;">{{
+                        offer.discount_code }}</span>
                     {% else %}
                     <span style="color:var(--admin-text-muted);font-size:12px;">No code</span>
                     {% endif %}
@@ -204,11 +231,28 @@ function updateSelectedCount() {
                 </td>
                 <td style="font-weight:600;">{{ offer.sent_count }}</td>
                 <td style="text-align:right;">
-                    {% if offer.is_active %}
-                    <button type="button" class="btn-admin-primary" style="padding:6px 16px;font-size:12px;border-radius:8px;" onclick="openUserSelector({{ offer.id }}, '{{ offer.title|escapejs }}')">Select Users</button>
-                    {% else %}
-                    <button type="button" class="btn-admin-primary" style="padding:6px 16px;font-size:12px;border-radius:8px;opacity:0.5;cursor:not-allowed;" disabled>Select Users</button>
-                    {% endif %}
+                    <div style="display:flex;gap:8px;justify-content:flex-end;align-items:center;">
+                        {% if offer.is_active %}
+                        <button type="button" class="btn-admin-primary"
+                            style="padding:6px 16px;font-size:12px;border-radius:8px;"
+                            onclick="openUserSelector({{ offer.id }}, '{{ offer.title|escapejs }}')">Select
+                            Users</button>
+                        {% else %}
+                        <button type="button" class="btn-admin-primary"
+                            style="padding:6px 16px;font-size:12px;border-radius:8px;opacity:0.5;cursor:not-allowed;"
+                            disabled>Select Users</button>
+                        {% endif %}
+                        <form method="POST" style="margin:0;"
+                            onsubmit="return confirm('Are you sure you want to delete this offer?')">
+                            {% csrf_token %}
+                            <input type="hidden" name="whatsapp_action" value="delete_offer">
+                            <input type="hidden" name="offer_id" value="{{ offer.id }}">
+                            <button type="submit"
+                                style="padding:6px 16px;font-size:12px;border-radius:8px;border:1.5px solid #e74c3c;background:rgba(231,76,60,0.1);color:#e74c3c;font-weight:600;cursor:pointer;transition:all 0.2s;"
+                                onmouseover="this.style.background='#e74c3c';this.style.color='#fff'"
+                                onmouseout="this.style.background='rgba(231,76,60,0.1)';this.style.color='#e74c3c'">Delete</button>
+                        </form>
+                    </div>
                 </td>
             </tr>
             {% empty %}
@@ -291,6 +335,25 @@ function updateSelectedCount() {
                     <div>
                         <label
                             style="font-size:13px;font-weight:600;color:var(--admin-text);display:block;margin-bottom:6px;">Discount
+                            Type</label>
+                        <select name="discount_type"
+                            style="width:100%;padding:10px 14px;border-radius:10px;border:1.5px solid var(--admin-border);font-size:14px;background:var(--admin-bg);color:var(--admin-text);">
+                            <option value="percent">Percentage (%)</option>
+                            <option value="flat">Flat Amount (₹)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label
+                            style="font-size:13px;font-weight:600;color:var(--admin-text);display:block;margin-bottom:6px;">Discount
+                            Value</label>
+                        <input type="number" name="discount_value" placeholder="e.g. 30" min="0" step="0.01"
+                            style="width:100%;padding:10px 14px;border-radius:10px;border:1.5px solid var(--admin-border);font-size:14px;background:var(--admin-bg);color:var(--admin-text);">
+                    </div>
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+                    <div>
+                        <label
+                            style="font-size:13px;font-weight:600;color:var(--admin-text);display:block;margin-bottom:6px;">Discount
                             Code</label>
                         <input type="text" name="offer_code" placeholder="e.g. BREAKFAST50"
                             style="width:100%;padding:10px 14px;border-radius:10px;border:1.5px solid var(--admin-border);font-size:14px;background:var(--admin-bg);color:var(--admin-text);">
@@ -303,6 +366,13 @@ function updateSelectedCount() {
                             style="width:100%;padding:10px 14px;border-radius:10px;border:1.5px solid var(--admin-border);font-size:14px;background:var(--admin-bg);color:var(--admin-text);">
                     </div>
                 </div>
+                <div style="display:flex;align-items:center;gap:10px;padding:4px 0;">
+                    <input type="checkbox" name="single_item_only" id="singleItemOnly"
+                        style="width:18px;height:18px;accent-color:#ff5200;cursor:pointer;">
+                    <label for="singleItemOnly"
+                        style="font-size:13px;font-weight:600;color:var(--admin-text);cursor:pointer;">Discount
+                        applies to one item only (cheapest)</label>
+                </div>
                 <button type="submit" class="btn-admin-primary"
                     style="padding:12px;font-size:14px;border-radius:10px;margin-top:8px;">
                     Create Offer
@@ -313,24 +383,32 @@ function updateSelectedCount() {
 </div>
 
 <!-- User Selection Modal -->
-<div id="userSelectorModal" style="display:none;position:fixed;inset:0;z-index:5000;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);align-items:center;justify-content:center;">
-    <div style="background:var(--admin-card);border-radius:16px;padding:32px;width:90%;max-width:600px;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+<div id="userSelectorModal"
+    style="display:none;position:fixed;inset:0;z-index:5000;background:rgba(0,0,0,0.6);backdrop-filter:blur(4px);align-items:center;justify-content:center;">
+    <div
+        style="background:var(--admin-card);border-radius:16px;padding:32px;width:90%;max-width:600px;max-height:80vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
             <div>
                 <h3 style="font-size:20px;font-weight:800;margin:0;" id="userModalTitle">Send Offer</h3>
-                <p style="font-size:13px;color:var(--admin-text-muted);margin:4px 0 0;" id="userModalSubtitle">Select users to receive this offer</p>
+                <p style="font-size:13px;color:var(--admin-text-muted);margin:4px 0 0;" id="userModalSubtitle">Select
+                    users to receive this offer</p>
             </div>
-            <button onclick="document.getElementById('userSelectorModal').style.display='none'" style="background:none;border:none;font-size:24px;cursor:pointer;color:var(--admin-text-muted);">X</button>
+            <button onclick="document.getElementById('userSelectorModal').style.display='none'"
+                style="background:none;border:none;font-size:24px;cursor:pointer;color:var(--admin-text-muted);">X</button>
         </div>
 
         <!-- Search & Controls -->
         <div style="display:flex;gap:10px;margin-bottom:12px;align-items:center;">
-            <input type="text" id="userSearchInput" placeholder="Search users..." oninput="filterUsers(this.value)" style="flex:1;padding:8px 14px;border-radius:10px;border:1.5px solid var(--admin-border);font-size:13px;background:var(--admin-bg);color:var(--admin-text);">
-            <button type="button" onclick="toggleAllUsers(true)" style="padding:6px 12px;border-radius:8px;border:1.5px solid var(--admin-border);background:var(--admin-bg);color:var(--admin-text);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;">All</button>
-            <button type="button" onclick="toggleAllUsers(false)" style="padding:6px 12px;border-radius:8px;border:1.5px solid var(--admin-border);background:var(--admin-bg);color:var(--admin-text);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;">None</button>
+            <input type="text" id="userSearchInput" placeholder="Search users..." oninput="filterUsers(this.value)"
+                style="flex:1;padding:8px 14px;border-radius:10px;border:1.5px solid var(--admin-border);font-size:13px;background:var(--admin-bg);color:var(--admin-text);">
+            <button type="button" onclick="toggleAllUsers(true)"
+                style="padding:6px 12px;border-radius:8px;border:1.5px solid var(--admin-border);background:var(--admin-bg);color:var(--admin-text);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;">All</button>
+            <button type="button" onclick="toggleAllUsers(false)"
+                style="padding:6px 12px;border-radius:8px;border:1.5px solid var(--admin-border);background:var(--admin-bg);color:var(--admin-text);font-size:12px;font-weight:600;cursor:pointer;white-space:nowrap;">None</button>
         </div>
 
-        <div style="font-size:12px;color:var(--admin-text-muted);margin-bottom:8px;"><span id="selectedCount">0</span> users selected</div>
+        <div style="font-size:12px;color:var(--admin-text-muted);margin-bottom:8px;"><span id="selectedCount">0</span>
+            users selected</div>
 
         <!-- User List -->
         <form method="POST" id="sendOfferForm">
@@ -338,72 +416,88 @@ function updateSelectedCount() {
             <input type="hidden" name="whatsapp_action" value="send_offer">
             <input type="hidden" name="offer_id" id="modalOfferId" value="">
 
-            <div id="userListContainer" style="overflow-y:auto;max-height:45vh;border:1px solid var(--admin-border);border-radius:10px;">
+            <div id="userListContainer"
+                style="overflow-y:auto;max-height:45vh;border:1px solid var(--admin-border);border-radius:10px;">
                 {% for u in opted_in_users %}
-                <label class="user-select-row" data-username="{{ u.user.username|lower }}" data-phone="{{ u.phone }}" data-name="{{ u.full_name|lower }}" style="display:flex;align-items:center;gap:12px;padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--admin-border);transition:background 0.15s;">
-                    <input type="checkbox" name="user_ids" value="{{ u.user.id }}" class="user-checkbox" onchange="updateSelectedCount()" style="width:18px;height:18px;accent-color:#ff5200;cursor:pointer;">
-                    <div style="width:32px;height:32px;border-radius:50%;background:hsl({{ u.user.id|add:100 }},50%,60%);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;flex-shrink:0;">{{ u.user.username|first|upper }}</div>
+                <label class="user-select-row" data-username="{{ u.user.username|lower }}" data-phone="{{ u.phone }}"
+                    data-name="{{ u.full_name|lower }}"
+                    style="display:flex;align-items:center;gap:12px;padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--admin-border);transition:background 0.15s;">
+                    <input type="checkbox" name="user_ids" value="{{ u.user.id }}" class="user-checkbox"
+                        onchange="updateSelectedCount()"
+                        style="width:18px;height:18px;accent-color:#ff5200;cursor:pointer;">
+                    <div
+                        style="width:32px;height:32px;border-radius:50%;background:hsl({{ u.user.id|add:100 }},50%,60%);display:flex;align-items:center;justify-content:center;color:#fff;font-weight:700;font-size:13px;flex-shrink:0;">
+                        {{ u.user.username|first|upper }}</div>
                     <div style="flex:1;min-width:0;">
                         <div style="font-weight:600;font-size:13px;color:var(--admin-text);">{{ u.user.username }}</div>
-                        <div style="font-size:11px;color:var(--admin-text-muted);">{{ u.phone }}{% if u.full_name %} &middot; {{ u.full_name }}{% endif %}</div>
+                        <div style="font-size:11px;color:var(--admin-text-muted);">{{ u.phone }}{% if u.full_name %}
+                            &middot; {{ u.full_name }}{% endif %}</div>
                     </div>
                 </label>
                 {% empty %}
-                <div style="padding:30px;text-align:center;color:var(--admin-text-muted);">No opted-in users found.</div>
+                <div style="padding:30px;text-align:center;color:var(--admin-text-muted);">No opted-in users found.
+                </div>
                 {% endfor %}
             </div>
 
             <div style="display:flex;gap:10px;margin-top:16px;">
-                <button type="button" onclick="document.getElementById('userSelectorModal').style.display='none'" style="flex:1;padding:12px;border-radius:10px;border:1.5px solid var(--admin-border);background:var(--admin-bg);color:var(--admin-text);font-size:14px;font-weight:600;cursor:pointer;">Cancel</button>
-                <button type="submit" class="btn-admin-primary" style="flex:2;padding:12px;font-size:14px;border-radius:10px;" id="sendBtn">Send to 0 users</button>
+                <button type="button" onclick="document.getElementById('userSelectorModal').style.display='none'"
+                    style="flex:1;padding:12px;border-radius:10px;border:1.5px solid var(--admin-border);background:var(--admin-bg);color:var(--admin-text);font-size:14px;font-weight:600;cursor:pointer;">Cancel</button>
+                <button type="submit" class="btn-admin-primary"
+                    style="flex:2;padding:12px;font-size:14px;border-radius:10px;" id="sendBtn">Send to 0 users</button>
             </div>
         </form>
     </div>
 </div>
 
 <style>
-.user-select-row:hover { background: rgba(255,82,0,0.05); }
-.user-select-row:last-child { border-bottom: none; }
+    .user-select-row:hover {
+        background: rgba(255, 82, 0, 0.05);
+    }
+
+    .user-select-row:last-child {
+        border-bottom: none;
+    }
 </style>
 
 <script>
-function openUserSelector(offerId, offerTitle) {
-    document.getElementById('modalOfferId').value = offerId;
-    document.getElementById('userModalTitle').textContent = 'Send: ' + offerTitle;
-    document.getElementById('userSelectorModal').style.display = 'flex';
-    // Reset
-    document.querySelectorAll('.user-checkbox').forEach(cb => { cb.checked = false; });
-    document.getElementById('userSearchInput').value = '';
-    filterUsers('');
-    updateSelectedCount();
-}
+    function openUserSelector(offerId, offerTitle) {
+        document.getElementById('modalOfferId').value = offerId;
+        document.getElementById('userModalTitle').textContent = 'Send: ' + offerTitle;
+        document.getElementById('userSelectorModal').style.display = 'flex';
+        // Reset
+        document.querySelectorAll('.user-checkbox').forEach(cb => { cb.checked = false; });
+        document.getElementById('userSearchInput').value = '';
+        filterUsers('');
+        updateSelectedCount();
+    }
 
-function filterUsers(query) {
-    const q = query.toLowerCase();
-    document.querySelectorAll('.user-select-row').forEach(row => {
-        const name = row.dataset.username || '';
-        const phone = row.dataset.phone || '';
-        const fullname = row.dataset.name || '';
-        row.style.display = (name.includes(q) || phone.includes(q) || fullname.includes(q)) ? 'flex' : 'none';
-    });
-}
+    function filterUsers(query) {
+        const q = query.toLowerCase();
+        document.querySelectorAll('.user-select-row').forEach(row => {
+            const name = row.dataset.username || '';
+            const phone = row.dataset.phone || '';
+            const fullname = row.dataset.name || '';
+            row.style.display = (name.includes(q) || phone.includes(q) || fullname.includes(q)) ? 'flex' : 'none';
+        });
+    }
 
-function toggleAllUsers(selectAll) {
-    document.querySelectorAll('.user-select-row').forEach(row => {
-        if (row.style.display !== 'none') {
-            row.querySelector('.user-checkbox').checked = selectAll;
-        }
-    });
-    updateSelectedCount();
-}
+    function toggleAllUsers(selectAll) {
+        document.querySelectorAll('.user-select-row').forEach(row => {
+            if (row.style.display !== 'none') {
+                row.querySelector('.user-checkbox').checked = selectAll;
+            }
+        });
+        updateSelectedCount();
+    }
 
-function updateSelectedCount() {
-    const count = document.querySelectorAll('.user-checkbox:checked').length;
-    document.getElementById('selectedCount').textContent = count;
-    document.getElementById('sendBtn').textContent = 'Send to ' + count + ' user' + (count !== 1 ? 's' : '');
-    document.getElementById('sendBtn').disabled = count === 0;
-    document.getElementById('sendBtn').style.opacity = count === 0 ? '0.5' : '1';
-}
+    function updateSelectedCount() {
+        const count = document.querySelectorAll('.user-checkbox:checked').length;
+        document.getElementById('selectedCount').textContent = count;
+        document.getElementById('sendBtn').textContent = 'Send to ' + count + ' user' + (count !== 1 ? 's' : '');
+        document.getElementById('sendBtn').disabled = count === 0;
+        document.getElementById('sendBtn').style.opacity = count === 0 ? '0.5' : '1';
+    }
 </script>
 
 {% endblock %}

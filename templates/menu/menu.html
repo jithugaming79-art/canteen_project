@@ -165,9 +165,9 @@
                     <a href="{% url 'item_detail' item.id %}" style="text-decoration: none; color: inherit;">
                         <div class="food-card-image">
                             {% if item.image %}
-                            <img src="{{ item.image.url }}" alt="{{ item.name }}">
+                            <img src="{{ item.image.url }}" alt="{{ item.name }}" style="max-width: 100%; object-fit: cover;">
                             {% else %}
-                            <img src="https://via.placeholder.com/300x200?text={{ item.name }}" alt="{{ item.name }}">
+                            <img src="https://via.placeholder.com/300x200?text={{ item.name }}" alt="{{ item.name }}" style="max-width: 100%; object-fit: cover;">
                             {% endif %}
                             <span class="food-badge">ITEMS AT ₹{{ item.price|floatformat:0 }}</span>
                             {% if item.is_vegetarian %}

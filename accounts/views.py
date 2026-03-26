@@ -390,20 +390,15 @@ def login_view(request):
                     return redirect('kitchen_dashboard')
             return redirect('home')
         else:
-            # Check if account is deactivated (is_active=False)
             from django.db.models import Q
-            try:
-                inactive_user = User.objects.get(Q(username=username) | Q(email=username), is_active=False)
-                if inactive_user.check_password(password):
-                    # Redirect to reactivate account page
-                    request.session['reactivate_email'] = inactive_user.email
-                    return redirect('reactivate_account')
-            except User.DoesNotExist:
-                pass
-            except User.MultipleObjectsReturned:
-                pass
-            # Generic message to prevent username enumeration
-            messages.error(request, 'Invalid credentials')
+            # Check if the username/email exists at all
+            user_exists = User.objects.filter(
+                Q(username__iexact=username) | Q(email__iexact=username)
+            ).exists()
+            if not user_exists:
+                messages.error(request, 'No account found with that username or email. Please register first.')
+            else:
+                messages.error(request, 'Invalid credentials. Please check your password.')
     
     return render(request, 'accounts/auth_messages.html')
 
@@ -518,8 +513,11 @@ def admin_dashboard(request):
             from notifications.models import Offer
             title = request.POST.get('offer_title', '').strip()
             description = request.POST.get('offer_description', '').strip()
-            code = request.POST.get('offer_code', '').strip()
+            code = request.POST.get('offer_code', '').strip().upper()
             valid_until = request.POST.get('offer_valid_until', '')
+            discount_type = request.POST.get('discount_type', 'percent')
+            discount_value = request.POST.get('discount_value', '').strip()
+            single_item_only = request.POST.get('single_item_only') == 'on'
             
             if title and description and valid_until:
                 Offer.objects.create(
@@ -530,6 +528,28 @@ def admin_dashboard(request):
                     valid_until=valid_until,
                     is_active=True,
                 )
+
+                # Auto-create a matching Coupon so the code works at checkout
+                if code and discount_value:
+                    from orders.models import Coupon
+                    from decimal import Decimal, InvalidOperation
+                    try:
+                        val = Decimal(discount_value)
+                        Coupon.objects.update_or_create(
+                            code=code,
+                            defaults={
+                                'description': title,
+                                'discount_type': discount_type,
+                                'discount_value': val,
+                                'valid_from': timezone.now(),
+                                'valid_until': valid_until,
+                                'is_active': True,
+                                'single_item_only': single_item_only,
+                            },
+                        )
+                    except (InvalidOperation, ValueError):
+                        pass
+
                 messages.success(request, f'✅ Offer "{title}" created!')
             else:
                 messages.error(request, 'Please fill in all required fields.')
@@ -1011,7 +1031,7 @@ def profile_view(request):
 
 @login_required
 def deactivate_account_view(request):
-    """Deactivate (soft-delete) user account. Requires password confirmation."""
+    """Hard-delete user account from database. Requires password confirmation."""
     if request.method == 'POST':
         password = request.POST.get('password', '')
         confirm = request.POST.get('confirm', '')
@@ -1026,12 +1046,25 @@ def deactivate_account_view(request):
                 messages.error(request, 'Incorrect password')
                 return redirect('profile')
         
-        # Soft-delete: deactivate account
-        request.user.is_active = False
-        request.user.save()
-        
+        # Release the college/staff ID so it can be reused for registration
+        user = request.user
+        try:
+            profile = user.profile
+            if profile.college_id:
+                if profile.role == 'student':
+                    from .models import ValidStudent
+                    ValidStudent.objects.filter(register_no=profile.college_id).update(is_registered=False)
+                elif profile.role == 'teacher':
+                    from .models import ValidStaff
+                    ValidStaff.objects.filter(staff_id=profile.college_id).update(is_registered=False)
+        except Exception:
+            pass  # Don't block deletion if something goes wrong
+
+        # Log the user out first, then permanently delete the account
         logout(request)
-        messages.success(request, 'Your account has been deactivated. Contact support to reactivate.')
+        user.delete()
+        
+        messages.success(request, 'Your account has been permanently deleted.')
         return redirect('home')
     
     return redirect('profile')

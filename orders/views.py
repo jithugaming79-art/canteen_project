@@ -6,7 +6,7 @@ from django.contrib import messages
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db import transaction
 from menu.models import MenuItem
-from .models import Order, OrderItem
+from .models import Order, OrderItem, Coupon
 from payments.models import WalletTransaction
 from accounts.models import UserProfile, SystemSettings
 from canteen.utils import redirect_replace
@@ -223,6 +223,61 @@ def clear_cart(request):
     messages.success(request, 'Cart cleared')
     return redirect('view_cart')
 
+# ===== COUPON FUNCTIONS =====
+
+@login_required
+@require_POST
+def apply_coupon(request):
+    """AJAX endpoint to validate and preview a coupon code"""
+    from django.http import JsonResponse
+    from decimal import Decimal, InvalidOperation
+
+    code = request.POST.get('coupon_code', '').strip().upper()
+    try:
+        subtotal = Decimal(str(request.POST.get('subtotal', '0')))
+    except (InvalidOperation, ValueError):
+        return JsonResponse({'valid': False, 'message': 'Invalid subtotal.'})
+
+    try:
+        coupon = Coupon.objects.get(code=code)
+    except Coupon.DoesNotExist:
+        return JsonResponse({'valid': False, 'message': 'Invalid coupon code.'})
+
+    valid, error = coupon.is_valid(subtotal, user=request.user)
+    if not valid:
+        return JsonResponse({'valid': False, 'message': error})
+
+    # For single-item coupons, find cheapest item price from cart
+    cheapest_price = None
+    if coupon.single_item_only:
+        cart = get_cart(request)
+        prices = []
+        for item_id in cart.keys():
+            try:
+                item = MenuItem.objects.get(id=item_id)
+                prices.append(item.price)
+            except MenuItem.DoesNotExist:
+                pass
+        if prices:
+            cheapest_price = min(prices)
+
+    discount = coupon.calculate_discount(subtotal, cheapest_item_price=cheapest_price)
+    if coupon.discount_type == 'percent':
+        if coupon.single_item_only:
+            discount_display = f"{coupon.discount_value:.0f}% off on 1 item"
+        else:
+            discount_display = f"{coupon.discount_value:.0f}% off"
+    else:
+        discount_display = f"\u20b9{discount:.2f} off"
+
+    return JsonResponse({
+        'valid': True,
+        'message': coupon.description or f"Coupon applied! {discount_display}",
+        'discount_amount': float(discount),
+        'discount_display': discount_display,
+    })
+
+
 # ===== ORDER FUNCTIONS =====
 
 @login_required
@@ -346,28 +401,65 @@ def place_order(request):
              return redirect('checkout')
 
     # Calculate subtotal
-    subtotal = 0
+    from decimal import Decimal
+    subtotal = Decimal('0')
     for item_id, data in cart.items():
         try:
             item = MenuItem.objects.get(id=item_id)
             subtotal += item.price * data['quantity']
         except MenuItem.DoesNotExist:
             pass
-    
-    # Total with delivery fee
-    total = subtotal + delivery_fee
-    
+
+    # Coupon discount
+    coupon_code = request.POST.get('coupon_code', '').strip().upper()
+    applied_coupon = None
+    discount_amount = Decimal('0')
+    if coupon_code:
+        try:
+            coupon = Coupon.objects.select_for_update().get(code=coupon_code)
+            valid, error_msg = coupon.is_valid(subtotal, user=request.user)
+            if valid:
+                # Find cheapest item for single-item coupons
+                cheapest_price = None
+                if coupon.single_item_only:
+                    item_prices = []
+                    for iid, d in cart.items():
+                        try:
+                            mi = MenuItem.objects.get(id=iid)
+                            item_prices.append(mi.price)
+                        except MenuItem.DoesNotExist:
+                            pass
+                    if item_prices:
+                        cheapest_price = min(item_prices)
+                discount_amount = coupon.calculate_discount(subtotal, cheapest_item_price=cheapest_price)
+                applied_coupon = coupon
+            else:
+                logger.info(f"Coupon '{coupon_code}' rejected at place_order: {error_msg}")
+        except Coupon.DoesNotExist:
+            logger.info(f"Unknown coupon '{coupon_code}' submitted at place_order")
+
+    # Total with delivery fee minus discount
+    total = subtotal + Decimal(str(delivery_fee)) - discount_amount
+    if total < Decimal('0'):
+        total = Decimal('0')
+
     # Create order
     order = Order.objects.create(
         user=request.user,
         payment_method=payment_method,
         total_amount=total,
+        discount_amount=discount_amount,
+        coupon=applied_coupon,
         special_instructions=special_instructions,
         delivery_type=delivery_type,
         delivery_location=delivery_location,
         delivery_fee=delivery_fee,
         scheduled_for=scheduled_for,
     )
+
+    # Increment coupon uses_count atomically
+    if applied_coupon:
+        Coupon.objects.filter(pk=applied_coupon.pk).update(uses_count=applied_coupon.uses_count + 1)
     
     # Create order items
     for item_id, data in cart.items():

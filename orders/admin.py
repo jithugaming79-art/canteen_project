@@ -1,7 +1,7 @@
 from django.contrib import admin
 from django.utils.html import format_html
 from django.utils import timezone
-from .models import Order, OrderItem
+from .models import Order, OrderItem, Coupon
 
 class OrderItemInline(admin.TabularInline):
     model = OrderItem
@@ -96,3 +96,36 @@ class OrderAdmin(admin.ModelAdmin):
     def mark_cancelled(self, request, queryset):
         queryset.update(status='cancelled')
         self.message_user(request, f"{queryset.count()} orders Cancelled.")
+
+
+@admin.register(Coupon)
+class CouponAdmin(admin.ModelAdmin):
+    list_display = ('code', 'discount_type', 'discount_value', 'usage_display',
+                    'min_order_amount', 'valid_until', 'is_active')
+    list_filter = ('discount_type', 'is_active')
+    search_fields = ('code', 'description')
+    readonly_fields = ('uses_count', 'created_at')
+    ordering = ('-created_at',)
+
+    fieldsets = (
+        ('Code', {
+            'fields': ('code', 'description', 'is_active')
+        }),
+        ('Discount', {
+            'fields': ('discount_type', 'discount_value', 'min_order_amount')
+        }),
+        ('Validity', {
+            'fields': ('valid_from', 'valid_until', 'max_uses', 'uses_count')
+        }),
+    )
+
+    @admin.display(description='Usage')
+    def usage_display(self, obj):
+        if obj.max_uses == 0:
+            return format_html('<span style="color:#6c757d">{}  / ∞</span>', obj.uses_count)
+        pct = int(obj.uses_count / obj.max_uses * 100)
+        color = '#28a745' if pct < 80 else '#dc3545'
+        return format_html(
+            '<span style="color:{}"><b>{}</b> / {}</span>',
+            color, obj.uses_count, obj.max_uses
+        )

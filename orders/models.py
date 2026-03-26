@@ -1,11 +1,83 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
 from menu.models import MenuItem
 import random
 import string
 import qrcode
 import io
 import base64
+
+# ===== COUPON MODEL =====
+
+class Coupon(models.Model):
+    DISCOUNT_TYPE_CHOICES = [
+        ('percent', 'Percentage (%)'),
+        ('flat', 'Flat Amount (₹)'),
+    ]
+
+    code = models.CharField(max_length=20, unique=True)
+    description = models.CharField(max_length=200, blank=True,
+                                   help_text="Short description shown to user (e.g., '50% off Breakfast!')")
+    discount_type = models.CharField(max_length=10, choices=DISCOUNT_TYPE_CHOICES, default='percent')
+    discount_value = models.DecimalField(max_digits=6, decimal_places=2,
+                                         help_text="Percent (0-100) or flat ₹ amount")
+    min_order_amount = models.DecimalField(max_digits=8, decimal_places=2, default=0,
+                                           help_text="Minimum cart subtotal required")
+    max_uses = models.PositiveIntegerField(default=0,
+                                           help_text="0 = unlimited uses")
+    uses_count = models.PositiveIntegerField(default=0, editable=False)
+    one_per_user = models.BooleanField(default=True,
+                                       help_text="Each user can use this coupon only once")
+    single_item_only = models.BooleanField(default=False,
+                                           help_text="Discount applies to one item only (cheapest)")
+    valid_from = models.DateTimeField(default=timezone.now)
+    valid_until = models.DateTimeField(null=True, blank=True,
+                                       help_text="Leave blank for no expiry")
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return self.code
+
+    def calculate_discount(self, subtotal, cheapest_item_price=None):
+        """Return the discount amount for a given subtotal (Decimal).
+        If single_item_only is True, discount is based on cheapest_item_price."""
+        from decimal import Decimal
+        base = cheapest_item_price if (self.single_item_only and cheapest_item_price) else subtotal
+        if self.discount_type == 'percent':
+            return (base * self.discount_value / Decimal('100')).quantize(Decimal('0.01'))
+        else:  # flat
+            return min(self.discount_value, base)
+
+    def is_valid(self, subtotal, user=None):
+        """Returns (bool, error_message). True if coupon can be applied."""
+        if not self.is_active:
+            return False, 'This coupon is no longer active.'
+        now = timezone.now()
+        if now < self.valid_from:
+            return False, 'This coupon is not valid yet.'
+        if self.valid_until and now > self.valid_until:
+            return False, 'This coupon has expired.'
+        if self.max_uses > 0 and self.uses_count >= self.max_uses:
+            return False, 'This coupon has reached its usage limit.'
+        if subtotal < self.min_order_amount:
+            return False, f'Minimum order of ₹{self.min_order_amount} required for this coupon.'
+        # Per-user one-time check
+        if self.one_per_user and user:
+            from orders.models import Order
+            already_used = Order.objects.filter(
+                user=user, coupon=self
+            ).exclude(status='cancelled').exists()
+            if already_used:
+                return False, 'You have already used this coupon.'
+        return True, ''
+
+
+# ===== TOKEN GENERATION =====
 
 def generate_token():
     """Generate a random token like TKN-A1B2C3 with retry on collision"""
@@ -62,6 +134,10 @@ class Order(models.Model):
     payment_method = models.CharField(max_length=20, choices=PAYMENT_CHOICES, default='cash')
     is_paid = models.BooleanField(default=False)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    discount_amount = models.DecimalField(max_digits=8, decimal_places=2, default=0,
+                                          help_text="Discount applied via coupon")
+    coupon = models.ForeignKey(Coupon, null=True, blank=True, on_delete=models.SET_NULL,
+                               related_name='orders')
     special_instructions = models.TextField(blank=True)
     
     # Delivery options

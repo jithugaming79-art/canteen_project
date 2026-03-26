@@ -76,6 +76,18 @@
     .co-instructions textarea { width: 100%; padding: 10px 14px; border: 1px solid #d4d5d9; font-size: 13px; font-family: inherit; color: #282c3f; background: #fff; box-sizing: border-box; resize: vertical; }
     .co-instructions textarea:focus { border-color: #ff5200; outline: none; }
 
+    /* Coupon section */
+    .co-coupon-wrap { padding: 0 20px 14px; }
+    .co-coupon-row { display: flex; gap: 8px; }
+    .co-coupon-input { flex: 1; padding: 10px 14px; border: 1.5px solid #d4d5d9; font-size: 13px; font-family: inherit; color: #282c3f; background: #fff; text-transform: uppercase; letter-spacing: 1px; }
+    .co-coupon-input:focus { border-color: #ff5200; outline: none; }
+    .co-coupon-btn { padding: 10px 18px; background: #282c3f; color: #fff; border: none; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; transition: background 0.15s; white-space: nowrap; }
+    .co-coupon-btn:hover { background: #ff5200; }
+    .co-coupon-msg { margin-top: 8px; font-size: 12px; padding: 6px 10px; display: none; }
+    .co-coupon-msg.success { background: #e9f7ef; color: #1d7a4b; display: block; }
+    .co-coupon-msg.error { background: #fdecea; color: #c0392b; display: block; }
+    .co-coupon-remove { font-size: 11px; color: #93959f; cursor: pointer; margin-left: 8px; text-decoration: underline; }
+
     /* Right panel - Order Summary */
     .sw-order-card { background: #fff; box-shadow: 0 1px 4px rgba(28,28,28,.06); }
     .sw-order-header { display: flex; align-items: center; gap: 10px; padding: 14px 18px; border-bottom: 1px solid #e9e9eb; }
@@ -277,6 +289,29 @@
             <!-- Divider -->
             <div style="height:1px; background:#e9ecee; margin:4px 20px 0;"></div>
 
+            <!-- Coupon Section -->
+            <div class="sw-step-header">
+                <div class="sw-step-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/>
+                    </svg>
+                </div>
+                <div class="sw-step-content">
+                    <h2 class="sw-step-title">Have a Coupon?</h2>
+                </div>
+            </div>
+            <div class="co-coupon-wrap">
+                <div class="co-coupon-row">
+                    <input type="text" id="couponInput" class="co-coupon-input" placeholder="Enter coupon code" maxlength="20" autocomplete="off">
+                    <button type="button" class="co-coupon-btn" onclick="applyCoupon()">Apply</button>
+                </div>
+                <div class="co-coupon-msg" id="couponMsg"></div>
+            </div>
+            <input type="hidden" name="coupon_code" id="couponCodeHidden" value="">
+
+            <!-- Divider -->
+            <div style="height:1px; background:#e9ecee; margin:4px 20px 0;"></div>
+
             <!-- Payment Section -->
             <div class="sw-step-header">
                 <div class="sw-step-icon">
@@ -315,24 +350,13 @@
                     </div>
                     <span class="co-pay-check"></span>
                 </label>
-                <label class="co-pay-option">
-                    <input type="radio" name="payment_method" value="cash">
-                    <div class="co-pay-body">
-                        <span class="co-pay-icon" style="background:#fff3e0; color:#ff9800;">
-                            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                        </span>
-                        <div class="co-pay-info">
-                            <strong>Pay at Counter</strong>
-                            <span>Pay in cash when you pick up</span>
-                        </div>
-                    </div>
-                    <span class="co-pay-check"></span>
-                </label>
+
             </div>
 
         </div>
 
         <input type="hidden" name="subtotal" value="{{ total }}">
+        <input type="hidden" name="special_instructions" id="specialInstructionsInput" value="">
         <button type="submit" class="sw-checkout-btn">Place Order →</button>
     </div>
 
@@ -343,6 +367,20 @@
 <script>
     const subtotal = parseFloat("{{ total|default:0 }}");
     const deliveryFee = parseFloat("{{ delivery_fee|default:0 }}");
+    let discountAmount = 0;
+    const applyCouponUrl = "{% url 'apply_coupon' %}";
+    const csrfToken = '{{ csrf_token }}';
+
+    // Pre-fill suggestion from cart page
+    (function() {
+        var saved = sessionStorage.getItem('order_suggestion');
+        var inp = document.getElementById('specialInstructionsInput');
+        if (inp && saved) inp.value = saved;
+        // Clear after order is placed
+        document.getElementById('checkoutForm').addEventListener('submit', function() {
+            sessionStorage.removeItem('order_suggestion');
+        });
+    })();
 
     function setMinTime() {
         const now = new Date();
@@ -360,26 +398,127 @@
         else { g.style.display = 'none'; f.required = false; }
     }
 
+    function updateGrandTotal() {
+        const dt = document.querySelector('input[name="delivery_type"]:checked').value;
+        const fee = (dt === 'pickup') ? 0 : deliveryFee;
+        const total = Math.max(0, subtotal + fee - discountAmount);
+        const gt = document.getElementById('grandTotal');
+        if (gt) gt.textContent = '₹' + total.toFixed(2);
+        const dr = document.getElementById('deliveryFeeRow');
+        const fd = document.getElementById('freeDeliveryRow');
+        if (dr && fd) {
+            if (dt === 'pickup') { dr.style.display = 'none'; fd.style.display = 'flex'; }
+            else { dr.style.display = 'flex'; fd.style.display = 'none'; }
+        }
+    }
+
     function toggleDeliveryFields() {
         const dt = document.querySelector('input[name="delivery_type"]:checked').value;
         const rg = document.getElementById('roomNumberGroup');
         const rl = document.getElementById('roomLabel');
         const ri = document.getElementById('roomNumber');
-        const dr = document.getElementById('deliveryFeeRow');
-        const fd = document.getElementById('freeDeliveryRow');
-        const gt = document.getElementById('grandTotal');
 
         if (dt === 'pickup') {
             rg.style.display = 'none'; ri.required = false;
-            dr.style.display = 'none'; fd.style.display = 'flex';
-            gt.textContent = '₹' + subtotal;
         } else {
             rg.style.display = 'block'; ri.required = true;
-            dr.style.display = 'flex'; fd.style.display = 'none';
-            gt.textContent = '₹' + (subtotal + deliveryFee);
             if (dt === 'classroom') { rl.textContent = 'Classroom Number'; ri.placeholder = 'e.g., Room 101, Block A-203'; }
             else { rl.textContent = 'Staffroom Number'; ri.placeholder = 'e.g., Staff Room 1, Admin Block'; }
         }
+        updateGrandTotal();
     }
+
+    // ===== COUPON LOGIC =====
+    function getCookie(name) {
+        let v = null;
+        document.cookie.split(';').forEach(c => {
+            c = c.trim();
+            if (c.startsWith(name + '=')) v = decodeURIComponent(c.substring(name.length + 1));
+        });
+        return v;
+    }
+
+    function applyCoupon() {
+        const code = document.getElementById('couponInput').value.trim().toUpperCase();
+        const msgEl = document.getElementById('couponMsg');
+        const btn = document.querySelector('.co-coupon-btn');
+        if (!code) {
+            showCouponMsg('Please enter a coupon code.', false);
+            return;
+        }
+        btn.textContent = 'Checking…';
+        btn.disabled = true;
+        const csrf = getCookie('csrftoken') || csrfToken;
+        fetch(applyCouponUrl, {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+                'X-CSRFToken': csrf,
+                'X-Requested-With': 'XMLHttpRequest'
+            },
+            body: `coupon_code=${encodeURIComponent(code)}&subtotal=${subtotal}`
+        })
+        .then(r => {
+            if (!r.ok) throw new Error('Server error ' + r.status);
+            return r.json();
+        })
+        .then(data => {
+            btn.disabled = false;
+            if (data.valid) {
+                discountAmount = data.discount_amount;
+                document.getElementById('couponCodeHidden').value = code;
+                btn.textContent = '✓ Applied';
+                btn.style.background = '#28a745';
+                document.getElementById('couponInput').disabled = true;
+                showCouponMsg('🎉 ' + data.message, true);
+                updateGrandTotal();
+                // Show/update discount row
+                const discRow = document.getElementById('discountRow');
+                if (discRow) {
+                    discRow.style.display = 'flex';
+                    discRow.querySelector('span:last-child').textContent = '-₹' + discountAmount.toFixed(2);
+                }
+            } else {
+                discountAmount = 0;
+                document.getElementById('couponCodeHidden').value = '';
+                btn.textContent = 'Apply';
+                showCouponMsg('❌ ' + data.message, false);
+                updateGrandTotal();
+            }
+        })
+        .catch(err => {
+            btn.disabled = false;
+            btn.textContent = 'Apply';
+            showCouponMsg('❌ ' + (err.message || 'Something went wrong. Please try again.'), false);
+        });
+    }
+
+    function showCouponMsg(msg, success) {
+        const el = document.getElementById('couponMsg');
+        el.textContent = msg;
+        el.className = 'co-coupon-msg ' + (success ? 'success' : 'error');
+    }
+
+    function removeCoupon() {
+        discountAmount = 0;
+        document.getElementById('couponCodeHidden').value = '';
+        document.getElementById('couponInput').value = '';
+        document.getElementById('couponInput').disabled = false;
+        const btn = document.querySelector('.co-coupon-btn');
+        btn.textContent = 'Apply';
+        btn.style.background = '';
+        btn.disabled = false;
+        const el = document.getElementById('couponMsg');
+        el.className = 'co-coupon-msg';
+        const discRow = document.getElementById('discountRow');
+        if (discRow) discRow.style.display = 'none';
+        updateGrandTotal();
+    }
+
+    // Allow Enter key on coupon input
+    document.getElementById('couponInput').addEventListener('keydown', function(e) {
+        if (e.key === 'Enter') { e.preventDefault(); applyCoupon(); }
+    });
 </script>
 {% endblock %}

@@ -31,7 +31,7 @@
                 <th>Orders</th>
                 <th>Total Spent</th>
                 <th>Joined</th>
-                <th>Status</th>
+
             </tr>
         </thead>
         <tbody>
@@ -52,17 +52,11 @@
                 <td style="font-weight:600;">{{ u.order_count }}</td>
                 <td style="font-weight:600;">?{{ u.total_spent|floatformat:0|default:"0" }}</td>
                 <td style="font-size:12px;color:var(--admin-text-muted);">{{ u.date_joined|date:"M d, Y" }}</td>
-                <td>
-                    <label class="switch" title="Toggle Active Status">
-                        <input type="checkbox" onchange="toggleUserStatus('{{ u.id }}', this)" {{ u.checked_str }} {{
-                            u.disabled_str }}>
-                        <span class="slider round"></span>
-                    </label>
-                </td>
+
             </tr>
             {% empty %}
             <tr>
-                <td colspan="6">
+                <td colspan="5">
                     <div class="admin-empty">
                         <div class="admin-empty-icon">
                             <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor"

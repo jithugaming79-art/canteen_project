@@ -2043,7 +2043,16 @@ body.dark-mode .swiggy-cat-name {
 }
 
 .food-card:hover {
-    transform: scale(0.96);
+    transform: none;
+}
+
+.food-card:hover .food-card-image img {
+    transform: scale(1.05);
+    transition: transform 0.3s ease;
+}
+
+.food-card .food-card-image img {
+    transition: transform 0.3s ease;
 }
 
 .food-card-image {
@@ -2071,6 +2080,8 @@ body.dark-mode .swiggy-cat-name {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    max-width: 100%;
+    display: block;
 }
 
 

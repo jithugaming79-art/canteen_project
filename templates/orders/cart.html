@@ -787,7 +787,10 @@
                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
                     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                 </svg>
-                <span>Any suggestions? We will pass it on...</span>
+                <textarea id="cartSuggestionInput" rows="1"
+                    placeholder="Any suggestions? We will pass it on..."
+                    oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px';sessionStorage.setItem('order_suggestion',this.value)"
+                    style="flex:1;border:none;outline:none;background:transparent;font-size:13px;color:#535665;font-family:inherit;resize:none;padding:0;min-height:20px;overflow:hidden;"></textarea>
             </div>
 
             <!-- Bill Details -->
@@ -1006,6 +1009,13 @@
         });
 
         bindButtons();
+
+        // Restore saved suggestion from sessionStorage
+        var ta = document.getElementById('cartSuggestionInput');
+        if (ta) {
+            var saved = sessionStorage.getItem('order_suggestion');
+            if (saved) { ta.value = saved; ta.style.height = ta.scrollHeight + 'px'; }
+        }
     })();
 </script>
 {% endblock %}
